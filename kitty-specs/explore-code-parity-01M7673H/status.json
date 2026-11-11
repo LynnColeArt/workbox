@@ -161,7 +161,8 @@
       "model": "__resolved_model_absent__",
       "notes": [
         "Compose repository Code and expose shared Explore, Code and calendar results over MCP; verify both real interfaces.",
-        "Integration fdfc74f passes production build, TypeScript, scoped lint, all 57 tests, legacy MCP signed-write self-test, and browser keyboard drill-down checks."
+        "Integration fdfc74f passes production build, TypeScript, scoped lint, all 57 tests, legacy MCP signed-write self-test, and browser keyboard drill-down checks.",
+        "Independent reviewer verifies production browser and MCP parity and compatibility."
       ],
       "provider": "__resolved_provider_absent__",
       "role": "reviewer",
