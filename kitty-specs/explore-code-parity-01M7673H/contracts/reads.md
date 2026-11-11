@@ -1,0 +1,16 @@
+# Explore and Code read contract
+
+Each public read returns the normalized selection and public data. Use relative browser URLs with encoded query values. MCP returns equivalent results with browser links, exact filters, and record references. The browser and MCP call the same functions with the same access and database.
+
+| Read | Selection | Public result |
+| --- | --- | --- |
+| Explore | `q`, `sort` (recent or alpha), `page`, optional `day`, optional `snapshot` | Matching total, page and total pages, project rows and source labels, seven-day chart, coverage and snapshot. |
+| Code tree and file | project ID, `rev` (branch), optional `at` (full pinned commit), optional `path` | Resolved branch and commit, breadcrumbs, file or directory entries, last-change details, file introduction when established, scoped links. |
+| Code commit | project ID, resolved or selected branch, full commit | Full Git ID, subject, author and timestamp, and changed paths with status. Require the commit to be reachable from the selected branch or verified against a previously pinned accessible revision. |
+| Repository activity | project ID, `metric` (commits, issues, proposals, ci), optional `day`, `activityPage`, optional `snapshot` | One-year UTC chart, metric and branch scope, coverage and snapshot, paged matching records for a selected date. |
+
+Explore and repository activity return a shared chart model. The model specifies kind (line or calendar), title, units, time zone, range, day buckets with count or unknown and browser href, selected day, and any coverage limitations. A partial bucket may carry an observed lower bound. The chart adapter uses these exact values for axes or date cells, legend, and selection. The MCP response supplies structured JSON plus an independently viewable chart asset. Use ECharts SSR SVG over an MCP binary resource or embedded resource, with a documented way to request it again. Browser day controls and MCP day arguments use the same href and normalized inputs.
+
+A project is active on a day if at least one reachable local-branch Git commit or verified visible Hubnot event falls in that UTC bucket. Deduplicate Git commit IDs across refs and Hubnot events by verified event ID within each project. Explore totals count distinct projects. The Code calendar counts commits reachable from the repository's default branch, verified `issue.*`, verified `proposal.*` and `review.submit`, or verified `run.result`, according to the selected metric. Include proposal-linked decision and merge events when the verified schema supplies a proposal subject. A selected event opens its signed record or opens the relevant Workbox context with the record identified.
+
+A public record reference must be stable and round-trip to the exact authorized record. Use Git object IDs as typed public values. Prefer existing issue numbers and authorized proposal routes for Hubnot links. Keep legacy MCP sanitization in place for legacy results and free text where required. For new parity reads, whitelist result shapes and validate exact public references so the legacy regex cannot corrupt a Git SHA-256 object ID or a legitimate drill-down link. Do not include local paths, identity secrets, native diagnostics, or unverified records in new responses. A stale or invalid snapshot is a controlled result with a refresh path.
