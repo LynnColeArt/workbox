@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "name": "Workbox",
+  "tagline": "A communal room for hubnot projects",
+  "description": "Workbox is a portal over hubnot repositories. Trust is rendered, not hidden: every fact shown here is a signed event chain carried by Git, verified against the identity invariant before display.",
+  "projects": [
+    {
+      "id": "hubnot",
+      "name": "Hubnot",
+      "description": "Distributes collaboration as signed facts through Git: issues, planning, discussions, proposals, policy.",
+      "repoPath": "~/projects/hubnot"
+    },
+    {
+      "id": "workbox-demo",
+      "name": "Workbox Demo",
+      "description": "Demo project exercising the Workbox surface: issues, comments, boards, proposals.",
+      "repoPath": "~/projects/workbox-demo"
+    }
+  ]
+}

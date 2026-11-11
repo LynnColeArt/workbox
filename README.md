@@ -1,36 +1,64 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Workbox
 
-## Getting Started
+A communal room for hubnot projects — a GitHub-shaped portal over hubnot
+repositories. Trust is rendered, not hidden: every fact shown here is a
+signed event chain carried by Git, verified against the identity invariant
+before display.
 
-First, run the development server:
+## What it is
+
+- **Discovery**: scans a projects root for repos carrying hubnot signed
+  facts (`refs/hn/actors/*`; private identity state counts as initialized).
+  Override the root with `WORKBOX_PROJECTS_ROOT`.
+- **Read model**: an indexer walks every actor chain, verifies each event
+  (id digest, key→actor binding, Ed25519 signature), and projects issues,
+  comments, conflicts, and an activity feed into a local SQLite database.
+  The database is a cache, never a record — delete it and re-index freely.
+- **UI**: dashboard (cross-project activity, the living front page),
+  project pages (GitHub-familiar issue lists), and issue pages with the
+  full signed event chain and per-event verification badges.
+- **Write path (v1 planned)**: mutations flow through the real `hn` CLI,
+  using its documented `{ok,data,error}` envelope contract — never prose.
+
+## Layout
+
+- `src/lib/hn/` — the hubnot port: adapter (CLI runner), git reader,
+  signature verifier. Nothing outside this folder touches hubnot storage.
+- `src/lib/workbox/` — discovery, index writer, UI queries, event schema.
+- `scripts/seed-demo.sh` — seeds a genuine demo repo via the real CLI.
+- `scripts/index.ts` — index + proof run (prints verified counts, the
+  projected board, and the live feed).
+- `scripts/init-all-repos.sh` — idempotent `hn init` across a projects
+  root (private identity state only; no refs, no worktree changes).
+
+## Running
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+go build -o /tmp/hn .            # in ~/projects/hubnot (nogithub tag also fine)
+npm install
+npx tsx scripts/index.ts         # WORKBOX_PROJECTS_ROOT=~/projects
+npm run dev                      # then Sync → /api/sync or run scripts/index.ts
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Environment: `WORKBOX_PROJECTS_ROOT` (projects scan root),
+`WORKBOX_HN_BIN` (hn binary path), `WORKBOX_DB_PATH` (read-model path).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## hn CLI laws (learned live, 2026-11-11)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+1. **Flags precede free text.** `"Title" --json` refuses: every flag must
+   come before positional arguments.
+2. **`--expect` always requires the full issue head.** `hn issue heads ID
+   --json` → `data.items[0].id` is the revision. Short or wrong revs
+   refuse.
+3. **Close is a revise.** `issue close` appends an `issue.revise` event
+   with `"intent":"close"` carrying full issue state, with `previous`
+   linking the chain.
+4. **Resource id invariant**: an issue's id equals its opening event id.
+5. **Init is inert**: `hn init` writes only `.git/hn/identities/` — no
+   refs, no worktree changes. External pointer worktrees cannot be
+   inited; their primary covers them.
 
-## Learn More
+## Known generation drift (handled)
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Events from 2026-09 (hubnot repo itself) carry issue payloads flat;
+2026-11 events nest them under `"issue"`. The projector accepts both.
