@@ -61,7 +61,7 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
         <div className="space-y-3">
           {comments.map((c) => (
             <article key={c.eventId} className="flex items-start gap-2 sm:gap-3">
-              <div aria-hidden="true" className="wb-panel grid size-8 shrink-0 place-items-center rounded-full text-sm font-semibold sm:size-10">
+              <div aria-hidden="true" className="grid size-8 shrink-0 place-items-center rounded-full border border-[var(--wb-border)] bg-[var(--wb-panel)] text-sm font-semibold sm:size-10">
                 {Array.from(c.actorName.trim())[0]?.toUpperCase() || "?"}
               </div>
               <div className="wb-panel min-w-0 flex-1 overflow-hidden">
