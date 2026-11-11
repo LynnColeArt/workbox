@@ -101,6 +101,7 @@
     },
     "WP04": {
       "actor": "codex",
+      "agent": "codex",
       "agent_profile": "__resolved_profile_absent__",
       "agent_profile_version": "__resolved_profile_version_absent__",
       "force_count": 0,
@@ -108,6 +109,9 @@
       "last_event_id": "01M763H1GJCK8S8XH2Z4WNAP1W",
       "last_transition_at": "2026-11-11T20:06:58.834297+00:00",
       "model": "__resolved_model_absent__",
+      "notes": [
+        "Starting exact policy blockers and Checks view"
+      ],
       "provider": "__resolved_provider_absent__",
       "role": "implementer"
     },
