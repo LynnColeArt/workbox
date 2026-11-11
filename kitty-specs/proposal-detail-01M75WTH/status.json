@@ -113,7 +113,12 @@
         "Starting exact policy blockers and Checks view"
       ],
       "provider": "__resolved_provider_absent__",
-      "role": "implementer"
+      "role": "implementer",
+      "subtasks": {
+        "T010": "done",
+        "T011": "done",
+        "T012": "done"
+      }
     },
     "WP05": {
       "actor": "finalize-tasks",
