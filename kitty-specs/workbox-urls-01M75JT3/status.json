@@ -120,7 +120,8 @@
       "last_transition_at": "2026-11-11T16:22:24.400907+00:00",
       "model": "__resolved_model_absent__",
       "notes": [
-        "Starting Linux handler in the owned feature checkout"
+        "Starting Linux handler in the owned feature checkout",
+        "Linux handler at b39c627: install and rollback smoke plus Firefox DL-001 passed"
       ],
       "provider": "__resolved_provider_absent__",
       "role": "implementer",
