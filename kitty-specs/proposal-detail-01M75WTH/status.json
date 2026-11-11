@@ -30,7 +30,8 @@
       "notes": [
         "Starting WP01 native proposal reads",
         "edc6afa passed adapter tests, actual Hubnot fixture, lint, tsc and build",
-        "Independent native adapter review"
+        "Independent native adapter review",
+        "Independent review approved edc6afa; 7 adapter tests and native shape and visibility checks passed"
       ],
       "provider": "__resolved_provider_absent__",
       "review_result": {
