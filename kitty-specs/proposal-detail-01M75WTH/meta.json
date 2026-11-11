@@ -13,6 +13,7 @@
   "accepted_at": "2026-11-11T20:29:39.376803+00:00",
   "accepted_by": "codex",
   "accepted_from_commit": "8b69cb7dca12bc32b48ec108c17372a155ba6b64",
+  "baseline_merge_commit": "8bf33bd2f96090a6834ecf6e4ff9afdc75e85f5b",
   "created_at": "2026-11-11T18:09:51.034534+00:00",
   "flattened": false,
   "friendly_name": "Proposal detail and next actions",
