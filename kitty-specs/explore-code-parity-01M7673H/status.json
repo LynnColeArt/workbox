@@ -1,7 +1,7 @@
 {
-  "event_count": 12,
-  "last_event_id": "01M767SAY74GV445TX8FZ2WGWE",
-  "materialized_at": "2026-11-11T21:21:24.935420+00:00",
+  "event_count": 13,
+  "last_event_id": "01M767SH2Q6BG87XEHD1FG6DXK",
+  "materialized_at": "2026-11-11T21:21:31.223645+00:00",
   "mission_number": "",
   "mission_slug": "explore-code-parity-01M7673H",
   "mission_type": "software-dev",
@@ -9,12 +9,12 @@
     "approved": 1,
     "blocked": 0,
     "canceled": 0,
-    "claimed": 0,
+    "claimed": 1,
     "done": 0,
     "for_review": 0,
     "in_progress": 1,
     "in_review": 0,
-    "planned": 3
+    "planned": 2
   },
   "work_packages": {
     "WP01": {
@@ -64,11 +64,16 @@
       "role": "implementer"
     },
     "WP03": {
-      "actor": "finalize-tasks",
+      "actor": "codex",
+      "agent_profile": "__resolved_profile_absent__",
+      "agent_profile_version": "__resolved_profile_version_absent__",
       "force_count": 0,
-      "lane": "planned",
-      "last_event_id": "01M767EA9F3EZ2AD7PCG2FSWRF",
-      "last_transition_at": "2026-11-11T21:15:23.823591+00:00"
+      "lane": "claimed",
+      "last_event_id": "01M767SH2Q6BG87XEHD1FG6DXK",
+      "last_transition_at": "2026-11-11T21:21:31.223645+00:00",
+      "model": "__resolved_model_absent__",
+      "provider": "__resolved_provider_absent__",
+      "role": "implementer"
     },
     "WP04": {
       "actor": "finalize-tasks",
