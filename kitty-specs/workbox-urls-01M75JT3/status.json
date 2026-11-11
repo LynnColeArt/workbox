@@ -130,7 +130,11 @@
         "Starting macOS handler in the owned feature checkout"
       ],
       "provider": "__resolved_provider_absent__",
-      "role": "implementer"
+      "role": "implementer",
+      "subtasks": {
+        "T015": "done",
+        "T016": "done"
+      }
     },
     "WP06": {
       "actor": "codex",
