@@ -15,9 +15,10 @@ including a custom port. For HTTPS, the certificate must be trusted by Node
 and your browser.
 
 Run the same install command with the new origin to reconfigure the handler.
-Run the updated installer with your current origin to upgrade it. If a desktop
-setting takes precedence over the user association, select **Workbox address
-handler** in the desktop’s application chooser.
+Run the updated installer with your current origin to upgrade it. The installer
+checks the effective association using GIO or xdg-utils. If a desktop-specific
+default takes precedence, the installer rolls back its changes. Remove the
+conflicting `workbox://` default in your desktop settings, then retry.
 
 To disable and remove the handler, run:
 
