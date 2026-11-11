@@ -61,7 +61,8 @@
         "Implement the paginated Explore browser and shared activity read.",
         "Explore implementation at d53be8c. Four tests, scoped lint and TypeScript passed.",
         "Independent Reviewer Renata checked coverage, visibility and Explore pagination.",
-        "Resolve merge-only dates and native visibility findings."
+        "Resolve merge-only dates and native visibility findings.",
+        "Explore correction 615bff7 includes merge-only dates and bounded exact native reads. Five tests, lint, TypeScript and an actual Hubnot fixture passed."
       ],
       "provider": "__resolved_provider_absent__",
       "review": null,
