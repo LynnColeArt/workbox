@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Workbox address handler
+Comment=Open Workbox addresses in the default browser
+Exec=@WORKBOX_COMMAND@ %u
+MimeType=x-scheme-handler/workbox;
+NoDisplay=true
+Terminal=false
