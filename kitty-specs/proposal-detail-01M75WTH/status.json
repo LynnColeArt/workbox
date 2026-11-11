@@ -111,7 +111,8 @@
       "model": "__resolved_model_absent__",
       "notes": [
         "Starting exact policy blockers and Checks view",
-        "200d02e passed Checks policy tests, scoped lint, tsc"
+        "200d02e passed Checks policy tests, scoped lint, tsc",
+        "Independent review of native blockers and stage separation"
       ],
       "provider": "__resolved_provider_absent__",
       "role": "reviewer",
