@@ -96,6 +96,7 @@
     },
     "WP04": {
       "actor": "codex",
+      "agent": "codex",
       "agent_profile": "__resolved_profile_absent__",
       "agent_profile_version": "__resolved_profile_version_absent__",
       "force_count": 0,
@@ -103,6 +104,9 @@
       "last_event_id": "01M75NZ1AZ7ZS9VFP7AK0GGM8V",
       "last_transition_at": "2026-11-11T16:09:57.343667+00:00",
       "model": "__resolved_model_absent__",
+      "notes": [
+        "Starting Linux handler in the owned feature checkout"
+      ],
       "provider": "__resolved_provider_absent__",
       "role": "implementer"
     },
