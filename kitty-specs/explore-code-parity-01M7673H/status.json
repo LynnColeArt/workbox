@@ -1,7 +1,7 @@
 {
-  "event_count": 2,
-  "last_event_id": "01M767E8WGQT995YR3HM79W6BX",
-  "materialized_at": "2026-11-11T21:15:22.384618+00:00",
+  "event_count": 3,
+  "last_event_id": "01M767EA9F3EZ2AD7PCG2FSWRF",
+  "materialized_at": "2026-11-11T21:15:23.823591+00:00",
   "mission_number": "",
   "mission_slug": "explore-code-parity-01M7673H",
   "mission_type": "software-dev",
@@ -14,7 +14,7 @@
     "for_review": 0,
     "in_progress": 0,
     "in_review": 0,
-    "planned": 2
+    "planned": 3
   },
   "work_packages": {
     "WP01": {
@@ -30,6 +30,13 @@
       "lane": "planned",
       "last_event_id": "01M767E8WGQT995YR3HM79W6BX",
       "last_transition_at": "2026-11-11T21:15:22.384618+00:00"
+    },
+    "WP03": {
+      "actor": "finalize-tasks",
+      "force_count": 0,
+      "lane": "planned",
+      "last_event_id": "01M767EA9F3EZ2AD7PCG2FSWRF",
+      "last_transition_at": "2026-11-11T21:15:23.823591+00:00"
     }
   }
 }
