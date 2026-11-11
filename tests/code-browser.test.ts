@@ -176,3 +176,32 @@ test("Git replacement refs and uncommitted files cannot change pinned reads", (t
   assert.equal(result.lastChange?.subject, "Original commit");
   assert.equal(result.lastChange?.sha, first);
 });
+
+test("file details and directory rows agree on merge conflict resolutions", (t) => {
+  const { repo, git, commit, read } = fixture(t);
+  const path = "docs/guide.md";
+  const file = join(repo, path);
+  mkdirSync(join(repo, "docs"));
+  writeFileSync(file, "original\n");
+  const first = commit("Introduce guide", "2025-04-01T10:00:00Z");
+  git("switch", "-qc", "feature");
+  writeFileSync(file, "feature edit\n");
+  commit("Edit guide on feature", "2025-04-02T10:00:00Z");
+  git("switch", "-q", "main");
+  writeFileSync(file, "main edit\n");
+  commit("Edit guide on main", "2025-04-03T10:00:00Z");
+  assert.throws(() => git("merge", "--no-ff", "--no-edit", "feature"), (error) => {
+    return typeof error === "object" && error !== null && "status" in error && error.status === 1;
+  });
+  writeFileSync(file, "resolved edit\n");
+  const merged = commit("Resolve guide conflict", "2025-04-04T10:00:00Z");
+
+  const directory = read({ path: "docs" });
+  assert.equal(directory.kind, "directory");
+  assert.equal(directory.entries[0].lastChange?.sha, merged);
+  const detail = read({ path });
+  assert.equal(detail.kind, "file");
+  assert.equal(detail.content, "resolved edit\n");
+  assert.deepEqual(detail.lastChange, directory.entries[0].lastChange);
+  assert.equal(detail.introduced?.sha, first);
+});

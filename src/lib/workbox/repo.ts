@@ -386,16 +386,20 @@ export function readPinnedRowHistory(repoPath: string, commit: string, directory
 }
 
 export function readPinnedFileHistory(repoPath: string, commit: string, path: string) {
+  const directory = path.split("/").slice(0, -1).join("/");
+  const rowHistory = readPinnedRowHistory(repoPath, commit, directory, [path]);
+  const latest = rowHistory.latest.get(path) ?? null;
+  // Following renames can omit merge diffs, so it only supplies introduction history.
   const { history, incomplete } = pinnedHistory(repoPath, commit, path, true);
   let previous = path;
   for (const entry of history) {
     const change = entry.changes.find((file) => file.path === previous);
     if (change?.status === "A") {
-      return { latest: history[0]?.info ?? null, introduced: incomplete ? null : entry.info, incomplete };
+      return { latest, introduced: incomplete ? null : entry.info, incomplete: rowHistory.incomplete || incomplete };
     }
     if (change?.status.startsWith("R") && change.previousPath) previous = change.previousPath;
   }
-  return { latest: history[0]?.info ?? null, introduced: null, incomplete: true };
+  return { latest, introduced: null, incomplete: true };
 }
 
 export function readPinnedCommit(repoPath: string, commit: string) {
