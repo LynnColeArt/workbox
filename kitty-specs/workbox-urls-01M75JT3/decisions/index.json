@@ -1,0 +1,26 @@
+{
+  "entries": [
+    {
+      "created_at": "2026-11-11T15:15:18.173222Z",
+      "decision_id": "01M75JTZ0X1CDK4BXY3XNGJJ78",
+      "final_answer": "Support browser deep links through a local handler, pasted Workbox addresses inside Workbox, and MCP resource resolution with existing URLs preserved.",
+      "input_key": "url_scope",
+      "mission_id": "01M75JT3C5QF06GF2D2C0FDKE6",
+      "mission_slug": "workbox-urls-01M75JT3",
+      "opened_by": "codex",
+      "options": [],
+      "origin_flow": "specify",
+      "other_answer": false,
+      "question": "Which surfaces must resolve workbox addresses?",
+      "rationale": "The user explicitly requested all three entry points.",
+      "resolved_at": "2026-11-11T15:15:19.385569Z",
+      "resolved_by": null,
+      "slot_key": "url_scope",
+      "status": "resolved",
+      "step_id": null,
+      "summary_json": null
+    }
+  ],
+  "mission_id": "01M75JT3C5QF06GF2D2C0FDKE6",
+  "version": 1
+}
