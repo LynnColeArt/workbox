@@ -92,7 +92,8 @@
       "model": "__resolved_model_absent__",
       "notes": [
         "Implement the pinned Git tree, file and commit browser and shared read.",
-        "Pinned Code reader and component implemented at af579d6. Six Git fixture tests and lint and TypeScript passed."
+        "Pinned Code reader and component implemented at af579d6. Six Git fixture tests and lint and TypeScript passed.",
+        "Independent review checks pinned Git trees, safe reads and commit drill-down."
       ],
       "provider": "__resolved_provider_absent__",
       "role": "reviewer",
