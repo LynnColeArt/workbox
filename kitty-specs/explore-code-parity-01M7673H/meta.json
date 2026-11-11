@@ -23,6 +23,7 @@
   "purpose_context": "Make project discovery and repository browsing familiar and useful while giving an authorized agent the same charts, data, filters, and drill-downs.",
   "purpose_tldr": "Browse projects, charts, and repository history with equivalent browser and MCP access.",
   "slug": "explore-code-parity-01M7673H",
+  "status_phase": "1",
   "target_branch": "feat/explore-code-parity",
   "topology": "single_branch"
 }
