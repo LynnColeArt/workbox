@@ -216,7 +216,8 @@
       "notes": [
         "All proposal component dependencies approved. Integrate and exercise the exact candidate browser route.",
         "Integrated route at 1786c9d. Production build, lint, TypeScript, all 37 tests and independent Chrome keyboard and native review smoke passed.",
-        "Independent Reviewer Renata checks exact route integration, policy and comparison fallbacks, and acceptance evidence."
+        "Independent Reviewer Renata checks exact route integration, policy and comparison fallbacks, and acceptance evidence.",
+        "Independent reviewer approved the production-backed signed browser integration and generic visibility fallbacks. All 37 proposal tests, build, lint, typecheck, and Chrome keyboard and real review smoke passed."
       ],
       "provider": "__resolved_provider_absent__",
       "review_result": {
