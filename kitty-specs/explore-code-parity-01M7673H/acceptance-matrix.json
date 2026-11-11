@@ -6,93 +6,93 @@
   "criteria": [
     {
       "criterion_id": "FR-001",
-      "description": "Verify FR-001 is satisfied",
+      "description": "Browse, search, and sort 20-project Explore pages.",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "tests/explore-code-parity.test.ts",
+      "pass_fail": "pass",
+      "verified_by": "codex",
+      "verified_at": "2026-11-11T21:43:25.858113+00:00",
+      "notes": "43 projects produce 20, 20 and 3 rows. Browser project links and MCP results agree."
     },
     {
       "criterion_id": "FR-002",
-      "description": "Verify FR-002 is satisfied",
+      "description": "Show seven UTC counts of distinct active projects.",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "tests/explore-read.test.ts",
+      "pass_fail": "pass",
+      "verified_by": "codex",
+      "verified_at": "2026-11-11T21:43:25.858113+00:00",
+      "notes": "Fixture covers qualifying Git and Hubnot activity, merge-only days, rejected events and source coverage."
     },
     {
       "criterion_id": "FR-003",
-      "description": "Verify FR-003 is satisfied",
+      "description": "Reconcile an Explore chart day with paginated records.",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "tests/explore-code-parity.test.ts",
+      "pass_fail": "pass",
+      "verified_by": "codex",
+      "verified_at": "2026-11-11T21:43:25.858113+00:00",
+      "notes": "The 22-project day has two pages. Browser keyboard navigation also opens the 22-project day."
     },
     {
       "criterion_id": "FR-004",
-      "description": "Verify FR-004 is satisfied",
+      "description": "Pin Code to the resolved branch commit.",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "tests/code-browser.test.ts",
+      "pass_fail": "pass",
+      "verified_by": "codex",
+      "verified_at": "2026-11-11T21:43:25.858113+00:00",
+      "notes": "Fixtures cover a non-default branch, moving branch tips, exact object IDs and unreachable revisions."
     },
     {
       "criterion_id": "FR-005",
-      "description": "Verify FR-005 is satisfied",
+      "description": "Show Git commit metadata for directory and file entries.",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "tests/code-browser.test.ts",
+      "pass_fail": "pass",
+      "verified_by": "codex",
+      "verified_at": "2026-11-11T21:43:25.858113+00:00",
+      "notes": "Fixtures cover descendant changes, introductions, conflict resolution, unusual paths and missing history."
     },
     {
       "criterion_id": "FR-006",
-      "description": "Verify FR-006 is satisfied",
+      "description": "Offer all four repository calendar metrics.",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "tests/repository-activity.test.ts",
+      "pass_fail": "pass",
+      "verified_by": "codex",
+      "verified_at": "2026-11-11T21:43:25.858113+00:00",
+      "notes": "Fixtures cover independent default branch scope, UTC, signed event families and controlled incomplete history."
     },
     {
       "criterion_id": "FR-007",
-      "description": "Verify FR-007 is satisfied",
+      "description": "Drill down to exact Git commits and verified Hubnot records.",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "tests/repository-activity.test.ts",
+      "pass_fail": "pass",
+      "verified_by": "codex",
+      "verified_at": "2026-11-11T21:43:25.858113+00:00",
+      "notes": "Day totals reconcile with page membership. Exact Code and Hubnot links and stale snapshots are exercised."
     },
     {
       "criterion_id": "FR-008",
-      "description": "Verify FR-008 is satisfied",
+      "description": "Provide matching browser and MCP reads and selections.",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "tests/explore-code-parity.test.ts",
+      "pass_fail": "pass",
+      "verified_by": "codex",
+      "verified_at": "2026-11-11T21:43:25.858113+00:00",
+      "notes": "Production HTTP and actual MCP stdio agree on project rows, chart filters and counts, exact commit metadata, all four metrics and drill-down links."
     },
     {
       "criterion_id": "FR-009",
-      "description": "Verify FR-009 is satisfied",
+      "description": "Return chart visuals and underlying data over MCP.",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "tests/explore-code-parity.test.ts",
+      "pass_fail": "pass",
+      "verified_by": "codex",
+      "verified_at": "2026-11-11T21:43:25.858113+00:00",
+      "notes": "MCP returns PNG image content plus the exact chart data. Browser fixtures verify date links and counts for Explore and all calendar metrics."
     }
   ],
   "negative_invariants": []
