@@ -4,6 +4,7 @@ import { getProject } from "@/lib/workbox/queries";
 import { openDb } from "@/lib/workbox/db";
 import { readPolicy } from "@/lib/workbox/ci";
 import { CreateForm } from "@/components/create-form";
+import ReviewButtons from "@/components/review-buttons";
 
 export const instant = false;
 
@@ -214,6 +215,7 @@ export default async function ProposalsPage({ params }: { params: Promise<{ id: 
                 color: l.state === "accepted" || l.state === "merged" ? "var(--wb-open)" : l.state === "rejected" ? "var(--wb-warn)" : "var(--wb-muted)",
               }}>{l.state}</span>
               <span className="wb-muted wb-mono text-xs ml-auto">{l.root.slice(7, 19)}</span>
+              <ReviewButtons projectId={id} proposalId={l.root} state={l.state} />
             </div>
             {l.body && <p className="wb-muted text-sm mb-2">{l.body}</p>}
             {l.base && l.head && (

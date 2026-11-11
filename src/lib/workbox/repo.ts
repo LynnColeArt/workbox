@@ -131,3 +131,32 @@ export function lastCommitsForPaths(repoPath: string, rev: string, dir: string, 
   }
   return out;
 }
+
+export interface BranchDetail {
+  name: string;
+  sha: string;
+  subject: string;
+  when: string;
+  ahead: number;
+  behind: number;
+  current: boolean;
+}
+
+/** Full branch table for the Branches tab: last commit + divergence from main. */
+export function branchDetails(repoPath: string): BranchDetail[] {
+  return listBranches(repoPath).map((b) => {
+    const last = git(repoPath, ["log", "-1", "--format=%s%x1f%I", b.name]);
+    const [subject, when] = last.out.trim().split("\x1f");
+    const ahead = git(repoPath, ["rev-list", "--count", `main..${b.name}`]);
+    const behind = git(repoPath, ["rev-list", "--count", `${b.name}..main`]);
+    return {
+      name: b.name,
+      sha: b.sha,
+      subject: subject ?? "",
+      when: when ?? "",
+      ahead: Number(ahead.out.trim()) || 0,
+      behind: Number(behind.out.trim()) || 0,
+      current: b.current,
+    };
+  });
+}

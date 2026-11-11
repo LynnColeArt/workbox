@@ -8,6 +8,7 @@ export const instant = false;
 
 const TABS = [
   { key: "code", label: "Code" },
+  { key: "branches", label: "Branches" },
   { key: "issues", label: "Issues" },
   { key: "proposals", label: "Proposals" },
   { key: "memories", label: "Memory" },
