@@ -28,7 +28,8 @@
       "last_transition_at": "2026-11-11T21:20:49.679399+00:00",
       "model": "__resolved_model_absent__",
       "notes": [
-        "Implement the shared chart model, browser chart and MCP visual."
+        "Implement the shared chart model, browser chart and MCP visual.",
+        "Shared chart model, SVG and PNG at 0d80b96. Three tests, lint and TypeScript passed."
       ],
       "provider": "__resolved_provider_absent__",
       "role": "implementer",
