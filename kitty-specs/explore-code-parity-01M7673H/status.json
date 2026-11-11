@@ -31,7 +31,12 @@
         "Implement the shared chart model, browser chart and MCP visual."
       ],
       "provider": "__resolved_provider_absent__",
-      "role": "implementer"
+      "role": "implementer",
+      "subtasks": {
+        "T001": "done",
+        "T002": "done",
+        "T003": "done"
+      }
     },
     "WP02": {
       "actor": "finalize-tasks",
