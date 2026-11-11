@@ -1,19 +1,19 @@
 {
-  "event_count": 46,
-  "last_event_id": "01M764MCA3CNN7R5J3KP038WPJ",
-  "materialized_at": "2026-11-11T20:26:16.771712+00:00",
+  "event_count": 47,
+  "last_event_id": "01M764MTYSFMF3X0A1YFB1A3P7",
+  "materialized_at": "2026-11-11T20:26:31.769218+00:00",
   "mission_number": "",
   "mission_slug": "proposal-detail-01M75WTH",
   "mission_type": "software-dev",
   "summary": {
-    "approved": 6,
+    "approved": 7,
     "blocked": 0,
     "canceled": 0,
     "claimed": 0,
     "done": 0,
     "for_review": 0,
     "in_progress": 0,
-    "in_review": 1,
+    "in_review": 0,
     "planned": 0
   },
   "work_packages": {
@@ -209,9 +209,9 @@
       "agent_profile": "__resolved_profile_absent__",
       "agent_profile_version": "__resolved_profile_version_absent__",
       "force_count": 0,
-      "lane": "in_review",
-      "last_event_id": "01M764MCA3CNN7R5J3KP038WPJ",
-      "last_transition_at": "2026-11-11T20:26:16.771712+00:00",
+      "lane": "approved",
+      "last_event_id": "01M764MTYSFMF3X0A1YFB1A3P7",
+      "last_transition_at": "2026-11-11T20:26:31.769218+00:00",
       "model": "__resolved_model_absent__",
       "notes": [
         "All proposal component dependencies approved. Integrate and exercise the exact candidate browser route.",
@@ -219,6 +219,12 @@
         "Independent Reviewer Renata checks exact route integration, policy and comparison fallbacks, and acceptance evidence."
       ],
       "provider": "__resolved_provider_absent__",
+      "review_result": {
+        "feedback_path": "/home/lynn/.codex/worktrees/workbox-url-plan/workbox/kitty-specs/proposal-detail-01M75WTH/tasks/WP07-proposal-detail-integration/review-cycle-1.md",
+        "reference": "review-cycle://proposal-detail-01M75WTH/WP07-proposal-detail-integration/review-cycle-1.md",
+        "reviewer": "reviewer-renata",
+        "verdict": "approved"
+      },
       "role": "reviewer",
       "subtasks": {
         "T019": "done",
