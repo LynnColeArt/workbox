@@ -132,7 +132,8 @@
       "notes": [
         "Build the repository calendar with pinned default-branch commits and verified Hubnot activity.",
         "Repository calendar implemented at 17a2d78. Four fixture tests, scoped lint and TypeScript passed.",
-        "Independent review checks four metric scopes, selected-history evidence and exact drill-down."
+        "Independent review checks four metric scopes, selected-history evidence and exact drill-down.",
+        "Independent review approved UTC metric scopes, exact drill-down and native visibility. Four focused tests and lint passed."
       ],
       "provider": "__resolved_provider_absent__",
       "review_result": {
