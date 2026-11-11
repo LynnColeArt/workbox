@@ -112,7 +112,8 @@
       "notes": [
         "Starting exact policy blockers and Checks view",
         "200d02e passed Checks policy tests, scoped lint, tsc",
-        "Independent review of native blockers and stage separation"
+        "Independent review of native blockers and stage separation",
+        "Independent review approved 200d02e; five tests and blocker keys checked against native fixture"
       ],
       "provider": "__resolved_provider_absent__",
       "review_result": {
