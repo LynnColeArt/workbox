@@ -24,6 +24,7 @@
   "purpose_context": "Make the Workbox proposal detail behave like a GitHub pull request while preserving Hubnot candidate identity, signed lineage, and project-specific readiness rules.",
   "purpose_tldr": "Show the exact proposal revision, what is blocking it, and what the developer can do next.",
   "slug": "proposal-detail-01M75WTH",
+  "status_phase": "1",
   "target_branch": "feat/proposal-detail",
   "topology": "single_branch"
 }
