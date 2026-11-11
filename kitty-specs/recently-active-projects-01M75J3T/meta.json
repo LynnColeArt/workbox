@@ -1,0 +1,15 @@
+{
+  "created_at": "2026-11-11T15:02:39.392902+00:00",
+  "flattened": false,
+  "friendly_name": "Recently active projects",
+  "mission_id": "01M75J3T0FAB89C9J6K6SS4FGH",
+  "mission_number": null,
+  "mission_slug": "recently-active-projects-01M75J3T",
+  "mission_type": "software-dev",
+  "pr_bound": true,
+  "purpose_context": "Replace the Dashboard’s unbounded directory with ten recently active projects, an activity chart, and a link to the full project directory. Use Git commits and verified Hubnot events.",
+  "purpose_tldr": "Help developers see active projects at a glance and find any project in Explore.",
+  "slug": "recently-active-projects-01M75J3T",
+  "target_branch": "feat/recently-active-projects",
+  "topology": "single_branch"
+}
