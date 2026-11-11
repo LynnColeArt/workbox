@@ -157,7 +157,12 @@
         "Starting next actions and existing exact-candidate review"
       ],
       "provider": "__resolved_provider_absent__",
-      "role": "implementer"
+      "role": "implementer",
+      "subtasks": {
+        "T013": "done",
+        "T014": "done",
+        "T015": "done"
+      }
     },
     "WP06": {
       "actor": "codex",
