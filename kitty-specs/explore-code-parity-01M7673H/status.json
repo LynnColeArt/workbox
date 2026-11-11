@@ -29,7 +29,8 @@
       "model": "__resolved_model_absent__",
       "notes": [
         "Implement the shared chart model, browser chart and MCP visual.",
-        "Shared chart model, SVG and PNG at 0d80b96. Three tests, lint and TypeScript passed."
+        "Shared chart model, SVG and PNG at 0d80b96. Three tests, lint and TypeScript passed.",
+        "Independent review checks data, visual and keyboard parity."
       ],
       "provider": "__resolved_provider_absent__",
       "role": "reviewer",
