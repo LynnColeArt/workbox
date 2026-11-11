@@ -43,6 +43,23 @@ export function chainCommits(repoPath: string, ref: string): string[] {
   return r.out.split("\n").map((s) => s.trim()).filter(Boolean);
 }
 
+/**
+ * Memory stream refs: refs/hn/memory/<actor>/<stream>.
+ * Memory is a separate signed-fact family with its own append-only
+ * chains (verified live 2026-11-11) — payload file is memory.json.
+ */
+export function memoryRefs(repoPath: string): Map<string, string> {
+  const r = git(repoPath, ["for-each-ref", "refs/hn/memory/", "--format=%(refname) %(objectname)"]);
+  const out = new Map<string, string>();
+  for (const line of r.out.split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    const sp = trimmed.lastIndexOf(" ");
+    out.set(trimmed.slice(0, sp), trimmed.slice(sp + 1));
+  }
+  return out;
+}
+
 export function commitSubject(repoPath: string, sha: string): string {
   return git(repoPath, ["log", "-1", "--format=%s", sha]).out.trim();
 }

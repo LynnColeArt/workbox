@@ -1,4 +1,4 @@
-import { actorRefs } from "../hn/gitread";
+import { actorRefs, memoryRefs } from "../hn/gitread";
 import { openDb, type IndexOutcome } from "./db";
 import { readChain } from "./read";
 import type { DatabaseSync } from "node:sqlite";
@@ -46,13 +46,13 @@ export function indexProject(
 ): IndexOutcome {
   const outcome: IndexOutcome = { events: 0, verified: 0, unverified: 0, issues: 0, errors: [] as string[] };
 
-  const refs = actorRefs(project.repoPath); // local + remote-tracking actor chains
+  const refs = new Map([...actorRefs(project.repoPath), ...memoryRefs(project.repoPath)]);
   const indexedCommits = new Set(
     db.prepare("SELECT commit_sha FROM events WHERE project_id = ?").all(project.id)
       .map((r) => String((r as { commit_sha: string }).commit_sha)),
   );
 
-  for (const [ref, headSha] of refs) {
+  for (const [ref, headSha] of refs as Map<string, string>) {
     const actor = ref.slice("refs/hn/actors/".length);
 
     // Update actor bookkeeping (may include actors with no new events).
@@ -130,6 +130,28 @@ export function indexProject(
         db.prepare(`INSERT OR IGNORE INTO issue_comments
           (project_id, issue_id, event_id, actor, body, timestamp, verified) VALUES (?, ?, ?, ?, ?, ?, ?)`)
           .run(project.id, ev.subject ?? "", ev.eventId, ev.actor, payload.body, ev.timestamp, ev.verified ? 1 : 0);
+      }
+
+      // Memory projection: per-stream signed records.
+      if (ev.protocol === "memory") {
+        const rec = (payload.record ?? {}) as Record<string, unknown>;
+        const handoff = (rec.handoff ?? null) as Record<string, unknown> | null;
+        db.prepare(`INSERT OR IGNORE INTO memories
+          (project_id, memory_id, actor, stream, sequence, timestamp, kind, content, anchor_commit, applicability, lifecycle, handoff_json, verified, payload_json)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?, ?)`)
+          .run(project.id, ev.eventId, ev.actor, String(payload.stream ?? ""), ev.sequence, ev.timestamp,
+               String(rec.kind ?? "record"), String(rec.content ?? ""),
+               typeof (rec.anchor as Record<string, unknown> | undefined)?.commit === "string" ? String((rec.anchor as Record<string, unknown>).commit) : null,
+               JSON.stringify(rec.applicability ?? {}),
+               handoff ? JSON.stringify(handoff) : null,
+               ev.verified ? 1 : 0, ev.payloadJson);
+        db.prepare(`INSERT OR IGNORE INTO activity
+          (project_id, event_id, kind, actor, actor_name, timestamp, subject, summary)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)`)
+          .run(project.id, ev.eventId, `memory.${String(rec.kind ?? "record")}`, ev.actor,
+               String(payload.actorName ?? actor.slice(0, 12)), ev.timestamp, ev.subject ?? "",
+               `recorded memory: ${String(rec.content ?? "").slice(0, 60)}`);
+        continue; // memory events carry no issue/activity-issue semantics
       }
 
       // Activity feed: collaboration kinds only, with a human summary.

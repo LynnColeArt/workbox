@@ -38,12 +38,16 @@ export function ed25519KeyObject(rawBase64: string) {
 }
 
 export interface VerifyInput {
-  /** Full event.json bytes exactly as stored in the commit tree. */
+  /** Full payload bytes exactly as stored in the commit tree. */
   eventJson: Buffer;
   /** The detached signature blob (raw file bytes as stored). */
   signature: Buffer;
   /** The commit subject, expected to carry the event id. */
   commitSubject: string;
+  /** Payload filename; protocol-dependent (event.json, memory.json). */
+  payloadFileName?: string;
+  /** Field carrying the signer's public key (publicKey for both known protocols). */
+  publicKeyField?: string;
 }
 
 export interface VerifyResult {
@@ -61,6 +65,7 @@ export function verifyEvent(input: VerifyInput): VerifyResult {
   const digest = createHash("sha256").update(input.eventJson).digest("hex");
   const eventId = `sha256:${digest}`;
   const subjectId = input.commitSubject.replace(/^.*?sha256:/, "sha256:");
+  const publicKeyField = input.publicKeyField ?? "publicKey";
 
   let parsed: RawEvent;
   try {
@@ -80,9 +85,9 @@ export function verifyEvent(input: VerifyInput): VerifyResult {
   let signatureValid = false;
   let error: string | undefined;
 
-  if (typeof parsed.publicKey === "string" && typeof parsed.actor === "string") {
+  if (typeof parsed[publicKeyField] === "string" && typeof parsed.actor === "string") {
     try {
-      const raw = Buffer.from(parsed.publicKey, "base64");
+      const raw = Buffer.from(parsed[publicKeyField], "base64");
       const keyHash = createHash("sha256").update(raw).digest("hex");
       actorMatchesKey = keyHash === parsed.actor && parsed.actor.length === 64;
     } catch (e) {
@@ -94,7 +99,7 @@ export function verifyEvent(input: VerifyInput): VerifyResult {
 
   if (actorMatchesKey) {
     try {
-      const key = ed25519KeyObject(parsed.publicKey as string);
+      const key = ed25519KeyObject(parsed[publicKeyField] as string);
       // Signature blob is stored as raw base64 text of the 64-byte sig.
       const sig = Buffer.from(input.signature.toString("utf8").trim(), "base64");
       signatureValid =
