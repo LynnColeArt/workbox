@@ -17,7 +17,7 @@
   "flattened": false,
   "friendly_name": "Proposal detail and next actions",
   "mission_id": "01M75WTHTVYBDFSSM51DZV23FE",
-  "mission_number": null,
+  "mission_number": 1,
   "mission_slug": "proposal-detail-01M75WTH",
   "mission_type": "software-dev",
   "pr_bound": true,
