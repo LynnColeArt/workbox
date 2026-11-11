@@ -61,7 +61,8 @@
         "Starting visible lineage and candidate selection",
         "279c9f6 passed 13 tests, lint, tsc, build and native sibling fixture",
         "Independent lineage review",
-        "Fixing discovery continuation from independent review"
+        "Fixing discovery continuation from independent review",
+        "020a9f3 passed 17 tests, scoped lint and typecheck after lineage visibility fixes"
       ],
       "provider": "__resolved_provider_absent__",
       "review": null,
