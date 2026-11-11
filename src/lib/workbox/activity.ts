@@ -1,4 +1,6 @@
 import { execFileSync } from "node:child_process";
+import { lstatSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { openDb } from "./db";
 import type { DatabaseSync } from "node:sqlite";
 
@@ -29,6 +31,12 @@ export interface ActivityRow {
   detail: string;
 }
 
+export interface ActivityRecord extends ActivityRow {
+  id: string;
+}
+
+export type GitActivityCoverage = "complete" | "partial" | "unavailable";
+
 const DAY_MS = 86_400_000;
 
 function isoDaysAgo(days: number): string {
@@ -45,27 +53,95 @@ export function toIso(ts: string): string {
   return Number.isNaN(parsed.getTime()) ? "" : parsed.toISOString();
 }
 
-/** Git commits reachable from local branches, one row per commit (HN-003). */
-function gitActivityFor(repoPath: string): ActivityRow[] {
-  // --all would include refs/hn/* commit chains; enumerate refs/heads only.
+const gitActivityLimit = 500;
+
+function gitDirectories(repoPath: string) {
+  const dotGit = resolve(repoPath, ".git");
+  const dotGitStat = lstatSync(dotGit, { throwIfNoEntry: false });
+  let gitDir = dotGitStat ? dotGit : repoPath;
+  if (dotGitStat?.isFile() && dotGitStat.size <= 4_096) {
+    const pointer = /^gitdir: (.+)$/.exec(readFileSync(dotGit, "utf8").trim());
+    if (!pointer) return null;
+    gitDir = resolve(repoPath, pointer[1]);
+  }
+  if (!lstatSync(gitDir, { throwIfNoEntry: false })?.isDirectory() ||
+      !lstatSync(resolve(gitDir, "HEAD"), { throwIfNoEntry: false })?.isFile()) return null;
+
+  const pointerPath = resolve(gitDir, "commondir");
+  const pointerStat = lstatSync(pointerPath, { throwIfNoEntry: false });
+  if (pointerStat && (!pointerStat.isFile() || pointerStat.size > 4_096)) return null;
+  const commonDir = pointerStat ? resolve(gitDir, readFileSync(pointerPath, "utf8").trim()) : gitDir;
+  if (!lstatSync(resolve(commonDir, "objects"), { throwIfNoEntry: false })?.isDirectory()) return null;
+  return { gitDir, commonDir };
+}
+
+function hasShallowHistory(repoPath: string): boolean {
+  try {
+    const dirs = gitDirectories(repoPath);
+    return !dirs || Boolean(lstatSync(resolve(dirs.commonDir, "shallow"), { throwIfNoEntry: false }));
+  } catch {
+    return true;
+  }
+}
+
+/** False when indexed events need native visibility verification before use. */
+export function isHubnotProjectionVisible(repoPath: string): boolean {
+  try {
+    const dirs = gitDirectories(repoPath);
+    if (!dirs || lstatSync(resolve(dirs.commonDir, "shallow"), { throwIfNoEntry: false })) return false;
+    for (const dir of new Set([dirs.gitDir, dirs.commonDir])) {
+      const hn = resolve(dir, "hn");
+      const metadata = lstatSync(hn, { throwIfNoEntry: false });
+      if (!metadata) continue;
+      if (!metadata.isDirectory() || lstatSync(resolve(hn, "contribution"), { throwIfNoEntry: false })) return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Walk local branches once. Git deduplicates commits shared by branch tips. */
+export function readGitActivity(repoPath: string): { rows: ActivityRecord[]; coverage: GitActivityCoverage } {
   let out: string;
   try {
     out = execFileSync("git", [
-      "-C", repoPath, "log", "--all", "--date=iso-strict",
-      "--format=%H%x1f%aI%x1f%an%x1f%s", "--no-merges", "-n", "500",
-      "--branches",
-    ], { maxBuffer: 32 * 1024 * 1024, env: { ...process.env, GIT_TERMINAL_PROMPT: "0" } }).toString();
+      "-C", repoPath, "--no-replace-objects", "log", "--branches", "--no-merges",
+      "--format=%H%x00%aI%x00%an%x00%s", "-z", "-n", String(gitActivityLimit + 1),
+    ], {
+      encoding: "utf8",
+      maxBuffer: 32 * 1024 * 1024,
+      timeout: 3_000,
+      stdio: ["ignore", "pipe", "pipe"],
+      env: {
+        ...process.env,
+        GIT_TERMINAL_PROMPT: "0",
+        GIT_NO_LAZY_FETCH: "1",
+        GIT_ALLOW_PROTOCOL: "",
+        GIT_DIR: undefined,
+        GIT_COMMON_DIR: undefined,
+        GIT_WORK_TREE: undefined,
+        GIT_OBJECT_DIRECTORY: undefined,
+        GIT_ALTERNATE_OBJECT_DIRECTORIES: undefined,
+      },
+    });
   } catch {
-    return []; // HN-004/edge: unreadable checkout hides nothing in Explore
+    return { rows: [], coverage: "unavailable" };
   }
-  const rows: ActivityRow[] = [];
-  for (const line of out.split("\n")) {
-    if (!line.trim()) continue;
-    const [sha, when, author, subject] = line.split("\x1f");
-    if (!sha || !when) continue;
-    rows.push({ ts: toIso(when), summary: subject, type: "git", detail: `${author} · ${sha.slice(0, 8)}` });
+  const fields = out.split("\0");
+  const recordCount = Math.floor((fields.length - 1) / 4);
+  const rows: ActivityRecord[] = [];
+  let partial = (fields.length - 1) % 4 !== 0 || recordCount > gitActivityLimit || hasShallowHistory(repoPath);
+  for (let offset = 0; offset < Math.min(recordCount, gitActivityLimit) * 4; offset += 4) {
+    const [id, when, author, summary] = fields.slice(offset, offset + 4);
+    const ts = toIso(when);
+    if (!/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(id) || !ts) {
+      partial = true;
+      continue;
+    }
+    rows.push({ id, ts, summary, type: "git", detail: `${author} · ${id.slice(0, 8)}` });
   }
-  return rows;
+  return { rows, coverage: partial ? "partial" : "complete" };
 }
 
 interface ProjectRuntime {
@@ -87,23 +163,37 @@ export function listProjectRuntime(db: DatabaseSync): ProjectRuntime[] {
  * indexed rows — HN-001/002 dedupe is the events table PK) plus git commits
  * (HN-003, local branches only). Unverified events are excluded everywhere.
  */
+export function readIndexedHubnotActivity(db: DatabaseSync, projectIds?: string[]) {
+  const rows = new Map<string, ActivityRecord[]>();
+  const incomplete = new Set<string>();
+  if (projectIds?.length === 0) return { rows, incomplete };
+  const scope = projectIds ? "AND e.project_id IN (SELECT value FROM json_each(?))" : "";
+  const events = db.prepare(`
+    SELECT e.project_id, e.event_id, e.kind, e.timestamp, a.display_name
+    FROM events e LEFT JOIN actors a
+      ON a.project_id = e.project_id AND a.fingerprint = e.actor
+    WHERE e.verified = 1 ${scope}
+  `).all(...(projectIds ? [JSON.stringify(projectIds)] : [])) as Array<{
+    project_id: string; event_id: string; kind: string; timestamp: string | null; display_name: string | null;
+  }>;
+  for (const e of events) {
+    const ts = toIso(e.timestamp ?? "");
+    if (!ts) {
+      incomplete.add(e.project_id);
+      continue;
+    }
+    const summary = humanKind(e.kind);
+    const list = rows.get(e.project_id) ?? [];
+    list.push({ id: e.event_id, ts, summary, type: "hubnot", detail: e.display_name || "hubnot event" });
+    rows.set(e.project_id, list);
+  }
+  return { rows, incomplete };
+}
+
 export function projectActivity(db: DatabaseSync): Map<string, ActivityRow[]> {
   const result = new Map<string, ActivityRow[]>();
-  const events = db.prepare(`
-    SELECT project_id, kind, timestamp, actor, verified
-    FROM events`).all() as unknown as Array<{
-    project_id: string; kind: string; timestamp: string | null; actor: string; verified: number;
-  }>;
-  const actorNames = new Map<string, string>();
-  for (const a of db.prepare("SELECT fingerprint, display_name FROM actors").all() as unknown as Array<{ fingerprint: string; display_name: string }>) {
-    if (a.display_name) actorNames.set(a.fingerprint, a.display_name);
-  }
-  for (const e of events) {
-    if (e.verified !== 1 || !e.timestamp) continue;
-    const summary = humanKind(e.kind);
-    const list = result.get(e.project_id) ?? [];
-    list.push({ ts: toIso(e.timestamp), summary, type: "hubnot", detail: actorNames.get(e.actor) ?? "hubnot event" });
-    result.set(e.project_id, list);
+  for (const [projectId, records] of readIndexedHubnotActivity(db).rows) {
+    result.set(projectId, records.map(({ ts, summary, type, detail }) => ({ ts, summary, type, detail })));
   }
   return result;
 }
@@ -128,17 +218,18 @@ function humanKind(kind: string): string {
 export function recentProjects(db: DatabaseSync, opts?: { sinceDays?: number }): RecentProject[] {
   const since = toIso(isoDaysAgo(opts?.sinceDays ?? 7));
   const runtimes = listProjectRuntime(db);
-  const hubnot = projectActivity(db);
+  const hubnot = readIndexedHubnotActivity(db).rows;
   const out: RecentProject[] = [];
   for (const p of runtimes) {
-    const gitRows = gitActivityFor(p.repoPath);
-    const all: ActivityRow[] = [...(hubnot.get(p.id) ?? []), ...gitRows];
+    const gitRows = readGitActivity(p.repoPath).rows;
+    const events = isHubnotProjectionVisible(p.repoPath) ? hubnot.get(p.id) ?? [] : [];
+    const all: ActivityRow[] = [...events, ...gitRows];
     const dated = all.filter((r) => r.ts !== "");
     dated.sort((a, b) => b.ts.localeCompare(a.ts));
     const latest = dated[0];
     if (!latest) continue; // no qualifying activity: Explore-only, order after actives
-    const gitLast7 = new Set(dated.filter((r) => r.type === "git" && r.ts >= since).map((r) => r.ts + r.summary)).size;
-    const hubLast7 = new Set(dated.filter((r) => r.type === "hubnot" && r.ts >= since).map((r) => r.ts + r.summary)).size;
+    const gitLast7 = dated.filter((r) => r.type === "git" && r.ts >= since).length;
+    const hubLast7 = dated.filter((r) => r.type === "hubnot" && r.ts >= since).length;
     out.push({
       id: p.id, name: p.name, description: p.description,
       latestAt: latest.ts, latestSource: latest.type,
