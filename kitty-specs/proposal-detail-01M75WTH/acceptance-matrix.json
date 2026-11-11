@@ -6,63 +6,63 @@
   "criteria": [
     {
       "criterion_id": "FR-001",
-      "description": "Verify FR-001 is satisfied",
+      "description": "Open verified lineages and choose or pin a visible candidate.",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "tests/proposal-lineage.test.ts",
+      "pass_fail": "pass",
+      "verified_by": "codex",
+      "verified_at": "2026-11-11T20:29:37.259391+00:00",
+      "notes": "Focused tests and signed HTTP fixture cover list, unique selection, sibling chooser, and stable exact links."
     },
     {
       "criterion_id": "FR-002",
-      "description": "Verify FR-002 is satisfied",
+      "description": "Identify the exact candidate, base, head, and related signed revisions.",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "tests/proposal-conversation.test.ts",
+      "pass_fail": "pass",
+      "verified_by": "codex",
+      "verified_at": "2026-11-11T20:29:37.259391+00:00",
+      "notes": "Header tests and signed HTTP fixture verify the full identifiers, stable links, and superseded state."
     },
     {
       "criterion_id": "FR-003",
-      "description": "Verify FR-003 is satisfied",
+      "description": "Attribute signed evidence and compare the pinned base and head.",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "tests/proposal-detail-web.test.ts",
+      "pass_fail": "pass",
+      "verified_by": "codex",
+      "verified_at": "2026-11-11T20:29:37.259391+00:00",
+      "notes": "Signed fixture covers late review, candidate-specific run and decision, and a pinned patch after the branch moves."
     },
     {
       "criterion_id": "FR-004",
-      "description": "Verify FR-004 is satisfied",
+      "description": "Report exact native readiness, policy deficits, and distinct maintainer and merge stages.",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "tests/proposal-checks.test.ts",
+      "pass_fail": "pass",
+      "verified_by": "codex",
+      "verified_at": "2026-11-11T20:29:37.259391+00:00",
+      "notes": "Policy fixtures cover named pipeline, qualified counts, protected paths, stale acceptance, and historical status."
     },
     {
       "criterion_id": "FR-005",
-      "description": "Verify FR-005 is satisfied",
+      "description": "Offer applicable handoffs and submit reviews on the exact candidate.",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "tests/proposal-actions.test.ts",
+      "pass_fail": "pass",
+      "verified_by": "codex",
+      "verified_at": "2026-11-11T20:29:37.259391+00:00",
+      "notes": "Action tests and signed HTTP fixture cover capability, a refused write, exact receipt, and unchanged sibling counts."
     },
     {
       "criterion_id": "FR-006",
-      "description": "Verify FR-006 is satisfied",
+      "description": "Preserve navigation and show controlled fallbacks for unavailable status and comparison.",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "tests/proposal-detail-web.test.ts",
+      "pass_fail": "pass",
+      "verified_by": "codex",
+      "verified_at": "2026-11-11T20:29:37.259391+00:00",
+      "notes": "Signed HTTP fixture covers missing policy and Git objects, unavailable targets, and disabled review."
     }
   ],
   "negative_invariants": []
