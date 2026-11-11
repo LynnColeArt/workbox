@@ -1,7 +1,7 @@
 {
-  "event_count": 15,
-  "last_event_id": "01M76874BWB8BV9BHVFHC923XW",
-  "materialized_at": "2026-11-11T21:28:56.956537+00:00",
+  "event_count": 16,
+  "last_event_id": "01M7687AQ7925ZRT0NJCRWKW2W",
+  "materialized_at": "2026-11-11T21:29:03.463477+00:00",
   "mission_number": "",
   "mission_slug": "explore-code-parity-01M7673H",
   "mission_type": "software-dev",
@@ -11,9 +11,9 @@
     "canceled": 0,
     "claimed": 0,
     "done": 0,
-    "for_review": 1,
+    "for_review": 0,
     "in_progress": 1,
-    "in_review": 0,
+    "in_review": 1,
     "planned": 2
   },
   "work_packages": {
@@ -53,16 +53,16 @@
       "agent_profile": "__resolved_profile_absent__",
       "agent_profile_version": "__resolved_profile_version_absent__",
       "force_count": 0,
-      "lane": "for_review",
-      "last_event_id": "01M76874BWB8BV9BHVFHC923XW",
-      "last_transition_at": "2026-11-11T21:28:56.956537+00:00",
+      "lane": "in_review",
+      "last_event_id": "01M7687AQ7925ZRT0NJCRWKW2W",
+      "last_transition_at": "2026-11-11T21:29:03.463477+00:00",
       "model": "__resolved_model_absent__",
       "notes": [
         "Implement the paginated Explore browser and shared activity read.",
         "Explore implementation at d53be8c. Four tests, scoped lint and TypeScript passed."
       ],
       "provider": "__resolved_provider_absent__",
-      "role": "implementer",
+      "role": "reviewer",
       "subtasks": {
         "T004": "done",
         "T005": "done",
