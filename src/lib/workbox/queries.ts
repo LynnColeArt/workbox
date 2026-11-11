@@ -44,6 +44,7 @@ export function projectOverview(db: DatabaseSync, id: string): WorkboxProjectOve
 
 export interface IssueListItem {
   issueId: string;
+  number: number | null;
   title: string;
   status: string;
   creator: string;
@@ -55,11 +56,11 @@ export interface IssueListItem {
 
 export function listIssues(db: DatabaseSync, projectId: string): IssueListItem[] {
   return db.prepare(`
-    SELECT i.issue_id AS issueId, i.title, i.status, i.creator, i.created_at AS createdAt,
+    SELECT i.issue_id AS issueId, i.number, i.title, i.status, i.creator, i.created_at AS createdAt,
            i.updated_at AS updatedAt, i.conflict,
            (SELECT COUNT(*) FROM issue_comments c WHERE c.project_id = i.project_id AND c.issue_id = i.issue_id) AS comments
     FROM issues i WHERE i.project_id = ?
-    ORDER BY i.status ASC, COALESCE(i.updated_at, i.created_at) DESC`).all(projectId) as unknown as IssueListItem[];
+    ORDER BY COALESCE(i.number, 999999) ASC`).all(projectId) as unknown as IssueListItem[];
 }
 
 export interface IssueDetail extends Omit<IssueListItem, "comments"> {
@@ -68,14 +69,18 @@ export interface IssueDetail extends Omit<IssueListItem, "comments"> {
   assignees: string[];
 }
 
-export function getIssue(db: DatabaseSync, projectId: string, issueId: string): IssueDetail | null {
+export function getIssue(
+  db: DatabaseSync,
+  projectId: string,
+  issueId: string,
+): IssueDetail | null {
   interface RawIssue {
-    issueId: string; title: string; status: string; creator: string;
+    issueId: string; number: number | null; title: string; status: string; creator: string;
     createdAt: string | null; updatedAt: string | null; conflict: number;
     body: string; labels_json: string; assignees_json: string;
   }
   const raw = db.prepare(`
-    SELECT i.issue_id AS issueId, i.title, i.status, i.creator, i.created_at AS createdAt,
+    SELECT i.issue_id AS issueId, i.number, i.title, i.status, i.creator, i.created_at AS createdAt,
            i.updated_at AS updatedAt, i.conflict, i.body, i.labels_json, i.assignees_json
     FROM issues i WHERE i.project_id = ? AND i.issue_id = ?`).get(projectId, issueId) as RawIssue | undefined;
   if (!raw) return null;
@@ -84,7 +89,7 @@ export function getIssue(db: DatabaseSync, projectId: string, issueId: string): 
   try { labels = JSON.parse(raw.labels_json) as string[]; } catch { /* keep empty */ }
   try { assignees = JSON.parse(raw.assignees_json) as string[]; } catch { /* keep empty */ }
   return {
-    issueId: raw.issueId, title: raw.title, status: raw.status, creator: raw.creator,
+    issueId: raw.issueId, number: raw.number, title: raw.title, status: raw.status, creator: raw.creator,
     createdAt: raw.createdAt, updatedAt: raw.updatedAt, conflict: raw.conflict,
     body: raw.body, labels, assignees,
   };

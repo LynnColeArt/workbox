@@ -3,6 +3,13 @@ import { openDb, type IndexOutcome } from "./db";
 import { readChain } from "./read";
 import type { DatabaseSync } from "node:sqlite";
 
+function ensureColumn(db: DatabaseSync, table: string, column: string, ddl: string): void {
+  const cols = db.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name: string }>;
+  if (!cols.some((c) => c.name === column)) {
+    db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${ddl}`);
+  }
+}
+
 /**
  * Index a repo into the read model. Truth remains Git; this is a cache
  * that can be deleted and rebuilt at any time. Verification is per event,
@@ -112,13 +119,13 @@ export function indexProject(
           const existing = db.prepare("SELECT created_at FROM issues WHERE project_id = ? AND issue_id = ?")
             .get(project.id, ev.subject ?? "") as { created_at: string | null } | undefined;
           if (ev.kind === "issue.open" || !existing) {
-            db.prepare(`INSERT INTO issues (project_id, issue_id, title, body, status, creator, created_at, updated_at, conflict, labels_json, assignees_json)
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)
+            db.prepare(`INSERT INTO issues (project_id, issue_id, title, body, status, creator, created_at, updated_at, conflict, labels_json, assignees_json, number)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)
                         ON CONFLICT(project_id, issue_id) DO UPDATE SET
                           title=excluded.title, body=excluded.body, status=excluded.status, updated_at=excluded.updated_at, conflict=0,
                           labels_json=excluded.labels_json, assignees_json=excluded.assignees_json`)
               .run(project.id, ev.subject ?? ev.eventId, st.title, st.body, st.status, ev.actor, createdAt, ev.timestamp,
-                   JSON.stringify(st.labels), JSON.stringify(st.assignees));
+                   JSON.stringify(st.labels), JSON.stringify(st.assignees), nextIssueNumber(db, project.id));
             outcome.issues += ev.kind === "issue.open" ? 1 : 0;
           } else {
             db.prepare(`UPDATE issues SET title=?, body=?, status=?, updated_at=?, conflict=0, labels_json=?, assignees_json=?
@@ -217,9 +224,19 @@ export function fullIndex(db: DatabaseSync, projects: Array<{ id: string; name: 
   const out: IndexOutcome[] = [];
   for (const p of projects) {
     ensureProject(db, p);
+    ensureColumn(db, "issues", "number", "INTEGER");
     out.push(indexProject(db, p));
   }
   return out;
+}
+
+/**
+ * Stable per-project issue numbers for the ergonomics layer (#1, #2, …).
+ * Assigned in chain order; immutable projection of a signed ordering.
+ */
+function nextIssueNumber(db: DatabaseSync, projectId: string): number {
+  const row = db.prepare("SELECT COALESCE(MAX(number), 0) + 1 AS next FROM issues WHERE project_id = ?").get(projectId) as { next: number };
+  return row.next;
 }
 
 function activitySummary(kind: string, _actor: string, title: string): string {

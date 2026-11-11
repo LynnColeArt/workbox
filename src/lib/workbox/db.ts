@@ -79,6 +79,7 @@ CREATE TABLE IF NOT EXISTS issues (
   conflict INTEGER NOT NULL DEFAULT 0,
   labels_json TEXT NOT NULL DEFAULT '[]',
   assignees_json TEXT NOT NULL DEFAULT '[]',
+  number INTEGER,
   PRIMARY KEY (project_id, issue_id)
 );
 CREATE TABLE IF NOT EXISTS issue_comments (
