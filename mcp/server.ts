@@ -13,8 +13,11 @@
  */
 import { createInterface } from "node:readline";
 import { resolve, dirname } from "node:path";
+import { DatabaseSync } from "node:sqlite";
 import { fileURLToPath } from "node:url";
-import { openDb } from "../src/lib/workbox/db";
+import { dbPath, openDb } from "../src/lib/workbox/db";
+import { formatWorkboxAddress, parseWorkboxAddress, type WorkboxAddress } from "../src/lib/workbox/address";
+import { resolveWorkboxAddress } from "../src/lib/workbox/address-resolution";
 import {
   listProjects, getProject, projectOverview, listIssues, getIssue,
   issueComments, recentActivity, instanceStats,
@@ -46,8 +49,7 @@ function requireProject(project: string): { id: string; name: string; descriptio
   return p;
 }
 
-async function toolProjects(): Promise<Json[]> {
-  const db = openDb();
+function projectList(db: DatabaseSync): Json[] {
   return listProjects(db).map((p) => {
     const o = projectOverview(db, p.id)!;
     return {
@@ -56,6 +58,10 @@ async function toolProjects(): Promise<Json[]> {
       events: o.eventCount, verified: o.verifiedCount, lastEventAt: o.lastEventAt,
     };
   });
+}
+
+async function toolProjects(): Promise<Json[]> {
+  return projectList(openDb());
 }
 
 async function toolIssues(args: Json): Promise<Json[]> {
@@ -77,10 +83,17 @@ async function toolIssue(args: Json): Promise<Json> {
   const number = Number(args.number);
   const hit = listIssues(db, p.id).find((i) => i.number === number);
   if (!hit) throw new Error(`issue #${number} not found in ${p.id}. Call workbox_issues.`);
-  const detail = getIssue(db, p.id, hit.issueId)!;
-  const comments = issueComments(db, p.id, hit.issueId);
+  const issue = issueProjection(db, p.id, hit.issueId);
+  if (!issue) throw new Error(`issue #${number} not found in ${p.id}. Call workbox_issues.`);
+  return issue;
+}
+
+function issueProjection(db: DatabaseSync, project: string, issueId: string): Json | null {
+  const detail = getIssue(db, project, issueId);
+  if (!detail) return null;
+  const comments = issueComments(db, project, issueId);
   return {
-    project: p.id, number: detail.number, title: detail.title,
+    project, number: detail.number, title: detail.title,
     status: detail.status, body: detail.body, labels: detail.labels,
     conflict: detail.conflict === 1,
     comments: comments.map((c) => ({ by: c.actorName, at: c.timestamp, body: c.body })),
@@ -126,8 +139,11 @@ async function toolCommentIssue(args: Json): Promise<Json> {
 }
 
 async function toolMemories(args: Json): Promise<Json[]> {
-  const db = openDb();
   const projectFilter = args.project == null ? null : String(args.project);
+  return memoryProjection(openDb(), projectFilter);
+}
+
+function memoryProjection(db: DatabaseSync, projectFilter: string | null): Json[] {
   const rows = db.prepare(`
     SELECT m.kind, m.content, m.timestamp, m.handoff_json, m.anchor_commit,
            COALESCE(a.display_name, substr(m.actor, 1, 8)) AS by
@@ -150,10 +166,14 @@ async function toolMemories(args: Json): Promise<Json[]> {
 
 async function toolPipelines(args: Json): Promise<Json> {
   const p = requireProject(String(args.project));
-  const pipelines = listPipelines(p.repoPath).map((pl) => ({
+  return pipelineProjection(p.repoPath);
+}
+
+function pipelineProjection(repoPath: string): Json {
+  const pipelines = listPipelines(repoPath).map((pl) => ({
     name: pl.name, steps: pl.steps.map((s) => `${s.command} ${(s.args ?? []).join(" ")}`.trim()),
   }));
-  const policy = readPolicy(p.repoPath);
+  const policy = readPolicy(repoPath);
   return {
     pipelines,
     trust: policy ? {
@@ -261,59 +281,75 @@ const HANDLERS: Record<string, (args: Json) => Promise<unknown>> = {
 
 // ---------------------------------------------------------------- resources
 
-/**
- * workbox:// URI scheme (Mini's design, adopted 2026-11-11):
- *   workbox://project/<slug>                    — project overview
- *   workbox://project/<slug>/task/WP-88         — issue by stable number
- *   workbox://project/<slug>/memory             — signed memory stream
- *   workbox://project/<slug>/pipelines          — CI definitions + trust
- * Friendly identifiers resolve to canonical objects here; every read is
- * authorized against the local projection as usual, a URI is never proof
- * of permission. Sanitizer still gates all output.
- */
-function resourcesList(): Promise<Json[]> {
-  const db = openDb();
+class ResourceError extends Error {}
+
+function resourcesList(): Json[] {
+  using db = new DatabaseSync(dbPath(), { readOnly: true });
   const out: Json[] = [];
+  function add(target: WorkboxAddress, name: string, description?: string) {
+    const uri = formatWorkboxAddress(target);
+    if (uri === null) return false;
+    const labels = sanitize({ name, description }) as Json;
+    out.push({ uri, mimeType: "application/json", ...labels });
+    return true;
+  }
+
+  add({ kind: "home" }, "Workbox overview");
+  add({ kind: "projectDirectory" }, "Workbox projects");
+
   for (const p of listProjects(db)) {
-    out.push({
-      uri: `workbox://project/${p.id}`,
-      name: p.name,
-      description: p.description,
-      mimeType: "application/json",
-    });
-    out.push({ uri: `workbox://project/${p.id}/memory`, name: `${p.name} — memory`, mimeType: "application/json" });
-    out.push({ uri: `workbox://project/${p.id}/pipelines`, name: `${p.name} — pipelines`, mimeType: "application/json" });
-    for (const i of listIssues(db, p.id)) {
-      if (i.number === null) continue;
-      out.push({
-        uri: `workbox://project/${p.id}/task/WP-${i.number}`,
-        name: `#${i.number} ${i.title}`,
-        mimeType: "application/json",
-      });
+    const projectSlug = p.id;
+    if (!add({ kind: "project", projectSlug }, p.name, p.description)) continue;
+    add({ kind: "memory", projectSlug }, `${p.name} — memory`);
+    add({ kind: "pipelines", projectSlug }, `${p.name} — pipelines`);
+
+    const issues = listIssues(db, projectSlug);
+    const counts = new Map<number, number>();
+    for (const { number } of issues) {
+      if (number !== null) counts.set(number, (counts.get(number) ?? 0) + 1);
+    }
+    for (const { number, title } of issues) {
+      if (number === null || counts.get(number) !== 1) continue;
+      add({ kind: "issue", projectSlug, issueNumber: number }, `#${number} ${title}`);
     }
   }
-  return Promise.resolve(out);
+  return out;
 }
 
-async function resourceRead(uri: string): Promise<Json[]> {
-  const m = /^workbox:\/\/project\/([A-Za-z0-9._-]+)(?:\/(memory|pipelines|task\/WP-(\d+)))?$/.exec(uri);
-  if (!m) throw new Error(`unrecognized uri '${uri}' (workbox://project/<slug>[/memory|/pipelines|/task/WP-N])`);
-  const slug = m[1];
-  const db = openDb();
-  const p = getProject(db, slug);
-  if (!p) throw new Error(`unknown project '${slug}'`);
-  if (m[2] === "memory") {
-    const ms = await toolMemories({ project: slug });
-    return [{ uri, mimeType: "application/json", text: JSON.stringify(ms, null, 2) }];
+function resourceProjection(db: DatabaseSync, target: Exclude<WorkboxAddress, { kind: "trending" }>) {
+  switch (target.kind) {
+    case "home":
+      return instanceStats(db);
+    case "projectDirectory":
+      return projectList(db);
+    case "project": {
+      const overview = projectOverview(db, target.projectSlug);
+      return overview && { ...overview, repoPath: undefined };
+    }
+    case "memory":
+      return getProject(db, target.projectSlug) && memoryProjection(db, target.projectSlug);
+    case "pipelines": {
+      const project = getProject(db, target.projectSlug);
+      return project && pipelineProjection(project.repoPath);
+    }
+    case "issue": {
+      const resolved = resolveWorkboxAddress(db, target);
+      if (!resolved.ok || resolved.target.kind !== "issue") return null;
+      return issueProjection(db, target.projectSlug, resolved.target.issueId);
+    }
   }
-  if (m[2] === "pipelines") {
-    return [{ uri, mimeType: "application/json", text: JSON.stringify(await toolPipelines({ project: slug }), null, 2) }];
-  }
-  if (m[3]) {
-    return [{ uri, mimeType: "application/json", text: JSON.stringify(await toolIssue({ project: slug, number: Number(m[3]) }), null, 2) }];
-  }
-  const o = projectOverview(db, slug)!;
-  return [{ uri, mimeType: "application/json", text: JSON.stringify({ ...o, repoPath: undefined }, null, 2) }];
+}
+
+function resourceRead(uri: unknown): Json[] {
+  if (typeof uri !== "string") throw new ResourceError("Enter a valid Workbox address.");
+  const parsed = parseWorkboxAddress(uri);
+  if (!parsed.ok) throw new ResourceError("Enter a valid Workbox address.");
+  if (parsed.target.kind === "trending") throw new ResourceError("Trending is unavailable.");
+
+  using db = new DatabaseSync(dbPath(), { readOnly: true });
+  const payload = resourceProjection(db, parsed.target);
+  if (payload === null) throw new ResourceError("Workbox could not find that project or issue.");
+  return [{ uri, mimeType: "application/json", text: JSON.stringify(sanitize(payload), null, 2) }];
 }
 
 // ---------------------------------------------------------------- json-rpc
@@ -347,16 +383,16 @@ async function handle(msg: Json): Promise<void> {
     rpcResult(id, { tools: TOOLS });
     return;
   }
-  if (method === "resources/list") {
-    rpcResult(id, { resources: await resourcesList() });
-    return;
-  }
-  if (method === "resources/read") {
-    const params = (msg.params ?? {}) as { uri?: string };
+  if (method === "resources/list" || method === "resources/read") {
     try {
-      rpcResult(id, { contents: await resourceRead(String(params.uri ?? "")) });
+      if (method === "resources/list") {
+        rpcResult(id, { resources: resourcesList() });
+      } else {
+        const params = (msg.params ?? {}) as { uri?: unknown };
+        rpcResult(id, { contents: resourceRead(params.uri) });
+      }
     } catch (e) {
-      rpcError(id, -32602, (e as Error).message);
+      rpcError(id, -32602, e instanceof ResourceError ? e.message : "Workbox resources are unavailable.");
     }
     return;
   }
