@@ -1,0 +1,114 @@
+{
+  "version": 1,
+  "mission_slug": "explore-code-parity-01M7673H",
+  "mission_id": "01M7673H5FRYMTFCMKNFAZRHRW",
+  "mission_branch": "kitty/mission-explore-code-parity-01M7673H",
+  "target_branch": "feat/explore-code-parity",
+  "lanes": [
+    {
+      "lane_id": "lane-a",
+      "wp_ids": [
+        "WP01"
+      ],
+      "write_scope": [
+        "package-lock.json",
+        "package.json",
+        "src/components/activity-chart.tsx",
+        "src/lib/workbox/activity-chart-options.ts",
+        "src/lib/workbox/activity-chart-svg.ts",
+        "src/lib/workbox/activity-chart.ts",
+        "tests/activity-chart.test.ts"
+      ],
+      "predicted_surfaces": [
+        "api",
+        "artifact-rendering"
+      ],
+      "depends_on_lanes": [],
+      "parallel_group": 0
+    },
+    {
+      "lane_id": "lane-b",
+      "wp_ids": [
+        "WP02"
+      ],
+      "write_scope": [
+        "src/app/explore/page.tsx",
+        "src/lib/workbox/activity.ts",
+        "src/lib/workbox/explore.ts",
+        "tests/explore-read.test.ts"
+      ],
+      "predicted_surfaces": [
+        "artifact-rendering",
+        "dashboard"
+      ],
+      "depends_on_lanes": [
+        "lane-a"
+      ],
+      "parallel_group": 1
+    },
+    {
+      "lane_id": "lane-c",
+      "wp_ids": [
+        "WP03"
+      ],
+      "write_scope": [
+        "src/components/code-browser.tsx",
+        "src/lib/workbox/code-browser.ts",
+        "src/lib/workbox/repo.ts",
+        "tests/code-browser.test.ts"
+      ],
+      "predicted_surfaces": [
+        "artifact-rendering"
+      ],
+      "depends_on_lanes": [
+        "lane-a"
+      ],
+      "parallel_group": 1
+    },
+    {
+      "lane_id": "lane-d",
+      "wp_ids": [
+        "WP04"
+      ],
+      "write_scope": [
+        "src/components/repository-activity.tsx",
+        "src/lib/workbox/repository-activity.ts",
+        "tests/repository-activity.test.ts"
+      ],
+      "predicted_surfaces": [
+        "artifact-rendering"
+      ],
+      "depends_on_lanes": [
+        "lane-a",
+        "lane-c"
+      ],
+      "parallel_group": 2
+    },
+    {
+      "lane_id": "lane-e",
+      "wp_ids": [
+        "WP05"
+      ],
+      "write_scope": [
+        "mcp/server.ts",
+        "src/app/p/[[]id]/code/page.tsx",
+        "tests/explore-code-parity.test.ts"
+      ],
+      "predicted_surfaces": [
+        "api",
+        "app-shell",
+        "legacy-cleanup"
+      ],
+      "depends_on_lanes": [
+        "lane-b",
+        "lane-c",
+        "lane-d"
+      ],
+      "parallel_group": 3
+    }
+  ],
+  "computed_at": "2026-11-11T21:15:27.246541+00:00",
+  "computed_from": "dependency_graph+ownership",
+  "planning_artifact_wps": [],
+  "planning_commit_sha": "0fa4a4b7cb4bfb3043909ebfd988a7019394b914"
+}
