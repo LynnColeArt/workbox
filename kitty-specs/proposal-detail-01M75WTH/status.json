@@ -97,7 +97,12 @@
         "Starting signed Conversation and revision header"
       ],
       "provider": "__resolved_provider_absent__",
-      "role": "implementer"
+      "role": "implementer",
+      "subtasks": {
+        "T007": "done",
+        "T008": "done",
+        "T009": "done"
+      }
     },
     "WP04": {
       "actor": "codex",
