@@ -214,7 +214,8 @@
       "last_transition_at": "2026-11-11T20:26:09.916574+00:00",
       "model": "__resolved_model_absent__",
       "notes": [
-        "All proposal component dependencies approved. Integrate and exercise the exact candidate browser route."
+        "All proposal component dependencies approved. Integrate and exercise the exact candidate browser route.",
+        "Integrated route at 1786c9d. Production build, lint, TypeScript, all 37 tests and independent Chrome keyboard and native review smoke passed."
       ],
       "provider": "__resolved_provider_absent__",
       "role": "implementer",
