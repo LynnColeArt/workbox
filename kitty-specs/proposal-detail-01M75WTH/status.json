@@ -29,7 +29,8 @@
       "model": "__resolved_model_absent__",
       "notes": [
         "Starting WP01 native proposal reads",
-        "edc6afa passed adapter tests, actual Hubnot fixture, lint, tsc and build"
+        "edc6afa passed adapter tests, actual Hubnot fixture, lint, tsc and build",
+        "Independent native adapter review"
       ],
       "provider": "__resolved_provider_absent__",
       "role": "reviewer",
