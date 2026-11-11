@@ -163,7 +163,12 @@
         "Compose repository Code and expose shared Explore, Code and calendar results over MCP; verify both real interfaces."
       ],
       "provider": "__resolved_provider_absent__",
-      "role": "implementer"
+      "role": "implementer",
+      "subtasks": {
+        "T013": "done",
+        "T014": "done",
+        "T015": "done"
+      }
     }
   }
 }
