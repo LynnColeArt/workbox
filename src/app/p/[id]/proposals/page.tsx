@@ -7,23 +7,31 @@ import { listProposalLineages, proposalDetailHref } from "@/lib/workbox/proposal
 
 export const instant = false;
 
+function parseOffset(value: string | string[] | undefined): number {
+  const offset = typeof value === "string" ? Number(value) : 0;
+  return Number.isSafeInteger(offset) && offset > 0 ? offset : 0;
+}
+
 export default async function ProposalsPage({
   params,
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ offset?: string | string[] }>;
+  searchParams: Promise<{ offset?: string | string[]; hintOffset?: string | string[] }>;
 }) {
   await connection();
   const { id } = await params;
-  const { offset: rawOffset } = await searchParams;
-  const parsedOffset = typeof rawOffset === "string" ? Number(rawOffset) : 0;
-  const offset = Number.isSafeInteger(parsedOffset) && parsedOffset > 0 ? parsedOffset : 0;
+  const query = await searchParams;
+  const offset = parseOffset(query.offset);
+  const hintOffset = parseOffset(query.hintOffset);
   using db = openDb();
   const project = getProject(db, id);
   if (!project) return <main className="mx-auto max-w-6xl px-4 py-10"><p className="wb-muted">Project not indexed.</p></main>;
 
-  const { candidates, incomplete, nextOffset } = await listProposalLineages(db, project, offset);
+  const { candidates, incomplete, nextOffset, nextHintOffset } =
+    await listProposalLineages(db, project, offset, undefined, hintOffset);
+  const nextQuery = new URLSearchParams({ offset: String(nextOffset) });
+  if (nextHintOffset !== undefined) nextQuery.set("hintOffset", String(nextHintOffset));
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-4">
@@ -56,7 +64,7 @@ export default async function ProposalsPage({
         )}
       </section>
       {nextOffset !== null && (
-        <Link href={`/p/${encodeURIComponent(id)}/proposals?offset=${nextOffset}`} className="mt-4 inline-block text-sm hover:underline">
+        <Link href={`/p/${encodeURIComponent(id)}/proposals?${nextQuery}`} className="mt-4 inline-block text-sm hover:underline">
           More proposals
         </Link>
       )}

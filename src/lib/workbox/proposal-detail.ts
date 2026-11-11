@@ -39,7 +39,6 @@ export type ProposalDetail =
 
 const pageSize = 12;
 const hintsPerLineage = 3;
-const ancestryLimit = 32;
 const relatedLimit = 12;
 const concurrentReads = 4;
 
@@ -171,6 +170,51 @@ export interface ProposalLineagePage {
   candidates: ProposalCandidate[];
   incomplete: boolean;
   nextOffset: number | null;
+  nextHintOffset?: number;
+}
+
+interface ProposalHint {
+  id: string;
+  predecessor: string | null;
+}
+
+interface IndexedRoot {
+  id: string;
+  incomplete: boolean;
+}
+
+function groupIndexedHints(hints: ProposalHint[]) {
+  const byId = new Map(hints.map((hint) => [hint.id, hint]));
+  const roots = new Map<string, IndexedRoot>();
+  const groups = new Map<string, { root: IndexedRoot; ids: string[] }>();
+
+  for (const hint of hints) {
+    let id = hint.id;
+    const chain = new Set<string>();
+    while (!roots.has(id)) {
+      if (chain.has(id)) {
+        // Invalid cycles still terminate and share one stable internal key.
+        const cycle = [...chain];
+        const key = cycle.slice(cycle.indexOf(id)).reduce((min, member) => member < min ? member : min);
+        roots.set(id, { id: key, incomplete: true });
+        break;
+      }
+      const indexed = byId.get(id);
+      if (!indexed || !indexed.predecessor) {
+        roots.set(id, { id, incomplete: !indexed });
+        break;
+      }
+      chain.add(id);
+      id = indexed.predecessor;
+    }
+    const root = roots.get(id)!;
+    for (const member of chain) roots.set(member, root);
+
+    const group = groups.get(root.id);
+    if (group) group.ids.push(hint.id);
+    else groups.set(root.id, { root, ids: [hint.id] });
+  }
+  return { groups: [...groups.values()], byId };
 }
 
 export async function listProposalLineages(
@@ -178,62 +222,31 @@ export async function listProposalLineages(
   project: ProjectSummary,
   offset = 0,
   reader = createProposalReader(project.repoPath),
+  hintOffset = 0,
 ): Promise<ProposalLineagePage> {
-  // Group by indexed predecessor edges before pagination. These keys and event
-  // IDs only schedule native reads and are never used as display data.
+  // Indexed IDs and predecessor edges schedule native reads only. Memoize
+  // ancestry for the whole index so a long lineage occupies one page slot.
   const hints = db.prepare(`
-    WITH RECURSIVE hints(id, predecessor, timestamp) AS (
-      SELECT event_id, CASE WHEN kind = 'proposal.revise' THEN subject END, timestamp
-      FROM events
-      WHERE project_id = ? AND verified = 1 AND kind IN ('proposal.open', 'proposal.revise')
-    ),
-    ancestors(id, anchor, predecessor, depth) AS (
-      SELECT id, id, predecessor, 0 FROM hints
-      UNION ALL
-      SELECT a.id, h.id, h.predecessor, a.depth + 1
-      FROM ancestors a JOIN hints h ON h.id = a.predecessor
-      WHERE a.depth < ?
-    ),
-    ancestry AS (
-      SELECT id, anchor, predecessor, depth,
-        ROW_NUMBER() OVER (PARTITION BY id ORDER BY depth DESC) AS farthest
-      FROM ancestors
-    ),
-    ranked AS (
-      SELECT h.id, h.timestamp, a.anchor, a.predecessor IS NOT NULL AS incompleteAncestry,
-        ROW_NUMBER() OVER (PARTITION BY a.anchor ORDER BY h.timestamp DESC, h.id DESC) AS position,
-        COUNT(*) OVER (PARTITION BY a.anchor) AS size
-      FROM hints h JOIN ancestry a ON a.id = h.id AND a.farthest = 1
-    ),
-    page AS (
-      SELECT anchor, timestamp, id FROM ranked WHERE position = 1
-      ORDER BY timestamp DESC, id DESC LIMIT ? OFFSET ?
-    )
-    SELECT r.id, r.anchor, r.size, r.incompleteAncestry
-    FROM page p JOIN ranked r ON r.anchor = p.anchor
-    WHERE r.position <= ?
-    ORDER BY p.timestamp DESC, p.id DESC, r.position
-  `).all(project.id, ancestryLimit, pageSize + 1, offset, hintsPerLineage) as {
-    id: string;
-    anchor: string;
-    size: number;
-    incompleteAncestry: number;
-  }[];
-  const groups = new Map<string, typeof hints>();
-  for (const hint of hints) {
-    const group = groups.get(hint.anchor);
-    if (group) group.push(hint);
-    else groups.set(hint.anchor, [hint]);
-  }
-
+    SELECT event_id AS id, CASE WHEN kind = 'proposal.revise' THEN subject END AS predecessor
+    FROM events
+    WHERE project_id = ? AND verified = 1 AND kind IN ('proposal.open', 'proposal.revise')
+    ORDER BY timestamp DESC, event_id DESC
+  `).all(project.id) as unknown as ProposalHint[];
+  const { groups, byId } = groupIndexedHints(hints);
   const read = candidateReads(reader);
   const visible = new Map<string, ProposalCandidate>();
   let incomplete = false;
-  const page = [...groups.values()].slice(0, pageSize);
+  const page = groups.slice(offset, offset + pageSize);
   for (let start = 0; start < page.length; start += concurrentReads) {
-    const batch = await Promise.all(page.slice(start, start + concurrentReads).map(async (group) => {
-      let partial = group.some((hint) => hint.incompleteAncestry);
-      for (const { id } of group) {
+    const batch = await Promise.all(page.slice(start, start + concurrentReads).map(async (group, index) => {
+      const skip = start + index === 0 ? hintOffset : 0;
+      // Probe the indexed root on the first attempt even when newer hints exist.
+      const rootId = byId.has(group.root.id) ? group.root.id : null;
+      const revisions = group.ids.filter((id) => id !== rootId);
+      const candidates = revisions.slice(skip, skip + hintsPerLineage);
+      if (skip === 0 && rootId) candidates.push(rootId);
+      let partial = group.root.incomplete;
+      for (const id of candidates) {
         if (!isFullProposalId(id)) {
           partial = true;
           continue;
@@ -242,23 +255,34 @@ export async function listProposalLineages(
         if (result.kind === "visible") {
           return {
             candidate: result.candidate,
-            groupKey: result.candidate.status?.lineage.root ?? group[0].anchor,
+            groupKey: result.candidate.status?.lineage.root ?? group.root.id,
             partial: partial || result.candidate.status === null,
           };
         }
         if (result.kind === "unknown") partial = true;
       }
-      return { partial: partial || group[0].size > group.length };
+      const next = skip + hintsPerLineage;
+      return { partial, nextHintOffset: next < revisions.length ? next : undefined };
     }));
-    for (const result of batch) {
+    for (const [index, result] of batch.entries()) {
       if (result.candidate && !visible.has(result.groupKey)) visible.set(result.groupKey, result.candidate);
       if (result.partial) incomplete = true;
+      if (result.nextHintOffset !== undefined) {
+        // Resume this group before showing later groups. Numeric offsets reveal
+        // neither the indexed grouping key nor any denied candidate ID.
+        return {
+          candidates: [...visible.values()],
+          incomplete: true,
+          nextOffset: offset + start + index,
+          nextHintOffset: result.nextHintOffset,
+        };
+      }
     }
   }
 
   return {
     candidates: [...visible.values()],
     incomplete,
-    nextOffset: groups.size > pageSize ? offset + pageSize : null,
+    nextOffset: groups.length > offset + pageSize ? offset + pageSize : null,
   };
 }

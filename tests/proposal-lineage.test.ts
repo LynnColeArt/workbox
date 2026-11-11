@@ -203,3 +203,67 @@ test("candidate revisions share a pagination slot and do not repeat on later pag
   assert.deepEqual(lastPage.candidates.map(({ id }) => id), [independent[0]]);
   assert.equal(lastPage.nextOffset, null);
 });
+
+function revisionChain(db: ReturnType<typeof openDb>, length: number) {
+  db.prepare("INSERT INTO projects (id, repo_path, name) VALUES (?, ?, ?)").run(project.id, project.repoPath, project.name);
+  const revisions = [root];
+  addIndexHint(db, root, "proposal.open", "2026-11-11T00:00:00Z");
+  for (let i = 1; i < length; i++) {
+    const id = `sha256:${i.toString(16).padStart(64, "0")}`;
+    addIndexHint(db, id, "proposal.revise", `2026-11-11T00:${String(i).padStart(2, "0")}:00Z`, 1, revisions[i - 1]);
+    revisions.push(id);
+  }
+  return revisions;
+}
+
+test("a visible original is still listed behind three denied revisions", async () => {
+  using db = openDb(":memory:");
+  const revisions = revisionChain(db, 4);
+  const calls: string[] = [];
+  const page = await listProposalLineages(db, project, 0, nativeReader({ [root]: evaluation(root) }, {}, calls, revisions.slice(1)));
+  assert.deepEqual(page.candidates.map(({ id }) => id), [root]);
+  assert.equal(page.nextOffset, null);
+  assert.equal(calls.length, 4);
+  for (const denied of revisions.slice(1)) assert.ok(!JSON.stringify(page).includes(denied));
+});
+
+test("an opaque numeric continuation reaches an older visible revision even when the root is denied", async () => {
+  using db = openDb(":memory:");
+  const revisions = revisionChain(db, 7);
+  const older = revisions[1];
+  const denied = revisions.filter((id) => id !== older);
+  const reader = nativeReader({ [older]: evaluation(older, { members: [older] }) }, {}, [], denied);
+  const initial = await listProposalLineages(db, project, 0, reader);
+  assert.deepEqual(initial, { candidates: [], incomplete: true, nextOffset: 0, nextHintOffset: 3 });
+  const continuation = await listProposalLineages(db, project, initial.nextOffset!, reader, initial.nextHintOffset);
+  assert.deepEqual(continuation.candidates.map(({ id }) => id), [older]);
+  assert.equal(continuation.nextOffset, null);
+});
+
+test("a 34-member indexed lineage occupies a single slot", async () => {
+  using db = openDb(":memory:");
+  const revisions = revisionChain(db, 34);
+  const latest = revisions.at(-1)!;
+  const calls: string[] = [];
+  const reader = nativeReader({
+    [root]: evaluation(root),
+    [latest]: evaluation(latest, { members: revisions }),
+  }, {}, calls);
+  const page = await listProposalLineages(db, project, 0, reader);
+  assert.deepEqual(page.candidates.map(({ id }) => id), [latest]);
+  assert.equal(page.nextOffset, null);
+  assert.deepEqual(calls, [`status:${latest}`]);
+});
+
+test("cyclic indexed hints terminate and share a bounded partial discovery slot", async () => {
+  using db = openDb(":memory:");
+  db.prepare("INSERT INTO projects (id, repo_path, name) VALUES (?, ?, ?)").run(project.id, project.repoPath, project.name);
+  addIndexHint(db, first, "proposal.revise", "2026-11-11T00:01:00Z", 1, second);
+  addIndexHint(db, second, "proposal.revise", "2026-11-11T00:02:00Z", 1, first);
+  const calls: string[] = [];
+  const page = await listProposalLineages(db, project, 0, nativeReader({ [second]: evaluation(second) }, {}, calls));
+  assert.deepEqual(page.candidates.map(({ id }) => id), [second]);
+  assert.equal(page.incomplete, true);
+  assert.equal(page.nextOffset, null);
+  assert.deepEqual(calls, [`status:${second}`]);
+});
