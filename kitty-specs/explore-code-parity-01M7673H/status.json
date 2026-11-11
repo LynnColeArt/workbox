@@ -160,7 +160,8 @@
       "last_transition_at": "2026-11-11T21:42:35.157913+00:00",
       "model": "__resolved_model_absent__",
       "notes": [
-        "Compose repository Code and expose shared Explore, Code and calendar results over MCP; verify both real interfaces."
+        "Compose repository Code and expose shared Explore, Code and calendar results over MCP; verify both real interfaces.",
+        "Integration fdfc74f passes production build, TypeScript, scoped lint, all 57 tests, legacy MCP signed-write self-test, and browser keyboard drill-down checks."
       ],
       "provider": "__resolved_provider_absent__",
       "role": "implementer",
