@@ -60,7 +60,8 @@
       "notes": [
         "Implement the paginated Explore browser and shared activity read.",
         "Explore implementation at d53be8c. Four tests, scoped lint and TypeScript passed.",
-        "Independent Reviewer Renata checked coverage, visibility and Explore pagination."
+        "Independent Reviewer Renata checked coverage, visibility and Explore pagination.",
+        "Resolve merge-only dates and native visibility findings."
       ],
       "provider": "__resolved_provider_absent__",
       "review": null,
