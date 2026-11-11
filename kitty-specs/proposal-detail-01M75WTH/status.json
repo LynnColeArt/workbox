@@ -1,7 +1,7 @@
 {
-  "event_count": 16,
-  "last_event_id": "01M763A69HN84ZG618T22DEHVG",
-  "materialized_at": "2026-11-11T20:03:14.353181+00:00",
+  "event_count": 17,
+  "last_event_id": "01M763BW5WZMTSV3D733B3Y6BY",
+  "materialized_at": "2026-11-11T20:04:09.532348+00:00",
   "mission_number": "",
   "mission_slug": "proposal-detail-01M75WTH",
   "mission_type": "software-dev",
@@ -13,8 +13,8 @@
     "done": 0,
     "for_review": 0,
     "in_progress": 0,
-    "in_review": 1,
-    "planned": 5
+    "in_review": 0,
+    "planned": 6
   },
   "work_packages": {
     "WP01": {
@@ -52,10 +52,10 @@
       "agent": "codex",
       "agent_profile": "__resolved_profile_absent__",
       "agent_profile_version": "__resolved_profile_version_absent__",
-      "force_count": 0,
-      "lane": "in_review",
-      "last_event_id": "01M763A69HN84ZG618T22DEHVG",
-      "last_transition_at": "2026-11-11T20:03:14.353181+00:00",
+      "force_count": 1,
+      "lane": "planned",
+      "last_event_id": "01M763BW5WZMTSV3D733B3Y6BY",
+      "last_transition_at": "2026-11-11T20:04:09.532348+00:00",
       "model": "__resolved_model_absent__",
       "notes": [
         "Starting visible lineage and candidate selection",
@@ -63,6 +63,12 @@
         "Independent lineage review"
       ],
       "provider": "__resolved_provider_absent__",
+      "review_result": {
+        "feedback_path": "/home/lynn/.codex/worktrees/workbox-url-plan/workbox/kitty-specs/proposal-detail-01M75WTH/tasks/WP02-proposal-lineages/review-cycle-1.md",
+        "reference": "review-cycle://proposal-detail-01M75WTH/WP02-proposal-lineages/review-cycle-1.md",
+        "reviewer": "reviewer-renata",
+        "verdict": "changes_requested"
+      },
       "role": "reviewer",
       "subtasks": {
         "T004": "done",
