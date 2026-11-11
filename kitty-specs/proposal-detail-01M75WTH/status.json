@@ -217,7 +217,12 @@
         "All proposal component dependencies approved. Integrate and exercise the exact candidate browser route."
       ],
       "provider": "__resolved_provider_absent__",
-      "role": "implementer"
+      "role": "implementer",
+      "subtasks": {
+        "T019": "done",
+        "T020": "done",
+        "T021": "done"
+      }
     }
   }
 }
