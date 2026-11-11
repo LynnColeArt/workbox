@@ -94,7 +94,12 @@
         "Implement the pinned Git tree, file and commit browser and shared read."
       ],
       "provider": "__resolved_provider_absent__",
-      "role": "implementer"
+      "role": "implementer",
+      "subtasks": {
+        "T007": "done",
+        "T008": "done",
+        "T009": "done"
+      }
     },
     "WP04": {
       "actor": "finalize-tasks",
