@@ -1,7 +1,7 @@
 {
-  "event_count": 19,
-  "last_event_id": "01M75NY8WV7AM7T7Z49787S4V3",
-  "materialized_at": "2026-11-11T16:09:32.315371+00:00",
+  "event_count": 20,
+  "last_event_id": "01M75NZ18P8QP1TCRWZ0Y220TP",
+  "materialized_at": "2026-11-11T16:09:57.270412+00:00",
   "mission_number": "",
   "mission_slug": "workbox-urls-01M75JT3",
   "mission_type": "software-dev",
@@ -9,12 +9,12 @@
     "approved": 2,
     "blocked": 0,
     "canceled": 0,
-    "claimed": 0,
+    "claimed": 1,
     "done": 0,
     "for_review": 0,
     "in_progress": 1,
     "in_review": 0,
-    "planned": 4
+    "planned": 3
   },
   "work_packages": {
     "WP01": {
@@ -95,11 +95,16 @@
       "role": "implementer"
     },
     "WP04": {
-      "actor": "finalize-tasks",
+      "actor": "codex",
+      "agent_profile": "__resolved_profile_absent__",
+      "agent_profile_version": "__resolved_profile_version_absent__",
       "force_count": 0,
-      "lane": "planned",
-      "last_event_id": "01M75MC1F4NHBT41X4BHTPW4Q7",
-      "last_transition_at": "2026-11-11T15:42:06.308156+00:00"
+      "lane": "claimed",
+      "last_event_id": "01M75NZ18P8QP1TCRWZ0Y220TP",
+      "last_transition_at": "2026-11-11T16:09:57.270412+00:00",
+      "model": "__resolved_model_absent__",
+      "provider": "__resolved_provider_absent__",
+      "role": "implementer"
     },
     "WP05": {
       "actor": "finalize-tasks",
