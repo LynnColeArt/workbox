@@ -1,0 +1,150 @@
+{
+  "version": 1,
+  "mission_slug": "workbox-urls-01M75JT3",
+  "mission_id": "01M75JT3C5QF06GF2D2C0FDKE6",
+  "mission_branch": "kitty/mission-workbox-urls-01M75JT3",
+  "target_branch": "feat/workbox-urls",
+  "lanes": [
+    {
+      "lane_id": "lane-a",
+      "wp_ids": [
+        "WP01"
+      ],
+      "write_scope": [
+        "src/lib/workbox/address-resolution.ts",
+        "src/lib/workbox/address.ts",
+        "tests/workbox-address.test.ts"
+      ],
+      "predicted_surfaces": [
+        "api"
+      ],
+      "depends_on_lanes": [],
+      "parallel_group": 0
+    },
+    {
+      "lane_id": "lane-b",
+      "wp_ids": [
+        "WP02"
+      ],
+      "write_scope": [
+        "src/app/api/address-handler/route.ts",
+        "src/app/layout.tsx",
+        "src/app/open/page.tsx",
+        "tests/workbox-address-web.test.ts"
+      ],
+      "predicted_surfaces": [
+        "api",
+        "app-shell",
+        "artifact-rendering"
+      ],
+      "depends_on_lanes": [
+        "lane-a"
+      ],
+      "parallel_group": 1
+    },
+    {
+      "lane_id": "lane-c",
+      "wp_ids": [
+        "WP03"
+      ],
+      "write_scope": [
+        "mcp/server.ts",
+        "tests/workbox-address-mcp.test.ts"
+      ],
+      "predicted_surfaces": [
+        "api",
+        "legacy-cleanup"
+      ],
+      "depends_on_lanes": [
+        "lane-a"
+      ],
+      "parallel_group": 1
+    },
+    {
+      "lane_id": "lane-d",
+      "wp_ids": [
+        "WP04"
+      ],
+      "write_scope": [
+        "scripts/address-handler/linux/README.md",
+        "scripts/address-handler/linux/install.sh",
+        "scripts/address-handler/linux/open-address.mjs",
+        "scripts/address-handler/linux/workbox-address.desktop"
+      ],
+      "predicted_surfaces": [
+        "api",
+        "legacy-cleanup"
+      ],
+      "depends_on_lanes": [
+        "lane-b"
+      ],
+      "parallel_group": 2
+    },
+    {
+      "lane_id": "lane-e",
+      "wp_ids": [
+        "WP05"
+      ],
+      "write_scope": [
+        "scripts/address-handler/macos/Info.plist",
+        "scripts/address-handler/macos/README.md",
+        "scripts/address-handler/macos/WorkboxAddressHandler.swift",
+        "scripts/address-handler/macos/build.sh"
+      ],
+      "predicted_surfaces": [
+        "api",
+        "legacy-cleanup",
+        "workspace"
+      ],
+      "depends_on_lanes": [
+        "lane-b"
+      ],
+      "parallel_group": 2
+    },
+    {
+      "lane_id": "lane-f",
+      "wp_ids": [
+        "WP06"
+      ],
+      "write_scope": [
+        "scripts/address-handler/windows/README.md",
+        "scripts/address-handler/windows/WorkboxAddressHandler.cpp",
+        "scripts/address-handler/windows/build.ps1"
+      ],
+      "predicted_surfaces": [
+        "api",
+        "artifact-rendering"
+      ],
+      "depends_on_lanes": [
+        "lane-b"
+      ],
+      "parallel_group": 2
+    },
+    {
+      "lane_id": "lane-g",
+      "wp_ids": [
+        "WP07"
+      ],
+      "write_scope": [
+        "docs/workbox-addresses.md"
+      ],
+      "predicted_surfaces": [
+        "api",
+        "artifact-rendering",
+        "legacy-cleanup"
+      ],
+      "depends_on_lanes": [
+        "lane-b",
+        "lane-c",
+        "lane-d",
+        "lane-e",
+        "lane-f"
+      ],
+      "parallel_group": 3
+    }
+  ],
+  "computed_at": "2026-11-11T15:42:07.282695+00:00",
+  "computed_from": "dependency_graph+ownership",
+  "planning_artifact_wps": [],
+  "planning_commit_sha": "07e6e3fc70dbd95cb8cde1f6db8a96d23bbd7a1a"
+}
