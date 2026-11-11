@@ -95,7 +95,8 @@
       "model": "__resolved_model_absent__",
       "notes": [
         "Starting signed Conversation and revision header",
-        "6aceaef passed Conversation tests and real native fixture"
+        "6aceaef passed Conversation tests and real native fixture",
+        "Independent exact-candidate Conversation review"
       ],
       "provider": "__resolved_provider_absent__",
       "role": "reviewer",
