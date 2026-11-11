@@ -2,6 +2,7 @@ import { connection } from "next/server";
 import { getProject } from "@/lib/workbox/queries";
 import { openDb } from "@/lib/workbox/db";
 import { listPipelines, readPolicy } from "@/lib/workbox/ci";
+import { CreateForm } from "@/components/create-form";
 
 export const instant = false;
 
@@ -25,6 +26,17 @@ export default async function CIPage({ params }: { params: Promise<{ id: string 
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-4">
+      <CreateForm
+        label="New pipeline"
+        endpoint={`/api/projects/${id}/pipelines`}
+        cta="Commit pipeline"
+        fields={[
+          { key: "name", placeholder: "Pipeline name (lowercase, e.g. integration-tests)", required: true },
+          { key: "stepName", placeholder: "First step name (e.g. build)" },
+          { key: "command", placeholder: "Command (e.g. npm test)", required: true },
+          { key: "args", placeholder: "Args (space-separated)" },
+        ]}
+      />
       <section className="mb-8">
         <h2 className="text-sm font-semibold wb-muted mb-2 uppercase tracking-wide">Pipelines</h2>
         {pipelines.length === 0 && <p className="wb-muted text-sm">No .hn/pipelines/ definitions in the worktree.</p>}

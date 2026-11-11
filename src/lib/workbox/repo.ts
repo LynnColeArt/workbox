@@ -87,3 +87,47 @@ export function repoStats(repoPath: string, rev: string): { commits: number; con
     lastCommit: sha ? { sha, subject, when } : null,
   };
 }
+
+export interface FileCommitInfo {
+  sha: string;
+  shortSha: string;
+  subject: string;
+  when: string;
+  author: string;
+}
+
+/**
+ * Latest commit touching each path in a directory listing (the GitHub
+ * file-row detail). One log walk over the requested directory, first hit
+ * per path wins — no per-file subprocess storms.
+ */
+export function lastCommitsForPaths(repoPath: string, rev: string, dir: string, paths: string[]): Map<string, FileCommitInfo> {
+  const out = new Map<string, FileCommitInfo>();
+  if (paths.length === 0) return out;
+  const spec = dir ? `${rev}:${dir}` : rev;
+  const args = ["log", "--format=%H%x1f%h%x1f%s%x1f%I%x1f%aN", "-z", "--name-status", "-n", "2000", spec, "--"];
+  for (const p of paths) args.push(dir ? `${dir}/${p}` : p);
+  const r = git(repoPath, args);
+  if (!r.ok) return out;
+  for (const commitChunk of r.out.split("\0")) {
+    if (!commitChunk.trim()) continue;
+    const nl = commitChunk.indexOf("\n");
+    if (nl < 0) continue;
+    const header = commitChunk.slice(0, nl);
+    const body = commitChunk.slice(nl + 1);
+    const [sha, shortSha, subject, when, author] = header.split("\x1f");
+    if (!sha || !shortSha) continue;
+    for (const line of body.split("\n")) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+      const parts = trimmed.split("\t");
+      const path = parts.length > 1 ? parts[1] : parts[0];
+      if (!path) continue;
+      const rel = dir ? path.slice(dir.length + 1) : path;
+      if (paths.includes(rel) && !out.has(rel)) {
+        out.set(rel, { sha, shortSha, subject, when, author: author ?? "" });
+      }
+    }
+  }
+  return out;
+}

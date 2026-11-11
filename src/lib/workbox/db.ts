@@ -122,5 +122,9 @@ CREATE TABLE IF NOT EXISTS activity (
   PRIMARY KEY (project_id, event_id)
 );
 CREATE INDEX IF NOT EXISTS idx_activity_time ON activity(timestamp DESC);
+CREATE TABLE IF NOT EXISTS project_meta (
+  id TEXT PRIMARY KEY REFERENCES projects(id),
+  description TEXT NOT NULL DEFAULT ''
+);
 `);
 }

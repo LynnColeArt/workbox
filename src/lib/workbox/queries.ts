@@ -1,4 +1,5 @@
 import { openDb } from "./db";
+import { git } from "../hn/gitread";
 export { openDb };
 import type { DatabaseSync } from "node:sqlite";
 import type { FeedEntry, WorkboxProjectOverview } from "./schema";
@@ -20,8 +21,28 @@ export function listProjects(db: DatabaseSync): ProjectSummary[] {
 }
 
 export function getProject(db: DatabaseSync, id: string): ProjectSummary | null {
-  const row = db.prepare("SELECT id, name, description, repo_path AS repoPath FROM projects WHERE id = ?").get(id) as ProjectSummary | undefined;
+  const row = db.prepare(`
+    SELECT p.id, p.name, COALESCE(m.description, p.description) AS description, p.repo_path AS repoPath
+    FROM projects p LEFT JOIN project_meta m ON m.id = p.id
+    WHERE p.id = ?`).get(id) as ProjectSummary | undefined;
   return row ?? null;
+}
+
+export interface Contributor {
+  name: string;
+  commits: number;
+}
+
+export function projectContributors(db: DatabaseSync, id: string): Contributor[] {
+  const p = getProject(db, id);
+  if (!p) return [];
+  const r = git(p.repoPath, ["shortlog", "-sn", "HEAD"]);
+  if (!r.ok) return [];
+  return r.out.split("\n").filter(Boolean).map((line) => {
+    const t = line.trim();
+    const parts = t.split("\t");
+    return { commits: Number(parts[0]) || 0, name: parts.slice(1).join("\t").trim() || "unknown" };
+  }).filter((c) => c.name && c.name !== "unknown").sort((a, b) => b.commits - a.commits);
 }
 
 export function projectOverview(db: DatabaseSync, id: string): WorkboxProjectOverview | null {

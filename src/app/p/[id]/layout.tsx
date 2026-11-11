@@ -7,8 +7,8 @@ import { listPipelines } from "@/lib/workbox/ci";
 export const instant = false;
 
 const TABS = [
-  { key: "", label: "Issues" },
   { key: "code", label: "Code" },
+  { key: "issues", label: "Issues" },
   { key: "proposals", label: "Proposals" },
   { key: "memories", label: "Memory" },
   { key: "ci", label: "CI" },
@@ -31,7 +31,6 @@ export default async function ProjectLayout({
     return <main className="mx-auto max-w-6xl px-4 py-10"><p className="wb-muted">Project not indexed.</p></main>;
   }
 
-  // Live counts for tab badges (cheap reads; CI reads the worktree).
   const openIssues = Number(
     (db.prepare("SELECT COUNT(*) AS n FROM issues WHERE project_id = ? AND status = 'open'").get(id) as { n: number }).n);
   const memoryCount = Number(
@@ -48,9 +47,9 @@ export default async function ProjectLayout({
         <p className="wb-muted text-sm mb-4">{p.description}</p>
         <nav className="flex gap-1 border-b" style={{ borderColor: "var(--wb-border)" }}>
           {TABS.map((t) => {
-            const href = t.key ? `/p/${id}/${t.key}` : `/p/${id}`;
+            const href = `/p/${id}/${t.key}`;
             const badge =
-              t.key === "" ? (openIssues > 0 ? String(openIssues) : null)
+              t.key === "issues" ? (openIssues > 0 ? String(openIssues) : null)
               : t.key === "memories" ? (memoryCount > 0 ? String(memoryCount) : null)
               : t.key === "ci" ? (pipelines.length > 0 ? String(pipelines.length) : null)
               : null;

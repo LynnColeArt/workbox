@@ -1,8 +1,10 @@
 import { connection } from "next/server";
 import Link from "next/link";
-import { getProject } from "@/lib/workbox/queries";
+import { getProject, projectContributors } from "@/lib/workbox/queries";
 import { openDb } from "@/lib/workbox/db";
-import { listBranches, listTree, readBlob, safeRelPath, repoStats } from "@/lib/workbox/repo";
+import { listBranches, listTree, readBlob, safeRelPath, repoStats, lastCommitsForPaths } from "@/lib/workbox/repo";
+import { listPipelines, readPolicy } from "@/lib/workbox/ci";
+import DescriptionEditor from "@/components/description-editor";
 
 export const instant = false;
 
@@ -29,7 +31,6 @@ export default async function CodePage({
     return <main className="mx-auto max-w-6xl px-4 py-10"><p className="wb-muted">Invalid path.</p></main>;
   }
 
-  // Distinguish file vs directory: ls-tree the parent, look for the entry.
   let mode: "dir" | "file" = "dir";
   if (sub) {
     const segs = sub.split("/");
@@ -44,24 +45,86 @@ export default async function CodePage({
   }
 
   const stats = repoStats(repoPath, rev);
+  const contributors = projectContributors(db, id);
+  const pipelines = listPipelines(repoPath);
+  const policy = readPolicy(repoPath);
+  const overview = (await import("@/lib/workbox/queries")).projectOverview(db, id);
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-4">
-      <div className="wb-panel px-4 py-3 mb-4 flex flex-wrap gap-x-6 gap-y-1 text-xs wb-muted wb-mono">
-        <span>{stats.commits} commits</span>
-        <span>{stats.contributors} contributors</span>
-        {stats.lastCommit && <span className="truncate" title={stats.lastCommit.sha}>last: {stats.lastCommit.subject.slice(0, 60)}</span>}
-        <span className="flex gap-1 ml-auto items-center">
-          {branches.slice(0, 6).map((b) => (
-            <Link key={b.name} href={`/p/${id}/code?rev=${encodeURIComponent(b.name)}`}
-                  className="wb-chip" style={b.name === rev ? { borderColor: "var(--wb-accent)", color: "var(--wb-accent)" } : undefined}>
-              {b.name}
-            </Link>
-          ))}
-        </span>
-      </div>
+      <div className="grid gap-6 md:grid-cols-[1fr_320px]">
+        <section>
+          <div className="flex flex-wrap items-center gap-2 mb-3">
+            <span className="flex gap-1 items-center">
+              {branches.slice(0, 6).map((b) => (
+                <Link key={b.name} href={`/p/${id}/code?rev=${encodeURIComponent(b.name)}`}
+                      className="wb-chip" style={b.name === rev ? { borderColor: "var(--wb-accent)", color: "var(--wb-accent)" } : undefined}>
+                  {b.name}
+                </Link>
+              ))}
+            </span>
+            <span className="wb-chip wb-mono ml-auto">{stats.commits} commits · {stats.contributors} contributors</span>
+          </div>
+          {stats.lastCommit && (
+            <div className="wb-panel px-4 py-2.5 mb-4 text-xs wb-mono wb-muted flex gap-3 items-center">
+              <span style={{ color: "var(--wb-accent)" }}>{stats.lastCommit.sha.slice(0, 8)}</span>
+              <span className="truncate" title={stats.lastCommit.subject}>{stats.lastCommit.subject}</span>
+              <span className="ml-auto">{stats.lastCommit.when.slice(0, 10)}</span>
+            </div>
+          )}
 
-      {mode === "dir" ? <DirListing id={id} repoPath={repoPath} rev={rev} sub={sub} /> : <BlobView id={id} repoPath={repoPath} rev={rev} sub={sub!} />}
+          {mode === "dir" ? <DirListing id={id} repoPath={repoPath} rev={rev} sub={sub} /> : <BlobView id={id} repoPath={repoPath} rev={rev} sub={sub!} />}
+        </section>
+
+        <aside className="space-y-4">
+          <div className="wb-panel p-4">
+            <h2 className="text-sm font-semibold wb-muted mb-2 uppercase tracking-wide">About</h2>
+            <DescriptionEditor projectId={id} initial={p.description} />
+            {overview && (
+              <div className="wb-mono text-xs wb-muted space-y-1">
+                <div>{overview.eventCount} events · {overview.verifiedCount} verified</div>
+                <div>{overview.openIssues} open · {overview.totalIssues} issues total</div>
+              </div>
+            )}
+          </div>
+
+          <div className="wb-panel p-4">
+            <h2 className="text-sm font-semibold wb-muted mb-2 uppercase tracking-wide">Contributors</h2>
+            <div className="space-y-1.5">
+              {contributors.slice(0, 8).map((c) => (
+                <div key={c.name} className="flex items-center gap-3 text-sm">
+                  <span className="truncate">{c.name}</span>
+                  <span className="wb-muted text-xs ml-auto">{c.commits} commit{c.commits === 1 ? "" : "s"}</span>
+                </div>
+              ))}
+              {contributors.length === 0 && <p className="wb-muted text-xs">No commits yet.</p>}
+            </div>
+          </div>
+
+          <div className="wb-panel p-4">
+            <h2 className="text-sm font-semibold wb-muted mb-2 uppercase tracking-wide">Governance</h2>
+            {policy ? (
+              <div className="wb-mono text-xs wb-muted">
+                <div>{policy.version}</div>
+                <div>{policy.maintainers.length} maintainer(s)</div>
+                <div>{Object.keys(policy.pipelines).length} governed pipeline(s)</div>
+              </div>
+            ) : (
+              <p className="wb-muted text-xs">No .hn/policy.json — trust thresholds undefined.</p>
+            )}
+            <div className="wb-mono text-xs wb-muted mt-2">{pipelines.length} pipeline definition(s)</div>
+          </div>
+
+          <div className="wb-panel p-4">
+            <h2 className="text-sm font-semibold wb-muted mb-2 uppercase tracking-wide">Hubnot chains</h2>
+            <div className="wb-mono text-xs wb-muted">
+              <div><Link className="wb-link" href={`/p/${id}/issues`}>issues</Link> · <Link className="wb-link" href={`/p/${id}/proposals`}>proposals</Link></div>
+              <div><Link className="wb-link" href={`/p/${id}/memories`}>memory</Link> · <Link className="wb-link" href={`/p/${id}/ci`}>CI</Link></div>
+              <div><Link className="wb-link" href={`/p/${id}/insights`}>insights</Link></div>
+            </div>
+          </div>
+        </aside>
+      </div>
     </main>
   );
 }
@@ -91,6 +154,8 @@ function DirListing({ id, repoPath, rev, sub }: { id: string; repoPath: string; 
   if (tree.error) {
     return <p className="wb-muted text-sm">Nothing at this path: {tree.error}</p>;
   }
+  const fileEntries = tree.entries.filter((e) => e.type === "blob").map((e) => e.name);
+  const commits = lastCommitsForPaths(repoPath, rev, sub ?? "", fileEntries);
   return (
     <div>
       <Breadcrumbs id={id} rev={rev} sub={sub} />
@@ -101,17 +166,25 @@ function DirListing({ id, repoPath, rev, sub }: { id: string; repoPath: string; 
             ../
           </Link>
         )}
-        {tree.entries.map((e) => (
-          <div key={e.path} className="flex items-center gap-3 px-4 py-2">
-            <span className="wb-muted wb-mono text-xs">{e.type === "tree" ? "▸" : "·"}</span>
-            {e.type === "tree" ? (
-              <Link className="wb-link wb-mono text-sm" href={`/p/${id}/code?rev=${encodeURIComponent(rev)}&path=${encodeURIComponent(e.path)}`}>{e.name}/</Link>
-            ) : (
-              <Link className="wb-link wb-mono text-sm" href={`/p/${id}/code?rev=${encodeURIComponent(rev)}&path=${encodeURIComponent(e.path)}`}>{e.name}</Link>
-            )}
-            {e.size !== null && <span className="ml-auto wb-muted wb-mono text-xs">{e.size} B</span>}
-          </div>
-        ))}
+        {tree.entries.map((e) => {
+          const c = e.type === "blob" ? commits.get(e.name) : undefined;
+          return (
+            <div key={e.path} className="flex items-center gap-3 px-4 py-2.5 min-w-0">
+              <span className="wb-muted wb-mono text-xs shrink-0">{e.type === "tree" ? "▸" : "·"}</span>
+              <Link className="wb-link wb-mono text-sm shrink-0"
+                    href={`/p/${id}/code?rev=${encodeURIComponent(rev)}&path=${encodeURIComponent(e.path)}`}>
+                {e.type === "tree" ? `${e.name}/` : e.name}
+              </Link>
+              <span className="wb-muted text-xs truncate hidden md:inline" title={c?.subject}>
+                {c ? c.subject : e.type === "tree" ? "" : ""}
+              </span>
+              <span className="ml-auto wb-muted wb-mono text-xs whitespace-nowrap">
+                {c ? c.shortSha : e.size !== null ? `${e.size} B` : ""}
+              </span>
+              {c && <span className="wb-muted wb-mono text-xs whitespace-nowrap" title={c.author}>{c.when.slice(0, 10)}</span>}
+            </div>
+          );
+        })}
         {tree.entries.length === 0 && <p className="p-4 wb-muted text-sm">Empty directory.</p>}
       </div>
     </div>

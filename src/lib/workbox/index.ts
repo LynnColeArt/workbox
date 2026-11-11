@@ -216,7 +216,8 @@ export function indexProject(
 
 export function ensureProject(db: DatabaseSync, p: { id: string; name: string; description: string; repoPath: string }): void {
   db.prepare(`INSERT INTO projects (id, repo_path, name, description) VALUES (?, ?, ?, ?)
-              ON CONFLICT(id) DO UPDATE SET name=excluded.name, description=excluded.description, repo_path=excluded.repo_path`)
+              ON CONFLICT(id) DO UPDATE SET name=excluded.name, repo_path=excluded.repo_path,
+              description=CASE WHEN EXISTS (SELECT 1 FROM project_meta m WHERE m.id = excluded.id) THEN projects.description ELSE excluded.description END`)
     .run(p.id, p.repoPath, p.name, p.description);
 }
 
@@ -234,7 +235,7 @@ export function fullIndex(db: DatabaseSync, projects: Array<{ id: string; name: 
  * Stable per-project issue numbers for the ergonomics layer (#1, #2, …).
  * Assigned in chain order; immutable projection of a signed ordering.
  */
-function nextIssueNumber(db: DatabaseSync, projectId: string): number {
+export function nextIssueNumber(db: DatabaseSync, projectId: string): number {
   const row = db.prepare("SELECT COALESCE(MAX(number), 0) + 1 AS next FROM issues WHERE project_id = ?").get(projectId) as { next: number };
   return row.next;
 }
