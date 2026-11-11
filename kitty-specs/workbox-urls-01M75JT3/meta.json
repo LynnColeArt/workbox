@@ -1,0 +1,15 @@
+{
+  "created_at": "2026-11-11T15:14:49.879522+00:00",
+  "flattened": false,
+  "friendly_name": "Workbox addresses and deep links",
+  "mission_id": "01M75JT3C5QF06GF2D2C0FDKE6",
+  "mission_number": null,
+  "mission_slug": "workbox-urls-01M75JT3",
+  "mission_type": "software-dev",
+  "pr_bound": true,
+  "purpose_context": "Specify the workbox URI scheme, browser deep links through an opt-in local handler, pasting addresses in Workbox, and compatibility for existing MCP resource URLs.",
+  "purpose_tldr": "Let developers and agents open the same Workbox addresses through the browser, Workbox itself, and MCP.",
+  "slug": "workbox-urls-01M75JT3",
+  "target_branch": "feat/workbox-urls",
+  "topology": "single_branch"
+}
