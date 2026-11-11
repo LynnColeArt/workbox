@@ -58,7 +58,8 @@
       "last_transition_at": "2026-11-11T20:03:07.446169+00:00",
       "model": "__resolved_model_absent__",
       "notes": [
-        "Starting visible lineage and candidate selection"
+        "Starting visible lineage and candidate selection",
+        "279c9f6 passed 13 tests, lint, tsc, build and native sibling fixture"
       ],
       "provider": "__resolved_provider_absent__",
       "role": "implementer",
