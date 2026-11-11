@@ -60,19 +60,25 @@ export default async function IssuePage({ params }: { params: Promise<{ id: stri
         <h2 className="text-sm font-semibold wb-muted mb-2 uppercase tracking-wide">{comments.length} comments</h2>
         <div className="space-y-3">
           {comments.map((c) => (
-            <div key={c.eventId} className="flex items-start gap-3">
-              <span aria-hidden="true" className="hidden sm:flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[var(--wb-border)] bg-[var(--wb-panel-2)] text-sm font-semibold">
-                {Array.from(c.actorName.trim())[0]?.toUpperCase() ?? "?"}
-              </span>
-              <article className="wb-panel min-w-0 flex-1 overflow-hidden">
-                <header className="flex flex-wrap items-center gap-x-2 gap-y-1 border-b border-[var(--wb-border)] bg-[var(--wb-panel-2)] px-4 py-2.5 text-xs wb-muted">
-                  <span className="font-semibold break-all text-[var(--wb-text)]">{c.actorName}</span>
-                  <span>commented <time dateTime={c.timestamp ?? undefined}>{c.timestamp?.slice(0, 16).replace("T", " ")}</time></span>
-                  {c.verified === 1 && <span className="wb-chip ml-auto shrink-0" style={{ color: "var(--wb-open)" }}>✓ signed</span>}
+            <article key={c.eventId} className="flex items-start gap-2 sm:gap-3">
+              <div aria-hidden="true" className="wb-panel grid size-8 shrink-0 place-items-center rounded-full text-sm font-semibold sm:size-10">
+                {Array.from(c.actorName.trim())[0]?.toUpperCase() || "?"}
+              </div>
+              <div className="wb-panel min-w-0 flex-1 overflow-hidden">
+                <header className="flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-[var(--wb-border)] bg-[var(--wb-panel-2)] px-4 py-2 text-sm">
+                  <div className="wb-muted min-w-0 wrap-anywhere">
+                    <span className="font-semibold text-[var(--wb-text)]">{c.actorName}</span>
+                    {c.timestamp ? (
+                      <> commented on <time dateTime={c.timestamp}>{c.timestamp.slice(0, 16).replace("T", " ")}</time></>
+                    ) : " commented"}
+                  </div>
+                  {c.verified === 1 && (
+                    <span className="wb-chip ml-auto shrink-0" style={{ color: "var(--wb-open)" }}>✓ signed</span>
+                  )}
                 </header>
-                <div className="p-4 text-sm leading-7 whitespace-pre-wrap break-words">{c.body}</div>
-              </article>
-            </div>
+                <div className="px-4 py-3 text-sm leading-relaxed whitespace-pre-wrap wrap-anywhere">{c.body}</div>
+              </div>
+            </article>
           ))}
         </div>
       </section>
