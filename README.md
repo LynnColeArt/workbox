@@ -31,7 +31,31 @@ before display.
 - `scripts/init-all-repos.sh` — idempotent `hn init` across a projects
   root (private identity state only; no refs, no worktree changes).
 
-## Running
+## Installation
+
+### Debian and Ubuntu (preferred)
+
+Workbox will use the same signed [Kinetic Actor package archive](https://packages.kinetic.actor/)
+as Hubnot. If you already install Hubnot from this archive, skip the setup.
+Otherwise, add the archive once.
+
+```sh
+sudo apt update
+sudo apt install ca-certificates curl
+sudo install -d -m 0755 /etc/apt/keyrings
+curl -fsSL https://packages.kinetic.actor/kinetic-actor-archive-keyring.gpg | sudo tee /etc/apt/keyrings/kinetic-actor.gpg > /dev/null
+sudo chmod 0644 /etc/apt/keyrings/kinetic-actor.gpg
+echo 'deb [signed-by=/etc/apt/keyrings/kinetic-actor.gpg] https://packages.kinetic.actor/ ./' | sudo tee /etc/apt/sources.list.d/kinetic-actor.list
+```
+
+The Workbox package is pending publication. Once it appears in the archive, install it with APT.
+
+```sh
+sudo apt update
+sudo apt install workbox
+```
+
+### Running from source
 
 ```bash
 go build -o /tmp/hn .            # in ~/projects/hubnot (nogithub tag also fine)
