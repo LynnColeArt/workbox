@@ -94,7 +94,8 @@
       "last_transition_at": "2026-11-11T20:13:07.440280+00:00",
       "model": "__resolved_model_absent__",
       "notes": [
-        "Starting signed Conversation and revision header"
+        "Starting signed Conversation and revision header",
+        "6aceaef passed Conversation tests and real native fixture"
       ],
       "provider": "__resolved_provider_absent__",
       "role": "implementer",
