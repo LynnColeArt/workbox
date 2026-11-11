@@ -19,7 +19,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </Link>
             <nav className="flex items-center gap-4 text-sm">
               <Link href="/" className="wb-link">Dashboard</Link>
-              <span className="wb-muted">Explore</span>
+              <Link href="/explore" className="wb-link">Explore</Link>
               <span className="wb-muted">Identities</span>
             </nav>
             <div className="ml-auto wb-muted text-xs">a communal room for hubnot projects</div>
