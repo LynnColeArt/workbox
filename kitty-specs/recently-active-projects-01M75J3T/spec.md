@@ -1,8 +1,8 @@
 # Mission Specification — Recently active projects
 
-**Mission branch** `feat/recently-active-projects`  
-**Created** 2026-11-11  
-**Status** Draft for review
+- **Mission branch** `feat/recently-active-projects`
+- **Created** 2026-11-11
+- **Status** Draft for review
 
 A developer opening Workbox wants to see where work happened lately and reach any project without scrolling through the entire directory on the Dashboard. Git commits and verified Hubnot events both count as activity. A project can surface through either source.
 
