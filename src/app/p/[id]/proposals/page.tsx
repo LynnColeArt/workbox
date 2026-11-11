@@ -1,5 +1,5 @@
 import { connection } from "next/server";
-import Link from "next/link";
+import IssueListHeader from "@/components/issue-list-header";
 import { getProject } from "@/lib/workbox/queries";
 import { openDb } from "@/lib/workbox/db";
 import { readPolicy } from "@/lib/workbox/ci";
@@ -181,6 +181,9 @@ export default async function ProposalsPage({ params }: { params: Promise<{ id: 
     .sort((a, b) =>
       a.items[a.items.length - 1]!.timestamp.localeCompare(b.items[b.items.length - 1]!.timestamp));
 
+  const openCount = lineages.filter((lineage) => lineage.state === "candidate").length;
+  const closedCount = lineages.filter((lineage) => ["accepted", "merged", "rejected", "superseded"].includes(lineage.state)).length;
+
   return (
     <main className="mx-auto max-w-6xl px-4 py-4">
       <CreateForm
@@ -193,43 +196,49 @@ export default async function ProposalsPage({ params }: { params: Promise<{ id: 
           { key: "head", placeholder: "Head branch (descending from main)", required: true },
         ]}
       />
-      {lineages.length === 0 && (
-        <div className="wb-panel p-4">
-          <p className="wb-muted text-sm">No proposals indexed.</p>
-        </div>
-      )}
-
       {policy && (
-        <div className="wb-panel p-3 mb-4 wb-mono text-xs wb-muted">
+        <div className="wb-panel p-3 mb-4 wb-mono text-xs wb-muted leading-5 break-words">
           policy {policy.version} · approvals ≥ {req.requiredApprovals ?? "?"} · accepts ≥ {req.requiredAccepts ?? "?"} ·
           author-approval {req.allowAuthorApproval ? "allowed" : "refused"}
         </div>
       )}
 
-      <div className="space-y-4">
+      <div className="wb-panel divide-y divide-[var(--wb-border)] overflow-hidden">
+        <IssueListHeader open={openCount} closed={closedCount} />
+        {lineages.length === 0 && <p className="p-4 wb-muted text-sm">No proposals indexed.</p>}
         {lineages.map((l) => (
-          <div key={l.root} className="wb-panel p-4">
-            <div className="flex items-center gap-3 mb-1">
-              <span className="text-sm font-medium">{l.title}</span>
-              <span className="wb-chip" style={{
-                color: l.state === "accepted" || l.state === "merged" ? "var(--wb-open)" : l.state === "rejected" ? "var(--wb-warn)" : "var(--wb-muted)",
-              }}>{l.state}</span>
-              <span className="wb-muted wb-mono text-xs ml-auto">{l.root.slice(7, 19)}</span>
-              <ReviewButtons projectId={id} proposalId={l.root} state={l.state} />
+          <div key={l.root} className="p-4">
+            <div className="flex flex-wrap items-start gap-3 mb-3">
+              <svg aria-hidden="true" className="mt-0.5 shrink-0" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"
+                   style={{ color: l.state === "candidate" ? "var(--wb-open)" : "var(--wb-closed)" }}>
+                <circle cx="4" cy="3" r="1.5" /><circle cx="4" cy="13" r="1.5" /><circle cx="12" cy="13" r="1.5" />
+                <path d="M4 4.5v7M9 2l3 3-3 3m3-3v6.5" />
+              </svg>
+              <div className="min-w-0 flex-1">
+                <h2 className="text-sm font-semibold break-words">{l.title}</h2>
+                <div className="wb-muted text-xs mt-1 leading-5">
+                  <span className="tabular-nums" title={l.root}>#{l.root.slice(7, 19)}</span>
+                  {" · "}opened {l.items[0]?.timestamp.slice(0, 10)}
+                  {l.state === "candidate" && <span className="wb-chip ml-2">candidate</span>}
+                </div>
+              </div>
+              <div className="max-w-full [&>div]:ml-0 [&>div]:flex-wrap [&_input]:min-w-0 [&_input]:max-w-full">
+                <ReviewButtons projectId={id} proposalId={l.root} state={l.state} />
+              </div>
             </div>
-            {l.body && <p className="wb-muted text-sm mb-2">{l.body}</p>}
+            {l.body && <p className="text-sm leading-6 whitespace-pre-wrap break-words mb-3">{l.body}</p>}
             {l.base && l.head && (
-              <p className="wb-mono text-xs wb-muted mb-2">
+              <p className="wb-mono text-xs wb-muted mb-4 break-words">
                 base {l.base.slice(7, 19)} → head {l.head.slice(7, 19)}
               </p>
             )}
-            <ol className="relative border-l wb-muted text-sm space-y-2 ml-2" style={{ borderColor: "var(--wb-border)", listStyle: "none" }}>
+            <ol className="relative border-l wb-muted text-sm space-y-3 ml-2" style={{ borderColor: "var(--wb-border)", listStyle: "none" }}>
               {l.items.map((it) => (
-                <li key={it.event_id} className="ml-4" title={it.event_id}>
+                <li key={it.event_id} className="ml-4 leading-5 break-words" title={it.event_id}>
                   <span className="absolute -left-1 mt-1.5 h-2 w-2 rounded-full" style={{
                     background: it.verified === 1 ? "var(--wb-open)" : "var(--wb-warn)",
                   }} />
-                  <span className="text-xs wb-muted">{it.timestamp.slice(11, 16)} </span>
+                  <span className="text-xs wb-muted tabular-nums mr-2">{it.timestamp.slice(0, 16).replace("T", " ")} </span>
                   {it.label}
                   <span className="ml-2 text-xs" style={{ color: it.verified === 1 ? "var(--wb-open)" : "var(--wb-warn)" }}>
                     {it.verified === 1 ? "✓" : "⚠"}
