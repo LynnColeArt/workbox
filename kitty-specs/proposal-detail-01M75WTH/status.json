@@ -28,7 +28,8 @@
       "last_transition_at": "2026-11-11T19:56:47.754214+00:00",
       "model": "__resolved_model_absent__",
       "notes": [
-        "Starting WP01 native proposal reads"
+        "Starting WP01 native proposal reads",
+        "edc6afa passed adapter tests, actual Hubnot fixture, lint, tsc and build"
       ],
       "provider": "__resolved_provider_absent__",
       "role": "implementer",
