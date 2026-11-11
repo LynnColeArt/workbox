@@ -124,6 +124,7 @@
     },
     "WP06": {
       "actor": "codex",
+      "agent": "codex",
       "agent_profile": "__resolved_profile_absent__",
       "agent_profile_version": "__resolved_profile_version_absent__",
       "force_count": 0,
@@ -131,6 +132,9 @@
       "last_event_id": "01M763H9HWZ4G3MEN4SR0N8QDY",
       "last_transition_at": "2026-11-11T20:07:07.068616+00:00",
       "model": "__resolved_model_absent__",
+      "notes": [
+        "Starting exact Git file comparison"
+      ],
       "provider": "__resolved_provider_absent__",
       "role": "implementer"
     },
