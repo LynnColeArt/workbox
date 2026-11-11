@@ -1,19 +1,19 @@
 {
-  "event_count": 41,
-  "last_event_id": "01M7649FGHBNJSAEFXJ56D95CK",
-  "materialized_at": "2026-11-11T20:20:19.601292+00:00",
+  "event_count": 42,
+  "last_event_id": "01M764AC9QCG345AH0MSYNM2SQ",
+  "materialized_at": "2026-11-11T20:20:49.079036+00:00",
   "mission_number": "",
   "mission_slug": "proposal-detail-01M75WTH",
   "mission_type": "software-dev",
   "summary": {
-    "approved": 5,
+    "approved": 6,
     "blocked": 0,
     "canceled": 0,
     "claimed": 0,
     "done": 0,
     "for_review": 0,
     "in_progress": 0,
-    "in_review": 1,
+    "in_review": 0,
     "planned": 1
   },
   "work_packages": {
@@ -149,9 +149,9 @@
       "agent_profile": "__resolved_profile_absent__",
       "agent_profile_version": "__resolved_profile_version_absent__",
       "force_count": 0,
-      "lane": "in_review",
-      "last_event_id": "01M7649FGHBNJSAEFXJ56D95CK",
-      "last_transition_at": "2026-11-11T20:20:19.601292+00:00",
+      "lane": "approved",
+      "last_event_id": "01M764AC9QCG345AH0MSYNM2SQ",
+      "last_transition_at": "2026-11-11T20:20:49.079036+00:00",
       "model": "__resolved_model_absent__",
       "notes": [
         "Starting next actions and existing exact-candidate review",
@@ -159,6 +159,12 @@
         "Independent Reviewer Renata checks exact review submission, refresh and actor-aware guidance."
       ],
       "provider": "__resolved_provider_absent__",
+      "review_result": {
+        "feedback_path": "/home/lynn/.codex/worktrees/workbox-url-plan/workbox/kitty-specs/proposal-detail-01M75WTH/tasks/WP05-proposal-next-actions/review-cycle-1.md",
+        "reference": "review-cycle://proposal-detail-01M75WTH/WP05-proposal-next-actions/review-cycle-1.md",
+        "reviewer": "reviewer-renata",
+        "verdict": "approved"
+      },
       "role": "reviewer",
       "subtasks": {
         "T013": "done",
