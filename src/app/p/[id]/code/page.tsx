@@ -53,17 +53,17 @@ export default async function CodePage({
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-4">
-      <div className="grid gap-6 md:grid-cols-[1fr_320px]">
-        <section>
+      <div className="grid gap-6 md:grid-cols-[minmax(0,1fr)_320px]">
+        <section className="min-w-0">
           <div className="flex flex-wrap items-center gap-3 mb-3">
             <BranchSelector projectId={id} current={rev} branches={branches.map((b) => b.name)} path={sub ?? ""} />
-            <span className="wb-chip wb-mono ml-auto">{stats.commits} commits · {stats.contributors} contributors</span>
+            <span className="wb-chip wb-mono ml-auto">{stats.commits.toLocaleString("en-US")} commit{stats.commits === 1 ? "" : "s"} · {stats.contributors.toLocaleString("en-US")} contributor{stats.contributors === 1 ? "" : "s"}</span>
           </div>
           {stats.lastCommit && (
             <div className="wb-panel px-4 py-2.5 mb-4 text-xs wb-mono wb-muted flex gap-3 items-center">
               <span style={{ color: "var(--wb-accent)" }}>{stats.lastCommit.sha.slice(0, 8)}</span>
-              <span className="truncate" title={stats.lastCommit.subject}>{stats.lastCommit.subject}</span>
-              <span className="ml-auto">{stats.lastCommit.when.slice(0, 10)}</span>
+              <span className="min-w-0 truncate" title={stats.lastCommit.subject}>{stats.lastCommit.subject}</span>
+              <span className="ml-auto shrink-0">{stats.lastCommit.when.slice(0, 10)}</span>
             </div>
           )}
 
@@ -75,9 +75,9 @@ export default async function CodePage({
             <h2 className="text-sm font-semibold wb-muted mb-2 uppercase tracking-wide">About</h2>
             <DescriptionEditor projectId={id} initial={p.description} />
             {overview && (
-              <div className="wb-mono text-xs wb-muted space-y-1">
-                <div>{overview.eventCount} events · {overview.verifiedCount} verified</div>
-                <div>{overview.openIssues} open · {overview.totalIssues} issues total</div>
+              <div className="text-sm wb-muted space-y-1 tabular-nums">
+                <div><strong className="font-semibold text-[var(--wb-text)]">{overview.eventCount.toLocaleString("en-US")}</strong> events · <strong className="font-semibold text-[var(--wb-text)]">{overview.verifiedCount.toLocaleString("en-US")}</strong> verified</div>
+                <div><strong className="font-semibold text-[var(--wb-text)]">{overview.openIssues.toLocaleString("en-US")}</strong> open · <strong className="font-semibold text-[var(--wb-text)]">{overview.totalIssues.toLocaleString("en-US")}</strong> issues total</div>
               </div>
             )}
           </div>
@@ -88,7 +88,7 @@ export default async function CodePage({
               {contributors.slice(0, 8).map((c) => (
                 <div key={c.name} className="flex items-center gap-3 text-sm">
                   <span className="truncate">{c.name}</span>
-                  <span className="wb-muted text-xs ml-auto">{c.commits} commit{c.commits === 1 ? "" : "s"}</span>
+                  <span className="wb-muted text-xs ml-auto">{c.commits.toLocaleString("en-US")} commit{c.commits === 1 ? "" : "s"}</span>
                 </div>
               ))}
               {contributors.length === 0 && <p className="wb-muted text-xs">No commits yet.</p>}
@@ -100,13 +100,13 @@ export default async function CodePage({
             {policy ? (
               <div className="wb-mono text-xs wb-muted">
                 <div>{policy.version}</div>
-                <div>{policy.maintainers.length} maintainer(s)</div>
-                <div>{Object.keys(policy.pipelines).length} governed pipeline(s)</div>
+                <div>{policy.maintainers.length.toLocaleString("en-US")} maintainer{policy.maintainers.length === 1 ? "" : "s"}</div>
+                <div>{Object.keys(policy.pipelines).length.toLocaleString("en-US")} governed pipeline{Object.keys(policy.pipelines).length === 1 ? "" : "s"}</div>
               </div>
             ) : (
               <p className="wb-muted text-xs">No .hn/policy.json — trust thresholds undefined.</p>
             )}
-            <div className="wb-mono text-xs wb-muted mt-2">{pipelines.length} pipeline definition(s)</div>
+            <div className="wb-mono text-xs wb-muted mt-2">{pipelines.length.toLocaleString("en-US")} pipeline definition{pipelines.length === 1 ? "" : "s"}</div>
           </div>
 
           <div className="wb-panel p-4">
@@ -153,7 +153,7 @@ function DirListing({ id, repoPath, rev, sub }: { id: string; repoPath: string; 
   return (
     <div>
       <Breadcrumbs id={id} rev={rev} sub={sub} />
-      <div className="wb-panel divide-y" style={{ borderColor: "var(--wb-border)" }}>
+      <div className="wb-panel divide-y divide-[var(--wb-border)] overflow-hidden" style={{ borderColor: "var(--wb-border)" }}>
         {sub && (
           <Link className="block px-4 py-2 wb-mono text-sm wb-link"
                 href={`/p/${id}/code?rev=${encodeURIComponent(rev)}&path=${encodeURIComponent(sub.split("/").slice(0, -1).join("/"))}`}>
@@ -163,19 +163,26 @@ function DirListing({ id, repoPath, rev, sub }: { id: string; repoPath: string; 
         {tree.entries.map((e) => {
           const c = e.type === "blob" ? commits.get(e.name) : undefined;
           return (
-            <div key={e.path} className="flex items-center gap-3 px-4 py-2.5 min-w-0">
-              <span className="wb-muted wb-mono text-xs shrink-0">{e.type === "tree" ? "▸" : "·"}</span>
-              <Link className="wb-link wb-mono text-sm shrink-0"
+            <div key={e.path} className="flex items-center gap-3 px-4 py-2.5 min-w-0 hover:bg-[var(--wb-panel-2)]">
+              <svg aria-hidden="true" viewBox="0 0 16 16" width="16" height="16" fill="currentColor"
+                   className={`shrink-0 ${e.type === "tree" ? "text-[var(--wb-link)]" : "wb-muted"}`}>
+                {e.type === "tree" ? (
+                  <path d="M1.75 2h4.5l1.5 1.5h6.5A1.75 1.75 0 0 1 16 5.25v7A1.75 1.75 0 0 1 14.25 14H1.75A1.75 1.75 0 0 1 0 12.25v-8.5A1.75 1.75 0 0 1 1.75 2Z" />
+                ) : (
+                  <path fillRule="evenodd" d="M3.75 1h5.5L13 4.75v8.5A1.75 1.75 0 0 1 11.25 15h-7.5A1.75 1.75 0 0 1 2 13.25v-10.5A1.75 1.75 0 0 1 3.75 1ZM3.5 2.75v10.5c0 .138.112.25.25.25h7.5a.25.25 0 0 0 .25-.25V5.5H9A.75.75 0 0 1 8.25 4.75V2.5h-4.5a.25.25 0 0 0-.25.25Zm6.25.31.94.94h-.94v-.94Z" />
+                )}
+              </svg>
+              <Link className="min-w-0 flex-1 truncate text-sm hover:text-[var(--wb-link)] hover:underline md:w-1/3 md:flex-none" title={e.name}
                     href={`/p/${id}/code?rev=${encodeURIComponent(rev)}&path=${encodeURIComponent(e.path)}`}>
                 {e.type === "tree" ? `${e.name}/` : e.name}
               </Link>
-              <span className="wb-muted text-xs truncate hidden md:inline" title={c?.subject}>
-                {c ? c.subject : e.type === "tree" ? "" : ""}
+              <span className="wb-muted min-w-0 flex-1 text-sm truncate hidden md:block" title={c?.subject}>
+                {c?.subject}
               </span>
-              <span className="ml-auto wb-muted wb-mono text-xs whitespace-nowrap">
+              <span className="ml-auto shrink-0 wb-muted wb-mono text-xs whitespace-nowrap">
                 {c ? c.shortSha : e.size !== null ? `${e.size} B` : ""}
               </span>
-              {c && <span className="wb-muted wb-mono text-xs whitespace-nowrap" title={c.author}>{c.when.slice(0, 10)}</span>}
+              {c && <span className="shrink-0 wb-muted text-xs whitespace-nowrap" title={c.author}>{c.when.slice(0, 10)}</span>}
             </div>
           );
         })}
