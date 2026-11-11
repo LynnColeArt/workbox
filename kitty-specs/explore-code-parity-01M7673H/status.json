@@ -95,7 +95,8 @@
         "Pinned Code reader and component implemented at af579d6. Six Git fixture tests and lint and TypeScript passed.",
         "Independent review checks pinned Git trees, safe reads and commit drill-down.",
         "Correct file last-change metadata at conflict resolution merges.",
-        "Merge-aware metadata correction at 9d260be. Seven focused tests and lint passed."
+        "Merge-aware metadata correction at 9d260be. Seven focused tests and lint passed.",
+        "Independent reviewer verified directory and file last-change parity at a conflict-resolution merge."
       ],
       "provider": "__resolved_provider_absent__",
       "review": null,
