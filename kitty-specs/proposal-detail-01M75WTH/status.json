@@ -155,7 +155,8 @@
       "model": "__resolved_model_absent__",
       "notes": [
         "Starting next actions and existing exact-candidate review",
-        "Exact-candidate next actions and review implemented at 2af696d. Focused tests, lint, typecheck and disposable native write passed."
+        "Exact-candidate next actions and review implemented at 2af696d. Focused tests, lint, typecheck and disposable native write passed.",
+        "Independent Reviewer Renata checks exact review submission, refresh and actor-aware guidance."
       ],
       "provider": "__resolved_provider_absent__",
       "role": "reviewer",
