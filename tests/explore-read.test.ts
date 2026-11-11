@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, rmSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { DatabaseSync } from "node:sqlite";
@@ -122,7 +122,7 @@ test("stale selections do not claim results from a different snapshot, and unkno
   assert.equal(readExplore(db, { snapshot: "invalid" }, now).stale, true);
 });
 
-test("governed and shallow checkouts suppress unproven Hubnot activity without hiding branch commits", (t) => {
+test("governed and shallow checkouts check native visibility and keep observed Git activity", (t) => {
   const { db, repo, git, root } = fixture(t);
   addProject(db, "governed", "Governed", repo);
   git("commit", "--allow-empty", "-qm", "Old commit", "--date", "2026-07-03T10:00:00Z");
@@ -130,17 +130,80 @@ test("governed and shallow checkouts suppress unproven Hubnot activity without h
   mkdirSync(join(repo, ".git", "hn", "contribution"), { recursive: true, mode: 0o700 });
   assert.equal(isHubnotProjectionVisible(repo), false);
   addEvent(db, "governed", 1, "2026-07-10T02:00:00Z");
+  addEvent(db, "governed", 2, "2026-07-10T03:00:00Z");
   const shallow = join(root, "shallow");
   execFileSync("git", ["clone", "-q", "--depth=1", "--no-local", repo, shallow]);
   addProject(db, "shallow", "Shallow", shallow);
-  addEvent(db, "shallow", 2, "2026-07-10T03:00:00Z");
+  addEvent(db, "shallow", 3, "2026-07-10T03:00:00Z");
   assert.equal(isHubnotProjectionVisible(shallow), false);
-  const result = readExplore(db, {}, now);
-  assert.deepEqual(result.coverage, {
+  const bin = join(root, "hn-fixture");
+  writeFileSync(bin, `#!${process.execPath}
+const assert = require("node:assert/strict");
+const [command, action, id, format] = process.argv.slice(2);
+assert.deepEqual([command, action, format], ["event", "show", "--json"]);
+assert.match(id, /^sha256:[0-9a-f]{64}$/);
+if (id.endsWith("1")) {
+  process.stdout.write(JSON.stringify({
+    ok: true,
+    data: { id, schema: "hn.consumer/1", history_scope: "visible_operative_history",
+      event: { kind: "issue.open", timestamp: "2026-07-08T22:00:00Z", actorName: "Fixture" } },
+  }));
+} else if (id.endsWith("2")) {
+  process.stdout.write(JSON.stringify({
+    ok: false, error: { code: "not_found", origin: "native", message: "Private event details" },
+  }));
+  process.exitCode = 1;
+} else {
+  setTimeout(() => {}, 1_000);
+}
+`, { mode: 0o755 });
+  const result = JSON.parse(execFileSync(process.execPath, ["--import", "tsx", "-e", `
+    const { openDb } = require("./src/lib/workbox/db.ts");
+    const { readExplore } = require("./src/lib/workbox/explore.ts");
+    const { recentProjects } = require("./src/lib/workbox/activity.ts");
+    const db = openDb(process.argv[1]);
+    const now = new Date(process.argv[2]);
+    try {
+      process.stdout.write(JSON.stringify({
+        all: readExplore(db, {}, now),
+        verifiedDay: readExplore(db, { day: "2026-07-08" }, now),
+        recent: recentProjects(db, { sinceDays: 3650 }),
+      }));
+    } finally {
+      db.close();
+    }
+  `, join(root, "index.sqlite"), now.toISOString()], {
+    encoding: "utf8", env: { ...process.env, WORKBOX_HN_BIN: bin },
+  })) as {
+    all: ReturnType<typeof readExplore>;
+    verifiedDay: ReturnType<typeof readExplore>;
+    recent: ReturnType<typeof recentProjects>;
+  };
+  assert.deepEqual(result.all.coverage, {
     git: { complete: 1, partial: 1, unavailable: 0 },
-    hubnot: { complete: 0, partial: 0, unavailable: 2 },
+    hubnot: { complete: 1, partial: 0, unavailable: 1 },
   });
-  assert.deepEqual(result.chart.buckets.slice(-2).map(({ count, partial }) => [count, partial]), [[2, true], [null, true]]);
-  assert.ok(result.projects.every(({ sources }) => sources.join() === "git"));
-  assert.equal(readExplore(db, { day: "2026-07-10" }, now).total, 0);
+  assert.deepEqual(result.all.chart.buckets.slice(-3).map(({ count, partial }) => [count, partial]),
+    [[1, true], [2, true], [null, true]]);
+  assert.equal(result.verifiedDay.total, 1);
+  assert.deepEqual(result.verifiedDay.projects[0].sources, ["hubnot"]);
+  assert.equal(result.recent.find(({ id }) => id === "governed")?.hubnotLast7, 1);
+  assert.equal(result.recent.find(({ id }) => id === "shallow")?.hubnotLast7, 0);
+  assert.doesNotMatch(JSON.stringify(result), /Private event details/);
+});
+
+test("a day with only a merge commit qualifies as Git activity", (t) => {
+  const { db, repo, git } = fixture(t);
+  addProject(db, "merge", "Merge", repo);
+  git("commit", "--allow-empty", "-qm", "Root", "--date", "2026-07-04T09:00:00Z");
+  git("checkout", "-qb", "feature");
+  git("commit", "--allow-empty", "-qm", "Feature", "--date", "2026-07-05T09:00:00Z");
+  git("checkout", "-q", "main");
+  git("-c", "user.name=Fixture", "merge", "--no-ff", "-m", "Merge feature", "feature");
+  git("commit", "--amend", "--no-edit", "--date", "2026-07-10T09:00:00Z");
+  const result = readExplore(db, { day: "2026-07-10" }, now);
+  assert.equal(result.chart.buckets.at(-1)?.count, 1);
+  assert.equal(result.total, 1);
+  assert.equal(result.projects[0].latestSummary, "Merge feature");
+  assert.equal(recentProjects(db)[0].latestSummary, "Merge feature");
 });

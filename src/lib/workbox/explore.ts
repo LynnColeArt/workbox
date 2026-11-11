@@ -1,5 +1,8 @@
 import type { DatabaseSync } from "node:sqlite";
-import { isHubnotProjectionVisible, listProjectRuntime, readGitActivity, readIndexedHubnotActivity, type ActivityRecord } from "./activity";
+import {
+  collectHubnotActivity, createHubnotActivityBudget, listProjectRuntime,
+  readGitActivity, readIndexedHubnotActivity, type ActivityRecord,
+} from "./activity";
 import { activitySnapshot, parseDay, parsePage, utcDayRange, type ActivityChartModel } from "./activity-chart";
 
 export interface ExploreQuery {
@@ -108,21 +111,20 @@ export function readExplore(db: DatabaseSync, query: ExploreQuery = {}, now = ne
   };
   const catalog: ExploreProject[] = [];
   const fingerprint = [];
+  const budget = createHubnotActivityBudget();
 
   for (const project of projects.sort((a, b) => byId(a.id, b.id))) {
     const git = readGitActivity(project.repoPath);
     coverage.git[git.coverage]++;
-    const projectionVisible = isHubnotProjectionVisible(project.repoPath);
-    const hubnotCoverage = !projectionVisible ? "unavailable" : events.incomplete.has(project.id) ? "partial" : "complete";
-    coverage.hubnot[hubnotCoverage]++;
-    const visibleEvents = projectionVisible ? events.rows.get(project.id) ?? [] : [];
-    const records = [...git.rows, ...visibleEvents].sort(compareRecords);
+    const hubnot = collectHubnotActivity(project.repoPath, events.get(project.id) ?? [], budget);
+    coverage.hubnot[hubnot.coverage]++;
+    const records = [...git.rows, ...hubnot.rows].sort(compareRecords);
     const activeDays = new Set(records.map(({ ts }) => ts.slice(0, 10)).filter((day) => counts.has(day)));
     for (const day of activeDays) counts.set(day, counts.get(day)! + 1);
 
     const { id, name, description } = project;
     fingerprint.push([
-      id, name, description, git.coverage, hubnotCoverage,
+      id, name, description, git.coverage, hubnot.coverage,
       records.map(({ type, id, ts, summary }) => [type, id, ts, summary]),
     ]);
     if (selection.day && !activeDays.has(selection.day)) continue;
