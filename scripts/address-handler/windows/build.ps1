@@ -45,6 +45,23 @@ if (-not ('Workbox.AssociationNotification' -as [type])) {
     Add-Type -Namespace Workbox -Name AssociationNotification -MemberDefinition @'
 [System.Runtime.InteropServices.DllImport("shell32.dll")]
 public static extern void SHChangeNotify(int eventId, uint flags, System.IntPtr item1, System.IntPtr item2);
+
+[System.Runtime.InteropServices.DllImport("shlwapi.dll", CharSet = System.Runtime.InteropServices.CharSet.Unicode, ExactSpelling = true)]
+private static extern int AssocQueryStringW(uint flags, uint value, string association, string verb,
+    System.Text.StringBuilder result, ref uint length);
+
+public static string EffectiveExecutable() {
+    const uint protocol = 0x1000;
+    const uint noFixups = 0x0100;
+    const uint ignoreUnknown = 0x0400;
+    const uint executable = 2;
+    var path = new System.Text.StringBuilder(32768);
+    uint length = (uint)path.Capacity;
+    int result = AssocQueryStringW(protocol | noFixups | ignoreUnknown, executable, "workbox", "open", path, ref length);
+    if (result == unchecked((int)0x80070483)) return null; // ERROR_NO_ASSOCIATION
+    if (result != 0) throw new System.InvalidOperationException("Could not read the Windows workbox:// association (0x" + result.ToString("X8") + ").");
+    return path.ToString();
+}
 '@
 }
 function Notify-AssociationChanged {
@@ -100,6 +117,11 @@ if (-not $hasProtocol) {
     }
 }
 
+$effective = [Workbox.AssociationNotification]::EffectiveExecutable()
+if ($effective -and $effective -ne $installedExe) {
+    throw 'Windows already uses another app for workbox://. Review the association in Default apps before retrying.'
+}
+
 New-Item -ItemType Directory -Path $installDirectory -Force | Out-Null
 Copy-Item -LiteralPath $buildOutput -Destination $installedExe -Force
 
@@ -125,4 +147,7 @@ try {
     $protocol.Dispose()
 }
 Notify-AssociationChanged
+if ([Workbox.AssociationNotification]::EffectiveExecutable() -ne $installedExe) {
+    throw 'Workbox was registered, but Windows did not select it for workbox://. Review Default apps or run Uninstall to remove this registration.'
+}
 Write-Output "Enabled workbox:// links for the current Windows user at $Origin."

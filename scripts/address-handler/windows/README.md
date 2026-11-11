@@ -11,7 +11,7 @@ From a Visual Studio Developer PowerShell with the C++ desktop workload and Wind
 .\scripts\address-handler\windows\build.ps1 Install http://127.0.0.1:4123
 ```
 
-The build writes the executable under `%LOCALAPPDATA%\Workbox\AddressHandlerBuild` unless `-OutputDirectory` is supplied. Release packaging can build into a staging directory and distribute the executable with this installer. Pass that directory as `-OutputDirectory` when opting in to a prebuilt artifact. The installer copies the executable into a stable per-user directory and declines to replace a protocol association owned by another program.
+The build writes the executable under `%LOCALAPPDATA%\Workbox\AddressHandlerBuild` unless `-OutputDirectory` is supplied. Release packaging can build into a staging directory and distribute the executable with this installer. Pass that directory as `-OutputDirectory` when opting in to a prebuilt artifact. The installer copies the executable into a stable per-user directory and declines to replace a protocol association owned by another program. It queries Windows for the effective handler before reporting success and leaves any existing Windows Default apps choice alone. If registration succeeds but the effective handler cannot be verified, review Default apps or run Uninstall to remove the Workbox registration.
 
 Use `localhost`, `127.0.0.1`, or `[::1]` with HTTP or HTTPS and the actual Workbox port. HTTPS needs a certificate trusted by Windows. The handler checks the fixed readiness endpoint before opening the browser. If Workbox is unavailable, start the configured instance or rerun Install with the correct origin. You can also paste the link into **Open address** inside Workbox.
 
