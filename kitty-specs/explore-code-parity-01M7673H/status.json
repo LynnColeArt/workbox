@@ -91,7 +91,8 @@
       "last_transition_at": "2026-11-11T21:29:29.653101+00:00",
       "model": "__resolved_model_absent__",
       "notes": [
-        "Implement the pinned Git tree, file and commit browser and shared read."
+        "Implement the pinned Git tree, file and commit browser and shared read.",
+        "Pinned Code reader and component implemented at af579d6. Six Git fixture tests and lint and TypeScript passed."
       ],
       "provider": "__resolved_provider_absent__",
       "role": "implementer",
