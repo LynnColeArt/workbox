@@ -29,7 +29,7 @@ if ($Action -eq 'Build') {
     $source = Join-Path $PSScriptRoot 'WorkboxAddressHandler.cpp'
     $object = [IO.Path]::ChangeExtension($buildOutput, '.obj')
     New-Item -ItemType Directory -Path ([IO.Path]::GetDirectoryName($buildOutput)) -Force | Out-Null
-    & $compiler /nologo /std:c++20 /EHsc /W4 /WX /O2 /MT "/Fo$object" "/Fe$buildOutput" $source /link /SUBSYSTEM:WINDOWS Winhttp.lib Shell32.lib Advapi32.lib User32.lib
+    & $compiler /nologo /std:c++20 /EHsc /W4 /WX /O2 /MT "/Fo$object" "/Fe$buildOutput" $source /link /SUBSYSTEM:WINDOWS Winhttp.lib Shell32.lib Advapi32.lib User32.lib Ole32.lib
     if ($LASTEXITCODE -ne 0) { throw "Native build failed with exit code $LASTEXITCODE." }
     Write-Output $buildOutput
     return

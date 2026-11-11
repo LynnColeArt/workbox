@@ -1,5 +1,6 @@
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <objbase.h>
 #include <shellapi.h>
 #include <winhttp.h>
 
@@ -158,9 +159,13 @@ int WINAPI wWinMain(HINSTANCE, HINSTANCE, PWSTR, int) {
     }
 
     const auto handoff = origin->url + L"/open?address=" + *address;
-    if (reinterpret_cast<INT_PTR>(ShellExecuteW(nullptr, L"open", handoff.c_str(), nullptr, nullptr,
-                                                SW_SHOWNORMAL)) <= 32) {
-        return report(L"Could not open the default browser. Open Workbox and paste the address into Open address.");
+    constexpr auto browserError =
+        L"Could not open the default browser. Open Workbox and paste the address into Open address.";
+    if (FAILED(CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE))) {
+        return report(browserError);
     }
+    const auto opened = ShellExecuteW(nullptr, L"open", handoff.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+    CoUninitialize();
+    if (reinterpret_cast<INT_PTR>(opened) <= 32) return report(browserError);
     return 0;
 }
