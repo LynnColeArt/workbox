@@ -7,9 +7,8 @@
  *
  * Ergonomics law (the point of this server): agents speak project slugs
  * and issue numbers. Full event ids and actor fingerprints are resolved
- * internally and NEVER emitted in tool output — every string is passed
- * through the sanitizer, and scripts/mcp-selftest.sh greps live traffic
- * for 64-hex tripwires.
+ * internally for legacy tools. Explore and Code use explicitly projected
+ * public read models, including exact Git object IDs and browser links.
  */
 import { createInterface } from "node:readline";
 import { resolve, dirname } from "node:path";
@@ -17,11 +16,16 @@ import { fileURLToPath } from "node:url";
 import { openDb } from "../src/lib/workbox/db";
 import {
   listProjects, getProject, projectOverview, listIssues, getIssue,
-  issueComments, recentActivity, instanceStats,
+  issueComments, recentActivity,
 } from "../src/lib/workbox/queries";
 import { runHn, envelopeData } from "../src/lib/hn/runner";
 import { indexProject } from "../src/lib/workbox/index";
 import { listPipelines, readPolicy } from "../src/lib/workbox/ci";
+import { readExplore } from "../src/lib/workbox/explore";
+import { readCode } from "../src/lib/workbox/code-browser";
+import { readRepositoryActivity } from "../src/lib/workbox/repository-activity";
+import { renderActivityChartPng } from "../src/lib/workbox/activity-chart-svg";
+import type { ActivityChartModel } from "../src/lib/workbox/activity-chart";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 process.chdir(resolve(HERE, "..")); // DB and env resolve from the project root
@@ -246,6 +250,43 @@ const TOOLS = [
       additionalProperties: false,
     },
   },
+  {
+    name: "workbox_explore",
+    description: "Browse Explore's indexed projects and seven-day UTC chart. Returns exact chart data and a PNG. Pass day to list the projects behind a point. Reuse snapshot to compare the same activity selection.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        q: { type: "string" }, sort: { enum: ["recent", "alpha"] }, page: { type: "integer", minimum: 1 },
+        day: { type: "string", description: "UTC date in YYYY-MM-DD format" }, snapshot: { type: "string" },
+      },
+      additionalProperties: false,
+    },
+  },
+  {
+    name: "workbox_code",
+    description: "Read a project's Code view, including last-change metadata. Pass rev to select a branch, at to retain a resolved commit, path to open an entry, or commit to inspect changed files. Results include exact browser links.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        project: { type: "string" }, rev: { type: "string" }, at: { type: "string" },
+        path: { type: "string" }, commit: { type: "string" },
+      },
+      required: ["project"], additionalProperties: false,
+    },
+  },
+  {
+    name: "workbox_repository_activity",
+    description: "Read the repository Code calendar and its PNG. Pass a metric and UTC day to drill down to the underlying commits or verified Hubnot events. Reuse snapshot across the chart and paginated results.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        project: { type: "string" }, metric: { enum: ["commits", "issues", "proposals", "ci"] },
+        day: { type: "string", description: "UTC date in YYYY-MM-DD format" }, activityPage: { type: "integer", minimum: 1 },
+        snapshot: { type: "string" }, rev: { type: "string" }, at: { type: "string" },
+      },
+      required: ["project"], additionalProperties: false,
+    },
+  },
 ] as const;
 
 const HANDLERS: Record<string, (args: Json) => Promise<unknown>> = {
@@ -258,6 +299,35 @@ const HANDLERS: Record<string, (args: Json) => Promise<unknown>> = {
   workbox_pipelines: (a) => toolPipelines(a),
   workbox_activity: (a) => toolActivity(a),
 };
+
+type ParityRead = { data: object; chart?: ActivityChartModel };
+type ParityHandler = (args: Json) => ParityRead;
+
+const PARITY_READS = new Map<string, ParityHandler>([
+  ["workbox_explore", (args) => {
+    using db = openDb();
+    const data = readExplore(db, args);
+    return { data, chart: data.chart };
+  }],
+  ["workbox_code", (args) => {
+    using db = openDb();
+    return { data: readCode(db, typeof args.project === "string" ? args.project : "", args) };
+  }],
+  ["workbox_repository_activity", (args) => {
+    using db = openDb();
+    const data = readRepositoryActivity(db, typeof args.project === "string" ? args.project : "", args);
+    return { data, chart: data.kind === "activity" ? data.chart : undefined };
+  }],
+]);
+
+async function parityContent({ data, chart }: ParityRead): Promise<Json[]> {
+  const content: Json[] = [{ type: "text", text: JSON.stringify(data, null, 2) }];
+  if (chart) {
+    const image = await renderActivityChartPng(chart);
+    content.push({ type: "image", mimeType: "image/png", data: image.toString("base64") });
+  }
+  return content;
+}
 
 // ---------------------------------------------------------------- resources
 
@@ -363,6 +433,22 @@ async function handle(msg: Json): Promise<void> {
   if (method === "tools/call") {
     const params = (msg.params ?? {}) as { name?: string; arguments?: Json };
     const name = String(params.name ?? "");
+    const parityRead = PARITY_READS.get(name);
+    if (parityRead) {
+      try {
+        const args = params.arguments;
+        if (args !== undefined && (!args || typeof args !== "object" || Array.isArray(args))) {
+          throw new Error("Expected a tool argument object");
+        }
+        rpcResult(id, { content: await parityContent(parityRead(args ?? {})), isError: false });
+      } catch {
+        rpcResult(id, {
+          content: [{ type: "text", text: "Workbox could not complete this read." }],
+          isError: true,
+        });
+      }
+      return;
+    }
     const handler = HANDLERS[name];
     if (!handler) {
       rpcError(id, -32602, `unknown tool '${name}'`);
