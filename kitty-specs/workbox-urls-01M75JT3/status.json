@@ -90,7 +90,8 @@
       "model": "__resolved_model_absent__",
       "notes": [
         "Starting MCP address compatibility in the owned feature checkout",
-        "1187718: MCP compatibility, 15 integrated tests, scoped lint, typecheck and build passed"
+        "1187718: MCP compatibility, 15 integrated tests, scoped lint, typecheck and build passed",
+        "Independent review of MCP compatibility"
       ],
       "provider": "__resolved_provider_absent__",
       "role": "reviewer",
