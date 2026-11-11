@@ -19,6 +19,7 @@
   "work_packages": {
     "WP01": {
       "actor": "codex",
+      "agent": "codex",
       "agent_profile": "__resolved_profile_absent__",
       "agent_profile_version": "__resolved_profile_version_absent__",
       "force_count": 0,
@@ -26,6 +27,9 @@
       "last_event_id": "01M767EYPF0XX3MYTWZJTMNSVP",
       "last_transition_at": "2026-11-11T21:15:44.719904+00:00",
       "model": "__resolved_model_absent__",
+      "notes": [
+        "Implement the shared chart model, browser chart and MCP visual."
+      ],
       "provider": "__resolved_provider_absent__",
       "role": "implementer"
     },
