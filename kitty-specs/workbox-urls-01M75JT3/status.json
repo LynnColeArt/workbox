@@ -121,7 +121,8 @@
       "model": "__resolved_model_absent__",
       "notes": [
         "Starting Linux handler in the owned feature checkout",
-        "Linux handler at b39c627: install and rollback smoke plus Firefox DL-001 passed"
+        "Linux handler at b39c627: install and rollback smoke plus Firefox DL-001 passed",
+        "Independent review of Linux browser handler and rollback fixes"
       ],
       "provider": "__resolved_provider_absent__",
       "role": "reviewer",
