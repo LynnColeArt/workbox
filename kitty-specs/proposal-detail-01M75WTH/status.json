@@ -1,7 +1,7 @@
 {
-  "event_count": 6,
-  "last_event_id": "01M7627CT6A3DAHET208NBV03P",
-  "materialized_at": "2026-11-11T19:44:14.150595+00:00",
+  "event_count": 7,
+  "last_event_id": "01M7627ECF3TK5P8H6C4DFMQPP",
+  "materialized_at": "2026-11-11T19:44:15.759590+00:00",
   "mission_number": "",
   "mission_slug": "proposal-detail-01M75WTH",
   "mission_type": "software-dev",
@@ -14,7 +14,7 @@
     "for_review": 0,
     "in_progress": 0,
     "in_review": 0,
-    "planned": 6
+    "planned": 7
   },
   "work_packages": {
     "WP01": {
@@ -58,6 +58,13 @@
       "lane": "planned",
       "last_event_id": "01M7627CT6A3DAHET208NBV03P",
       "last_transition_at": "2026-11-11T19:44:14.150595+00:00"
+    },
+    "WP07": {
+      "actor": "finalize-tasks",
+      "force_count": 0,
+      "lane": "planned",
+      "last_event_id": "01M7627ECF3TK5P8H6C4DFMQPP",
+      "last_transition_at": "2026-11-11T19:44:15.759590+00:00"
     }
   }
 }
