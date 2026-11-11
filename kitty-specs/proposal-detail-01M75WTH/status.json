@@ -63,7 +63,8 @@
         "Independent lineage review",
         "Fixing discovery continuation from independent review",
         "020a9f3 passed 17 tests, scoped lint and typecheck after lineage visibility fixes",
-        "Independent re-review of discovery and pagination"
+        "Independent re-review of discovery and pagination",
+        "Independent re-review approved 020a9f3; hidden-root continuation and long-lineage paging regressions pass"
       ],
       "provider": "__resolved_provider_absent__",
       "review": null,
