@@ -76,10 +76,10 @@ function verifyAssociation() {
     effective = /^Default application for .*: (.+)$/m.exec(gio.stdout)?.[1];
   } else {
     const xdg = spawnSync("xdg-mime", ["query", "default", schemeType], options);
-    if (xdg.status !== 0) {
-      throw new Error("Could not verify the Workbox association. Check that GIO or xdg-utils is available and retry from your desktop session.");
-    }
-    effective = xdg.stdout.trim();
+    if (xdg.status === 0) effective = xdg.stdout.trim();
+  }
+  if (!effective) {
+    throw new Error("Could not verify the Workbox association. Use GIO or check the workbox:// association in your desktop settings, then retry.");
   }
   if (effective !== id) {
     throw new Error("Workbox is not the effective handler. Remove the desktop-specific workbox:// default in your desktop settings, then rerun the installer.");
