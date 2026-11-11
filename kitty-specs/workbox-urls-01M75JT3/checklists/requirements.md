@@ -6,3 +6,4 @@
 - [x] Origin selection, read-only behavior, and failure handling are explicit.
 - [x] Requirements have unique IDs, statuses, and observable acceptance criteria.
 - [x] Platform and packaging assumptions are explicit, and Explore and Trending implementation is outside scope.
+- [x] Linux, macOS, and Windows each have an end-to-end browser handoff test. Windows acceptance is tied to its release candidate.

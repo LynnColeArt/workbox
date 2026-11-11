@@ -19,6 +19,26 @@
       "status": "resolved",
       "step_id": null,
       "summary_json": null
+    },
+    {
+      "created_at": "2026-11-11T15:22:39.703429Z",
+      "decision_id": "01M75K8E6QC3CFRV53Z38YR15G",
+      "final_answer": "Linux, macOS, and Windows must each pass browser deep-link acceptance. Run the Windows test against the upcoming Windows release candidate.",
+      "input_key": "handler_platforms",
+      "mission_id": "01M75JT3C5QF06GF2D2C0FDKE6",
+      "mission_slug": "workbox-urls-01M75JT3",
+      "opened_by": "codex",
+      "options": [],
+      "origin_flow": "specify",
+      "other_answer": false,
+      "question": "Which operating systems must pass browser deep-link acceptance?",
+      "rationale": "The user requested all three platforms and confirmed the Windows release is upcoming.",
+      "resolved_at": "2026-11-11T15:22:40.840081Z",
+      "resolved_by": null,
+      "slot_key": "handler_platforms",
+      "status": "resolved",
+      "step_id": null,
+      "summary_json": null
     }
   ],
   "mission_id": "01M75JT3C5QF06GF2D2C0FDKE6",

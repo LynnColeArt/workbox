@@ -13,6 +13,18 @@ Developers and agents can share an address such as `workbox://projects/firewalke
 1. Given a developer has enabled the local handler and Workbox is running, clicking `workbox://projects/firewalker/` in a supported browser opens Firewalker in the browser after any platform confirmation. The destination uses the Workbox origin configured on that device.
 2. Given the configured instance is unavailable, following the link produces actionable feedback about starting or configuring Workbox. If the handler is absent, the developer can paste the same address into an open Workbox session.
 
+#### Browser deep-link acceptance matrix
+
+Run each test on a desktop with the platform's release-candidate handler. Install and enable the handler through the documented user-facing setup. Configure a running Workbox instance with a known Firewalker project and a non-default local port, and set the test browser as the default browser.
+
+| Test | Platform and minimum browser | Action and expected result |
+|---|---|---|
+| DL-001 | Linux desktop and Firefox | Click the project link from a regular HTTP(S) page, accept any browser or desktop confirmation, and verify that Firewalker opens in Firefox at the configured origin and port. |
+| DL-002 | macOS and Safari | Click the project link from a regular HTTP(S) page, accept any browser or system confirmation, and verify that Firewalker opens in Safari at the configured origin and port. |
+| DL-003 | Windows and Microsoft Edge | On the upcoming Windows release candidate, click the project link from a regular HTTP(S) page, accept any browser or system confirmation, and verify that Firewalker opens in Edge at the configured origin and port. |
+
+For each row, click `workbox://projects/firewalker/` and compare the resulting project with the in-app **Open address** result. Also cancel the handoff if the browser prompts and verify that Workbox does not open a destination from the cancelled action. Record the OS version, browser version, and handler build used.
+
 ### Story 2 — Open a pasted address in Workbox (P1)
 
 1. Given an open Workbox session, pasting `workbox://home` into **Open address** and submitting it opens the Dashboard without an OS handler.
@@ -50,7 +62,7 @@ Developers and agents can share an address such as `workbox://projects/firewalke
 | ID | Requirement | Priority | Status |
 |---|---|---|---|
 | FR-001 | Support the canonical address table and aliases across Workbox address entry points, using the same target identity for each. | High | Open |
-| FR-002 | Provide an opt-in local handler. When a supported browser hands it a valid address, it opens the corresponding web page at the configured Workbox origin. Respect the platform’s confirmation flow. | High | Open |
+| FR-002 | Provide opt-in local handlers for Linux desktops, macOS, and Windows. When a supported browser hands the handler a valid address, it opens the corresponding web page at the configured Workbox origin. Respect the platform’s confirmation flow. | High | Open |
 | FR-003 | Provide an **Open address** control in the browser app that resolves pasted addresses and navigates within the current instance. | High | Open |
 | FR-004 | Support canonical address discovery and structured reads through MCP. Preserve direct reads for all existing project, issue, memory, and pipeline URLs, including their data schemas, access checks, and output sanitization. | High | Open |
 | FR-005 | Explain malformed input, missing resources, and unavailable views or instances, with a recovery action where applicable. | High | Open |
@@ -79,12 +91,12 @@ Developers and agents can share an address such as `workbox://projects/firewalke
 
 ## Success Criteria
 
-- On a supported installation, clicking a Workbox project address in the browser and pasting that address in Workbox both open the same project.
+- The release-candidate handler passes the applicable browser deep-link test on each target platform. Windows acceptance is verified on the upcoming Windows release candidate.
 - With no handler installed, the paste flow works for every available browser destination.
 - MCP resolves each of the four legacy project resource forms and its canonical equivalent to the same authorized data.
 - Unavailable views and malformed or unknown addresses produce an actionable error without opening an unrelated destination or changing project state.
 
 ## Assumptions and planning decisions
 
-- Use Linux as the first local-handler platform for planning. The browser test matrix, other operating systems, and packaging are planning decisions.
+- The matrix defines one minimum browser per platform. Supported OS versions, additional browsers, and packaging are planning decisions.
 - The user-visible address remains `workbox://`. Browser-only registration for arbitrary new schemes uses the `web+` namespace, so the exact Workbox scheme uses the platform handoff. [HTML Standard](https://html.spec.whatwg.org/multipage/system-state.html#custom-handlers)
