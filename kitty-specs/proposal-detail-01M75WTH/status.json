@@ -63,17 +63,20 @@
         "Independent lineage review"
       ],
       "provider": "__resolved_provider_absent__",
+      "review": null,
       "review_result": {
         "feedback_path": "/home/lynn/.codex/worktrees/workbox-url-plan/workbox/kitty-specs/proposal-detail-01M75WTH/tasks/WP02-proposal-lineages/review-cycle-1.md",
         "reference": "review-cycle://proposal-detail-01M75WTH/WP02-proposal-lineages/review-cycle-1.md",
         "reviewer": "reviewer-renata",
         "verdict": "changes_requested"
       },
-      "role": "reviewer",
+      "role": "implementer",
+      "shell_pid": null,
+      "shell_pid_created_at": null,
       "subtasks": {
-        "T004": "done",
-        "T005": "done",
-        "T006": "done"
+        "T004": "planned",
+        "T005": "planned",
+        "T006": "planned"
       }
     },
     "WP03": {
