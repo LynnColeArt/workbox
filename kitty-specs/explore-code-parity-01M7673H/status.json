@@ -96,17 +96,20 @@
         "Independent review checks pinned Git trees, safe reads and commit drill-down."
       ],
       "provider": "__resolved_provider_absent__",
+      "review": null,
       "review_result": {
         "feedback_path": "/home/lynn/.codex/worktrees/workbox-url-plan/workbox/kitty-specs/explore-code-parity-01M7673H/tasks/WP03-code-tree/review-cycle-1.md",
         "reference": "review-cycle://explore-code-parity-01M7673H/WP03-code-tree/review-cycle-1.md",
         "reviewer": "reviewer-renata",
         "verdict": "changes_requested"
       },
-      "role": "reviewer",
+      "role": "implementer",
+      "shell_pid": null,
+      "shell_pid_created_at": null,
       "subtasks": {
-        "T007": "done",
-        "T008": "done",
-        "T009": "done"
+        "T007": "planned",
+        "T008": "planned",
+        "T009": "planned"
       }
     },
     "WP04": {
