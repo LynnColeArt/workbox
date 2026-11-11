@@ -19,6 +19,7 @@
   "work_packages": {
     "WP01": {
       "actor": "codex",
+      "agent": "codex",
       "agent_profile": "__resolved_profile_absent__",
       "agent_profile_version": "__resolved_profile_version_absent__",
       "force_count": 0,
@@ -26,6 +27,9 @@
       "last_event_id": "01M762MX7H7CDAQ9VPG8NYBB8S",
       "last_transition_at": "2026-11-11T19:51:36.945672+00:00",
       "model": "__resolved_model_absent__",
+      "notes": [
+        "Starting WP01 native proposal reads"
+      ],
       "provider": "__resolved_provider_absent__",
       "role": "implementer"
     },
