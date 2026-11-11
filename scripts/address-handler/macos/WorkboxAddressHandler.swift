@@ -1,4 +1,9 @@
 import Foundation
+#if canImport(Darwin)
+import Darwin
+#else
+import Glibc
+#endif
 #if canImport(FoundationNetworking)
 import FoundationNetworking
 #endif
@@ -77,6 +82,70 @@ final class ReadinessProbe: NSObject, URLSessionTaskDelegate, Sendable {
                        http?.value(forHTTPHeaderField: "Workbox-Address-Handler") == "1")
             session.finishTasksAndInvalidate()
         }.resume()
+    }
+}
+
+final class OriginUpdate: Sendable {
+    enum SetupError: Error {
+        case cannotLockSettings
+        case setupInProgress
+    }
+
+    private let settings: URL
+    private let previous: Data?
+    private let proposed: Data
+    private let lock: Int32
+
+    init(origin: String, settings: URL) throws {
+        let directory = settings.deletingLastPathComponent()
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        // Hold the advisory lock across the asynchronous Launch Services response.
+        let lockFile = directory.appendingPathComponent("setup.lock")
+        let descriptor = lockFile.withUnsafeFileSystemRepresentation { path -> Int32 in
+            guard let path else { return -1 }
+            return open(path, O_CREAT | O_RDWR | O_CLOEXEC | O_NOFOLLOW, 0o600)
+        }
+        guard descriptor >= 0 else { throw SetupError.cannotLockSettings }
+        guard flock(descriptor, LOCK_EX | LOCK_NB) == 0 else {
+            let busy = errno == EWOULDBLOCK
+            close(descriptor)
+            throw busy ? SetupError.setupInProgress : SetupError.cannotLockSettings
+        }
+
+        do {
+            let previous = try Self.contents(of: settings)
+            let proposed = Data(origin.utf8)
+            try proposed.write(to: settings, options: .atomic)
+            self.settings = settings
+            self.previous = previous
+            self.proposed = proposed
+            self.lock = descriptor
+        } catch {
+            close(descriptor)
+            throw error
+        }
+    }
+
+    deinit {
+        close(lock)
+    }
+
+    func rollback() throws {
+        // A separate edit or removal should not be overwritten by a failed registration.
+        guard try Self.contents(of: settings) == proposed else { return }
+        if let previous {
+            try previous.write(to: settings, options: .atomic)
+        } else {
+            try FileManager.default.removeItem(at: settings)
+        }
+    }
+
+    private static func contents(of file: URL) throws -> Data? {
+        do {
+            return try Data(contentsOf: file)
+        } catch CocoaError.fileReadNoSuchFile {
+            return nil
+        }
     }
 }
 
@@ -174,20 +243,28 @@ final class AddressHandler: NSObject, NSApplicationDelegate {
             return
         }
 
-        NSWorkspace.shared.setDefaultApplication(at: Bundle.main.bundleURL, toOpenURLsWithScheme: "workbox") { [weak self] error in
+        let update: OriginUpdate
+        do {
+            update = try OriginUpdate(origin: value, settings: settingsFile())
+        } catch OriginUpdate.SetupError.setupInProgress {
+            showMessage("Workbox setup is already open", detail: "Finish or cancel the other setup before trying again.")
+            return
+        } catch {
+            showMessage("Could not save the Workbox address", detail: "Check access to your Application Support folder, then run setup again.")
+            return
+        }
+
+        NSWorkspace.shared.setDefaultApplication(at: Bundle.main.bundleURL, toOpenURLsWithScheme: "workbox") { [weak self, update] error in
+            guard error != nil else { return }
+            let detail: String
+            do {
+                try update.rollback()
+                detail = "Run setup again and confirm the system’s selection if prompted."
+            } catch {
+                detail = "The previous address could not be restored. Check access to your Application Support folder and run setup again with the intended address."
+            }
             DispatchQueue.main.async {
-                guard let self else { return }
-                guard error == nil else {
-                    self.showMessage("Workbox links were not enabled", detail: "Run setup again and confirm the system’s selection if prompted.")
-                    return
-                }
-                do {
-                    let file = try self.settingsFile()
-                    try FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
-                    try value.write(to: file, atomically: true, encoding: .utf8)
-                } catch {
-                    self.showMessage("Could not save the Workbox address", detail: "Check access to your Application Support folder, then run setup again.")
-                }
+                self?.showMessage("Workbox links were not enabled", detail: detail)
             }
         }
     }

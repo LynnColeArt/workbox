@@ -18,7 +18,7 @@ Copy the bundle into `~/Applications` or `/Applications`. Start Workbox, then op
 open -n "$HOME/Applications/Workbox Address Handler.app" --args --configure
 ```
 
-Enter an HTTP(S) loopback origin such as `http://127.0.0.1:4123`, click **Enable**, and follow any macOS confirmation. Use `localhost`, `127.0.0.1`, or `[::1]` with your Workbox port. For HTTPS, the certificate must be trusted by macOS. The helper stores the origin per user and reads it at activation time. Run the same configuration command to change the port or re-enable the handler.
+Enter an HTTP(S) loopback origin such as `http://127.0.0.1:4123`, click **Enable**, and follow any macOS confirmation. Use `localhost`, `127.0.0.1`, or `[::1]` with your Workbox port. The bundle permits local HTTP probes, with explicit ATS exceptions for the IPv4 and IPv6 loopback literals. HTTPS requires a certificate trusted by macOS. The helper stores the origin per user before requesting the association and restores the previous setting if registration fails. Run the same configuration command to change the port or re-enable the handler.
 
 Click a `workbox://` link in your browser and accept its handoff prompt if shown. The helper checks the configured instance and opens the matching destination in Workbox. If it reports that Workbox is unavailable, start Workbox or correct the saved origin, then try again.
 
@@ -26,7 +26,7 @@ Click a `workbox://` link in your browser and accept its handoff prompt if shown
 
 Quit running copies of **Workbox Address Handler** using Activity Monitor before replacing the bundle. Keep the same bundle identifier and installation location, then run configuration again if macOS prompts for a new handler. The saved origin survives replacement.
 
-To disable the handoff, quit the helper and move the bundle to the Trash. To remove its saved origin as well, delete `origin.txt` from `~/Library/Application Support/org.hubnot.workbox.address-handler/`. Do not change Safari’s default-browser settings to remove the Workbox handler.
+To disable the handoff, quit the helper and move the bundle to the Trash. To remove its saved origin as well, delete `~/Library/Application Support/org.hubnot.workbox.address-handler/`. Do not change Safari’s default-browser settings to remove the Workbox handler.
 
 ## DL-002 acceptance
 
