@@ -1,6 +1,7 @@
 import { openDb } from "@/lib/workbox/db";
 import { connection } from "next/server";
 import { instanceStats, listProjects, recentActivity } from "@/lib/workbox/queries";
+import NewProjectForm from "@/components/new-project-form";
 
 // Node runtime: file-based SQLite and filesystem access.
 // Always fresh — the underlying repos change outside Next's control.

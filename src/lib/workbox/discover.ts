@@ -41,7 +41,14 @@ export function projectsRoot(): string {
 }
 
 export function isHubnotRepo(repoPath: string): boolean {
-  if (!existsSync(/*turbopackIgnore: true*/ join(repoPath, ".git"))) return false;
+  if (!existsSync(join(repoPath, ".git"))) return false;
+  // Cheap check first: private identity state qualifies (never read contents).
+  try {
+    const ids = readdirSync(/*turbopackIgnore: true*/ join(repoPath, ".git", "hn", "identities"));
+    if (ids.filter((x) => !x.startsWith(".")).length > 0) return true;
+  } catch {
+    // fall through to refs check
+  }
   return actorRefs(repoPath).size > 0;
 }
 
