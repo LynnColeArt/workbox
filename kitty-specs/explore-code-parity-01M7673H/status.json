@@ -96,7 +96,8 @@
         "Independent review checks pinned Git trees, safe reads and commit drill-down.",
         "Correct file last-change metadata at conflict resolution merges.",
         "Merge-aware metadata correction at 9d260be. Seven focused tests and lint passed.",
-        "Independent reviewer verified directory and file last-change parity at a conflict-resolution merge."
+        "Independent reviewer verified directory and file last-change parity at a conflict-resolution merge.",
+        "Independent review approved merge-aware last-change parity and preserved file introduction. Seven Git fixtures and scoped lint passed."
       ],
       "provider": "__resolved_provider_absent__",
       "review": null,
