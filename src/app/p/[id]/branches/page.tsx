@@ -17,6 +17,7 @@ export default async function BranchesPage({ params }: { params: Promise<{ id: s
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-4">
+      <Link href={`/p/${id}/code`} className="wb-link text-sm">back to Code</Link>
       <div className="wb-panel divide-y" style={{ borderColor: "var(--wb-border)" }}>
         {branches.length === 0 && <p className="p-4 wb-muted text-sm">No branches.</p>}
         {branches.map((b) => (

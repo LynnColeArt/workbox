@@ -5,6 +5,7 @@ import { openDb } from "@/lib/workbox/db";
 import { listBranches, listTree, readBlob, safeRelPath, repoStats, lastCommitsForPaths } from "@/lib/workbox/repo";
 import { listPipelines, readPolicy } from "@/lib/workbox/ci";
 import DescriptionEditor from "@/components/description-editor";
+import BranchSelector from "@/components/branch-selector";
 
 export const instant = false;
 
@@ -54,15 +55,8 @@ export default async function CodePage({
     <main className="mx-auto max-w-6xl px-4 py-4">
       <div className="grid gap-6 md:grid-cols-[1fr_320px]">
         <section>
-          <div className="flex flex-wrap items-center gap-2 mb-3">
-            <span className="flex gap-1 items-center">
-              {branches.slice(0, 6).map((b) => (
-                <Link key={b.name} href={`/p/${id}/code?rev=${encodeURIComponent(b.name)}`}
-                      className="wb-chip" style={b.name === rev ? { borderColor: "var(--wb-accent)", color: "var(--wb-accent)" } : undefined}>
-                  {b.name}
-                </Link>
-              ))}
-            </span>
+          <div className="flex flex-wrap items-center gap-3 mb-3">
+            <BranchSelector projectId={id} current={rev} branches={branches.map((b) => b.name)} path={sub ?? ""} />
             <span className="wb-chip wb-mono ml-auto">{stats.commits} commits · {stats.contributors} contributors</span>
           </div>
           {stats.lastCommit && (
