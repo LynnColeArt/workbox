@@ -259,6 +259,63 @@ const HANDLERS: Record<string, (args: Json) => Promise<unknown>> = {
   workbox_activity: (a) => toolActivity(a),
 };
 
+// ---------------------------------------------------------------- resources
+
+/**
+ * workbox:// URI scheme (Mini's design, adopted 2026-11-11):
+ *   workbox://project/<slug>                    — project overview
+ *   workbox://project/<slug>/task/WP-88         — issue by stable number
+ *   workbox://project/<slug>/memory             — signed memory stream
+ *   workbox://project/<slug>/pipelines          — CI definitions + trust
+ * Friendly identifiers resolve to canonical objects here; every read is
+ * authorized against the local projection as usual, a URI is never proof
+ * of permission. Sanitizer still gates all output.
+ */
+function resourcesList(): Promise<Json[]> {
+  const db = openDb();
+  const out: Json[] = [];
+  for (const p of listProjects(db)) {
+    out.push({
+      uri: `workbox://project/${p.id}`,
+      name: p.name,
+      description: p.description,
+      mimeType: "application/json",
+    });
+    out.push({ uri: `workbox://project/${p.id}/memory`, name: `${p.name} — memory`, mimeType: "application/json" });
+    out.push({ uri: `workbox://project/${p.id}/pipelines`, name: `${p.name} — pipelines`, mimeType: "application/json" });
+    for (const i of listIssues(db, p.id)) {
+      if (i.number === null) continue;
+      out.push({
+        uri: `workbox://project/${p.id}/task/WP-${i.number}`,
+        name: `#${i.number} ${i.title}`,
+        mimeType: "application/json",
+      });
+    }
+  }
+  return Promise.resolve(out);
+}
+
+async function resourceRead(uri: string): Promise<Json[]> {
+  const m = /^workbox:\/\/project\/([A-Za-z0-9._-]+)(?:\/(memory|pipelines|task\/WP-(\d+)))?$/.exec(uri);
+  if (!m) throw new Error(`unrecognized uri '${uri}' (workbox://project/<slug>[/memory|/pipelines|/task/WP-N])`);
+  const slug = m[1];
+  const db = openDb();
+  const p = getProject(db, slug);
+  if (!p) throw new Error(`unknown project '${slug}'`);
+  if (m[2] === "memory") {
+    const ms = await toolMemories({ project: slug });
+    return [{ uri, mimeType: "application/json", text: JSON.stringify(ms, null, 2) }];
+  }
+  if (m[2] === "pipelines") {
+    return [{ uri, mimeType: "application/json", text: JSON.stringify(await toolPipelines({ project: slug }), null, 2) }];
+  }
+  if (m[3]) {
+    return [{ uri, mimeType: "application/json", text: JSON.stringify(await toolIssue({ project: slug, number: Number(m[3]) }), null, 2) }];
+  }
+  const o = projectOverview(db, slug)!;
+  return [{ uri, mimeType: "application/json", text: JSON.stringify({ ...o, repoPath: undefined }, null, 2) }];
+}
+
 // ---------------------------------------------------------------- json-rpc
 
 function send(msg: Json): void {
@@ -281,13 +338,26 @@ async function handle(msg: Json): Promise<void> {
   if (method === "initialize") {
     rpcResult(id, {
       protocolVersion: "2024-11-05",
-      capabilities: { tools: {} },
-      serverInfo: { name: "workbox", version: "0.1.0" },
+      capabilities: { tools: {}, resources: { listChanged: false } },
+      serverInfo: { name: "workbox", version: "0.2.0" },
     });
     return;
   }
   if (method === "tools/list") {
     rpcResult(id, { tools: TOOLS });
+    return;
+  }
+  if (method === "resources/list") {
+    rpcResult(id, { resources: await resourcesList() });
+    return;
+  }
+  if (method === "resources/read") {
+    const params = (msg.params ?? {}) as { uri?: string };
+    try {
+      rpcResult(id, { contents: await resourceRead(String(params.uri ?? "")) });
+    } catch (e) {
+      rpcError(id, -32602, (e as Error).message);
+    }
     return;
   }
   if (method === "tools/call") {
