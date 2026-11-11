@@ -49,6 +49,7 @@
     },
     "WP02": {
       "actor": "codex",
+      "agent": "codex",
       "agent_profile": "__resolved_profile_absent__",
       "agent_profile_version": "__resolved_profile_version_absent__",
       "force_count": 0,
@@ -56,6 +57,9 @@
       "last_event_id": "01M75NF5E3H88R5GPMYP6EC8KS",
       "last_transition_at": "2026-11-11T16:01:17.251935+00:00",
       "model": "__resolved_model_absent__",
+      "notes": [
+        "Starting WP02 in the owned feature checkout"
+      ],
       "provider": "__resolved_provider_absent__",
       "role": "implementer"
     },
