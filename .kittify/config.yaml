@@ -1,0 +1,17 @@
+project:
+  uuid: c2315fb3-ce48-467d-94fd-d519b2933df4
+  slug: workbox
+  node_id: 752e6076aa27
+  build_id: 7299cfa7-bda9-5a0d-95fe-c091a90d0cb9
+mission_type_activations:
+- software-dev
+- documentation
+- research
+- plan
+vcs:
+  type: git
+agents:
+  available:
+  - codex
+  auto_commit: true
+  lint_on_edit: false

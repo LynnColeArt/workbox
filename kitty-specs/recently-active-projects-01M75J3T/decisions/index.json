@@ -1,0 +1,26 @@
+{
+  "entries": [
+    {
+      "created_at": "2026-11-11T15:03:22.204425Z",
+      "decision_id": "01M75J53TW1XAS1WH3CC0TVB3M",
+      "final_answer": "Show the ten most recently active projects using Git commits and verified Hubnot events, link to the full list in Explore, and show an activity chart for the same projects at the top of the Dashboard. Defer Trending.",
+      "input_key": "dashboard_scope",
+      "mission_id": "01M75J3T0FAB89C9J6K6SS4FGH",
+      "mission_slug": "recently-active-projects-01M75J3T",
+      "opened_by": "codex",
+      "options": [],
+      "origin_flow": "specify",
+      "other_answer": false,
+      "question": "What should the first Dashboard and Explore release show?",
+      "rationale": "Matches the requested first release. Chart window and presentation are draft defaults.",
+      "resolved_at": "2026-11-11T15:03:29.584419Z",
+      "resolved_by": null,
+      "slot_key": "dashboard_scope",
+      "status": "resolved",
+      "step_id": null,
+      "summary_json": null
+    }
+  ],
+  "mission_id": "01M75J3T0FAB89C9J6K6SS4FGH",
+  "version": 1
+}
