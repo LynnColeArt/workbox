@@ -1,7 +1,7 @@
 {
-  "event_count": 34,
-  "last_event_id": "01M763WSQ2Z6TGPDPJ4H58ACTD",
-  "materialized_at": "2026-11-11T20:13:24.066536+00:00",
+  "event_count": 35,
+  "last_event_id": "01M763X03B3VBV5DQH855KN8M5",
+  "materialized_at": "2026-11-11T20:13:30.603271+00:00",
   "mission_number": "",
   "mission_slug": "proposal-detail-01M75WTH",
   "mission_type": "software-dev",
@@ -11,9 +11,9 @@
     "canceled": 0,
     "claimed": 0,
     "done": 0,
-    "for_review": 1,
+    "for_review": 0,
     "in_progress": 0,
-    "in_review": 1,
+    "in_review": 2,
     "planned": 2
   },
   "work_packages": {
@@ -149,16 +149,16 @@
       "agent_profile": "__resolved_profile_absent__",
       "agent_profile_version": "__resolved_profile_version_absent__",
       "force_count": 0,
-      "lane": "for_review",
-      "last_event_id": "01M763WSQ2Z6TGPDPJ4H58ACTD",
-      "last_transition_at": "2026-11-11T20:13:24.066536+00:00",
+      "lane": "in_review",
+      "last_event_id": "01M763X03B3VBV5DQH855KN8M5",
+      "last_transition_at": "2026-11-11T20:13:30.603271+00:00",
       "model": "__resolved_model_absent__",
       "notes": [
         "Starting exact Git file comparison",
         "2267375 passed six real Git fixture tests, lint and tsc"
       ],
       "provider": "__resolved_provider_absent__",
-      "role": "implementer",
+      "role": "reviewer",
       "subtasks": {
         "T016": "done",
         "T017": "done",
