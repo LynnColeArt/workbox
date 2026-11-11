@@ -91,7 +91,8 @@
       "notes": [
         "Starting MCP address compatibility in the owned feature checkout",
         "1187718: MCP compatibility, 15 integrated tests, scoped lint, typecheck and build passed",
-        "Independent review of MCP compatibility"
+        "Independent review of MCP compatibility",
+        "Independent reviewer approved 1187718: 5 MCP stdio tests, lint and diff check passed; canonical discovery and all four legacy response shapes and URI echo verified"
       ],
       "provider": "__resolved_provider_absent__",
       "review_result": {
