@@ -1,7 +1,7 @@
 {
-  "event_count": 16,
-  "last_event_id": "01M78YJRDY7HQV2GPKMZN5Y0BB",
-  "materialized_at": "2026-11-12T22:38:15.486318+00:00",
+  "event_count": 17,
+  "last_event_id": "01M78YKRYSKCCM4SXVXRARNZHC",
+  "materialized_at": "2026-11-12T22:38:48.793716+00:00",
   "mission_number": "",
   "mission_slug": "issues-and-discussions-01M78WCK",
   "mission_type": "software-dev",
@@ -11,8 +11,8 @@
     "canceled": 0,
     "claimed": 0,
     "done": 0,
-    "for_review": 0,
-    "in_progress": 2,
+    "for_review": 1,
+    "in_progress": 1,
     "in_review": 0,
     "planned": 4
   },
@@ -67,14 +67,19 @@
       "agent_profile": "__resolved_profile_absent__",
       "agent_profile_version": "__resolved_profile_version_absent__",
       "force_count": 0,
-      "lane": "in_progress",
-      "last_event_id": "01M78Y9TR5K3160EEMB0FN9NTG",
-      "last_transition_at": "2026-11-12T22:33:22.949278+00:00",
+      "lane": "for_review",
+      "last_event_id": "01M78YKRYSKCCM4SXVXRARNZHC",
+      "last_transition_at": "2026-11-12T22:38:48.793716+00:00",
       "model": "__resolved_model_absent__",
       "provider": "__resolved_provider_absent__",
       "role": "implementer",
       "shell_pid": 81886,
-      "shell_pid_created_at": "1794522768.53"
+      "shell_pid_created_at": "1794522768.53",
+      "subtasks": {
+        "T006": "done",
+        "T007": "done",
+        "T008": "done"
+      }
     },
     "WP04": {
       "actor": "finalize-tasks",
