@@ -26,9 +26,8 @@ const recoverable = new Set(["native_unavailable", "admission_pending", "concurr
 
 export function DiscussionForm({ endpoint, actor, action, fields, replies, submitLabel, heading, navigate }: Props) {
   const router = useRouter();
-  const [title, setTitle] = useState(fields?.title ?? "");
-  const [category, setCategory] = useState(fields?.category ?? "");
-  const [body, setBody] = useState(fields?.body ?? "");
+  const [draft, setDraft] = useState<FormFields | null>(null);
+  const { title = "", category = "", body = "" } = draft ?? fields ?? {};
   const [replyTo, setReplyTo] = useState(fields?.replyTo ?? "");
   const [pending, setPending] = useState<Record<string, unknown> | null>(null);
   const [busy, setBusy] = useState(false);
@@ -36,10 +35,21 @@ export function DiscussionForm({ endpoint, actor, action, fields, replies, submi
   const [stale, setStale] = useState(false);
   const [reviewedExpected, setReviewedExpected] = useState(action.expected);
   const revisionBound = fields?.body !== undefined && action.expected !== undefined;
-  const changed = revisionBound && JSON.stringify(reviewedExpected) !== JSON.stringify(action.expected);
+  const changed = revisionBound && draft !== null && JSON.stringify(reviewedExpected) !== JSON.stringify(action.expected);
   const locked = busy || pending !== null;
   const draftKey = fields?.body !== undefined && action.discussionId && action.action !== "reply"
     ? `workbox:discussion-draft:${endpoint}:${String(action.replyId ?? action.discussionId)}` : null;
+
+  function edit(patch: FormFields) {
+    if (!draft) setReviewedExpected(action.expected);
+    const next = { title, category, body, ...patch };
+    setDraft(next);
+    if (draftKey) {
+      try {
+        sessionStorage.setItem(draftKey, JSON.stringify(next));
+      } catch { /* Keep the live draft if browser storage is unavailable. */ }
+    }
+  }
 
   function refreshDiscussion() {
     if (draftKey) {
@@ -71,9 +81,12 @@ export function DiscussionForm({ endpoint, actor, action, fields, replies, submi
         return;
       }
       const saved = JSON.parse(raw) as FormFields;
-      if (typeof saved.title === "string" && fields?.title !== undefined) setTitle(saved.title);
-      if (typeof saved.category === "string" && fields?.category !== undefined) setCategory(saved.category);
-      if (typeof saved.body === "string") setBody(saved.body);
+      setReviewedExpected(action.expected);
+      setDraft({
+        title: typeof saved.title === "string" ? saved.title : title,
+        category: typeof saved.category === "string" ? saved.category : category,
+        body: typeof saved.body === "string" ? saved.body : body,
+      });
       setMessage("Draft restored. Review it against the selected revision before signing.");
     } catch {
       setMessage("Workbox could not read the saved draft.");
@@ -84,7 +97,7 @@ export function DiscussionForm({ endpoint, actor, action, fields, replies, submi
     event.preventDefault();
     if (busy || (changed && !pending)) return;
     const request = pending ?? {
-      ...action, ...(revisionBound ? { expected: reviewedExpected } : {}),
+      ...action, ...(revisionBound && draft ? { expected: reviewedExpected } : {}),
       actor: actor.actor, operationId: crypto.randomUUID(),
       ...(fields?.title !== undefined ? { title } : {}),
       ...(fields?.category !== undefined ? { category } : {}),
@@ -113,12 +126,11 @@ export function DiscussionForm({ endpoint, actor, action, fields, replies, submi
       }
       setPending(null);
       setMessage("Change signed.");
-      if (action.action === "revise" || action.action === "editReply") setReviewedExpected(result.data.eventId);
+      setDraft(null);
       try {
         if (draftKey) sessionStorage.removeItem(draftKey);
       } catch { /* The signed write already succeeded. */ }
       if (action.action === "reply") {
-        setBody("");
         setReplyTo("");
       }
       const current = window.location.pathname + window.location.search + window.location.hash;
@@ -143,10 +155,10 @@ export function DiscussionForm({ endpoint, actor, action, fields, replies, submi
         </button>
       </div>}
       {fields?.title !== undefined && <label className="block text-sm">Title
-        <input required value={title} onChange={event => setTitle(event.target.value)} disabled={locked} className="wb-btn mt-1 w-full" />
+        <input required value={title} onChange={event => edit({ title: event.target.value })} disabled={locked} className="wb-btn mt-1 w-full" />
       </label>}
       {fields?.category !== undefined && <label className="block text-sm">Category
-        <input required value={category} onChange={event => setCategory(event.target.value)} disabled={locked} className="wb-btn mt-1 w-full" />
+        <input required value={category} onChange={event => edit({ category: event.target.value })} disabled={locked} className="wb-btn mt-1 w-full" />
       </label>}
       {replies && replies.length > 0 && <label className="block text-sm">Reply to
         <select value={replyTo} onChange={event => setReplyTo(event.target.value)} disabled={locked} className="wb-btn ml-2">
@@ -155,7 +167,7 @@ export function DiscussionForm({ endpoint, actor, action, fields, replies, submi
         </select>
       </label>}
       {fields?.body !== undefined && <MarkdownEditor label={action.action === "reply" ? "Reply" : "Body"}
-        value={body} onChange={setBody} disabled={locked} required={action.action === "reply"} />}
+        value={body} onChange={value => edit({ body: value })} disabled={locked} required={action.action === "reply"} />}
       <div className="flex flex-wrap items-center gap-3">
         <button className="wb-btn" disabled={busy || (changed && !pending)} type="submit">
           {busy ? "Signing…" : pending ? "Retry submission" : submitLabel}
