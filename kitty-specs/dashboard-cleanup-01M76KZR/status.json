@@ -62,7 +62,8 @@
         "Shared project creation at a58e07b. Seven fixtures including real signed bootstrap and index recovery passed.",
         "Independent reviewer checks exclusive claims, native bootstrap and recovery.",
         "Fix unfinished discovery through symlink aliases.",
-        "Canonical alias visibility fix at 206e0e0; seven native and recovery fixtures pass."
+        "Canonical alias visibility fix at 206e0e0; seven native and recovery fixtures pass.",
+        "Independent re-review checks canonical and lexical discovery and recovery."
       ],
       "provider": "__resolved_provider_absent__",
       "review": null,
