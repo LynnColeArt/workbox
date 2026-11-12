@@ -1,116 +1,106 @@
 import { connection } from "next/server";
 import Link from "next/link";
+import NewProjectDialog from "@/components/new-project-dialog";
+import type { ActivityCoverage } from "@/lib/workbox/activity";
+import { readDashboard } from "@/lib/workbox/dashboard";
 import { openDb } from "@/lib/workbox/db";
-import { listProjects, recentActivity, instanceStats } from "@/lib/workbox/queries";
-import { recentProjects } from "@/lib/workbox/activity";
-import NewProjectForm from "@/components/new-project-form";
 
 export const instant = false;
 
-const DAY_MS = 86_400_000;
+function countLabel(count: number | null, coverage: ActivityCoverage, source: string) {
+  if (count === null) return `${source} unknown`;
+  return `${coverage === "complete" ? "" : "At least "}${count} ${source}`;
+}
 
-function bar(count: number, max: number): React.ReactNode {
-  if (max <= 0) return null;
-  const width = Math.max(4, Math.round((count / max) * 120));
-  return <span className="inline-block h-2 rounded-full" style={{ width, background: "var(--wb-accent)" }} />;
+function formatUtc(timestamp: string) {
+  return timestamp.slice(0, 16).replace("T", " ");
 }
 
 export default async function Dashboard() {
   await connection();
-  const db = openDb();
-  const projects = listProjects(db);
-  const stats = instanceStats(db);
-  const feed = recentActivity(db, 12);
-  const recents = recentProjects(db).slice(0, 10);
-  const maxChart = Math.max(0, ...recents.map((r) => r.gitLast7 + r.hubnotLast7));
-  const weekAgo = new Date(Date.now() - 7 * DAY_MS).toISOString();
+  using db = openDb();
+  const { projects, summary, feed, window, visual, coverage, state, exploreHref } = readDashboard(db);
 
   return (
-    <main className="mx-auto max-w-6xl px-4 py-6">
-      <div className="flex items-baseline gap-3 mb-1">
-        <h1 className="text-xl font-semibold">Dashboard</h1>
-        <Link href="/explore" className="wb-link text-sm">Explore all projects →</Link>
-      </div>
-      <p className="wb-muted text-sm mb-6">
-        {stats.projects} projects · {stats.events} events ({stats.verified} verified) · {stats.issues} issues · {stats.actors} identities
-        {/* NFR-002: chart values duplicated as text below */}
-      </p>
-
-      {recents.length > 0 ? (
-        <section className="mb-6">
-          <h2 className="text-sm font-semibold wb-muted mb-2 uppercase tracking-wide">
-            Recently active · past 7 days <span className="wb-chip ml-2">since {weekAgo.slice(0, 10)}</span>
-          </h2>
-          <div className="wb-panel divide-y" style={{ borderColor: "var(--wb-border)" }}>
-            {recents.map((r) => {
-              const label =
-                r.gitLast7 > 0 && r.hubnotLast7 > 0
-                  ? `${r.gitLast7} commits · ${r.hubnotLast7} signed events`
-                  : r.gitLast7 > 0 ? `${r.gitLast7} commits` : `${r.hubnotLast7} signed events`;
-              return (
-                <div key={r.id} className="px-4 py-2.5 flex flex-wrap items-center gap-3">
-                  <a href={`/p/${r.id}`} className="text-sm font-medium" style={{ color: "var(--wb-link)" }}>{r.name}</a>
-                  <span className="hidden sm:flex items-center gap-2 text-xs wb-muted">
-                    {bar(r.gitLast7 + r.hubnotLast7, maxChart)}
-                  </span>
-                  <span className="ml-auto wb-muted text-xs">{label}</span>
-                  <span className="wb-muted text-xs wb-mono">{r.latestAt.slice(0, 10)}</span>
-                </div>
-              );
-            })}
-          </div>
-          <p className="wb-muted text-xs mt-1">
-            {recents.map((r) => `${r.name}: ${r.gitLast7}+${r.hubnotLast7}`).join(" · ")}
-          </p>
-        </section>
-      ) : (
-        <div className="wb-panel p-4 mb-6">
-          <p className="wb-muted text-sm">No qualifying activity yet.</p>
-          <p className="wb-muted text-xs mt-1">Activity comes from local Git commits and verified signed Hubnot events. <Link href="/explore" className="wb-link">Explore projects →</Link></p>
+    <main className="mx-auto max-w-6xl space-y-6 px-4 py-6">
+      <header className="space-y-2">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          <h1 className="text-xl font-semibold">Dashboard</h1>
+          <Link href={exploreHref} className="wb-link text-sm">Explore all projects →</Link>
+          <div className="sm:ml-auto"><NewProjectDialog /></div>
         </div>
-      )}
+        <p className="wb-muted text-sm">
+          {summary.projects} projects · {summary.events} events ({summary.verified} verified) · {summary.issues} issues · {summary.actors} identities
+        </p>
+      </header>
 
-      <div className="grid gap-6 md:grid-cols-[1fr_320px]">
-        <section>
-          <h2 className="text-sm font-semibold wb-muted mb-2 uppercase tracking-wide">What&apos;s happening</h2>
-          <div className="wb-panel divide-y" style={{ borderColor: "var(--wb-border)" }}>
-            {feed.length === 0 && (
-              <p className="p-4 wb-muted text-sm">Nothing yet — run the indexer after signing some facts.</p>
-            )}
-            {feed.map((e) => (
-              <div key={e.eventId} className="flex items-start gap-3 px-4 py-3">
-                <span className="wb-chip wb-mono mt-0.5">{e.kind}</span>
-                <div className="text-sm">
-                  <span className="font-medium">{e.actorName}</span>{" "}
-                  <span className="wb-muted">{e.summary}</span>{" "}
-                  <span className="wb-muted">in</span>{" "}
-                  <a href={`/p/${e.projectId}`} className="wb-link">{e.projectName}</a>
+      <section aria-labelledby="recently-active" className="space-y-2">
+        <h2 id="recently-active" className="wb-muted text-sm font-semibold uppercase tracking-wide">
+          Recently active · past 7 days
+        </h2>
+        <p className="wb-muted text-xs">
+          <time dateTime={window.start}>{formatUtc(window.start)}</time>
+          {" – "}
+          <time dateTime={window.end}>{formatUtc(window.end)}</time> {window.timezone}
+        </p>
+        {coverage.state !== "complete" && (
+          <p className="wb-muted text-sm">Activity history is incomplete. Some counts may be lower than the actual totals.</p>
+        )}
+        {state === "quiet" && <p className="wb-muted text-sm">No project activity in this window.</p>}
+        {projects.length === 0 ? (
+          <p className="wb-panel wb-muted p-4 text-sm">
+            {state === "incomplete" ? "No project activity could be verified." : "No qualifying activity yet."}
+          </p>
+        ) : (
+          <ul aria-label="Recently active projects" className="wb-panel divide-y divide-[var(--wb-border)]">
+            {projects.map((project) => (
+              <li key={project.id} className="grid items-center gap-x-4 gap-y-1 px-4 py-2.5 sm:grid-cols-[minmax(0,1fr)_7.5rem_minmax(11rem,auto)_auto]">
+                <Link href={project.href} className="wb-link text-sm font-medium wrap-anywhere">{project.name}</Link>
+                <div aria-hidden="true" className="order-last flex h-2 w-30 max-w-full overflow-hidden rounded-full bg-[var(--wb-panel-2)] sm:order-0">
+                  {visual.maxCount > 0 && ([
+                    [project.gitCount, visual.sources.git.color],
+                    [project.hubnotCount, visual.sources.hubnot.color],
+                  ] as const).map(([count, backgroundColor]) => (
+                    <span key={backgroundColor} style={{ width: `${100 * (count ?? 0) / visual.maxCount}%`, backgroundColor }} />
+                  ))}
                 </div>
-                <div className="ml-auto wb-muted text-xs whitespace-nowrap">
-                  {e.timestamp ? new Date(e.timestamp).toISOString().slice(0, 16).replace("T", " ") : ""}
+                <div className="wb-muted flex flex-wrap gap-x-2 text-xs">
+                  <span>{countLabel(project.gitCount, project.coverage.git, visual.sources.git.label)}</span>
+                  <span>{countLabel(project.hubnotCount, project.coverage.hubnot, visual.sources.hubnot.label)}</span>
                 </div>
-              </div>
+                <time dateTime={project.latestAt} title={project.latestAt} className="wb-muted wb-mono text-xs">
+                  {project.latestAt.slice(0, 10)}
+                </time>
+              </li>
             ))}
-          </div>
-        </section>
+          </ul>
+        )}
+      </section>
 
-        <aside>
-          <h2 className="text-sm font-semibold wb-muted mb-2 uppercase tracking-wide">Projects</h2>
-          <div className="wb-panel divide-y" style={{ borderColor: "var(--wb-border)" }}>
-            {projects.map((p) => (
-              <a key={p.id} href={`/p/${p.id}`} className="block px-4 py-3 hover:bg-white/5">
-                <div className="text-sm font-medium" style={{ color: "var(--wb-link)" }}>{p.name}</div>
-                <div className="wb-muted text-xs line-clamp-2">{p.description}</div>
-              </a>
+      <section aria-labelledby="dashboard-feed" className="space-y-2">
+        <h2 id="dashboard-feed" className="wb-muted text-sm font-semibold uppercase tracking-wide">What&apos;s happening</h2>
+        {feed.length === 0 ? (
+          <p className="wb-panel wb-muted p-4 text-sm">No activity recorded yet.</p>
+        ) : (
+          <ul className="wb-panel divide-y divide-[var(--wb-border)]" aria-label="Activity feed">
+            {feed.map((event) => (
+              <li key={event.id} className="flex flex-wrap items-start gap-x-3 gap-y-1 px-4 py-3">
+                <span className="wb-chip wb-mono wrap-anywhere">{event.kind}</span>
+                <p className="min-w-0 text-sm wrap-anywhere">
+                  <span className="font-medium">{event.actorName}</span>{" "}
+                  <span className="wb-muted">{event.summary} in</span>{" "}
+                  <Link href={event.href} className="wb-link">{event.projectName}</Link>
+                </p>
+                {event.timestamp && (
+                  <time dateTime={event.timestamp} className="wb-muted text-xs whitespace-nowrap sm:ml-auto">
+                    {formatUtc(event.timestamp)} UTC
+                  </time>
+                )}
+              </li>
             ))}
-            {projects.length === 0 && <p className="p-4 wb-muted text-sm">No projects indexed yet.</p>}
-          </div>
-        </aside>
-      </div>
-
-      <div className="mt-6" style={{ maxWidth: 480 }}>
-        <NewProjectForm />
-      </div>
+          </ul>
+        )}
+      </section>
     </main>
   );
 }

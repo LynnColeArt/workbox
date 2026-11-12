@@ -1,61 +1,123 @@
 "use client";
 
-import { useState } from "react";
+import { Close } from "@radix-ui/react-dialog";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import type { CreateProjectInput, CreateProjectResult } from "@/lib/workbox/create";
 
-export default function NewProjectForm() {
-  const [id, setId] = useState("");
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [result, setResult] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+type Success = Extract<CreateProjectResult, { ok: true }>["data"];
+type Failure = Pick<Extract<CreateProjectResult, { ok: false }>["error"], "message" | "recovery">;
 
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    setBusy(true);
+const unknownOutcome: Failure = {
+  message: "Workbox could not confirm the result. Check Explore before submitting again.",
+};
+const inputClass = "w-full rounded border border-[var(--wb-border)] bg-transparent px-3 py-2 text-sm";
+
+export default function NewProjectForm({
+  beginSubmission, endSubmission,
+}: {
+  beginSubmission: () => boolean;
+  endSubmission: () => void;
+}) {
+  const router = useRouter();
+  const [input, setInput] = useState({ id: "", name: "", description: "" });
+  const [pendingAction, setPendingAction] = useState<"create" | "index" | null>(null);
+  const [result, setResult] = useState<Success | null>(null);
+  const [error, setError] = useState<Failure | null>(null);
+  const projectLink = useRef<HTMLAnchorElement>(null);
+  const busy = pendingAction !== null;
+  const retryIndex = error?.recovery === "retry_indexing" || pendingAction === "index";
+
+  useEffect(() => {
+    if (result) projectLink.current?.focus();
+  }, [result]);
+
+  function update(field: keyof CreateProjectInput, value: string) {
+    setInput((previous) => ({ ...previous, [field]: value }));
     setError(null);
-    setResult(null);
+  }
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!input.id.trim() || !beginSubmission()) return;
+    setPendingAction(retryIndex ? "index" : "create");
+    setError(null);
     try {
-      const res = await fetch("/api/projects", {
+      const response = await fetch("/api/projects", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ id, name, description }),
+        body: JSON.stringify(input),
       });
-      const data = (await res.json()) as
-        | { ok: true; data: { id: string; url: string; actor: string; issueId: string } }
-        | { ok: false; error: { message: string; step?: string } };
-      if (data.ok) {
-        setResult(`created ${data.data.id} — actor ${data.data.actor.slice(7, 19)} — opening ${data.data.url}`);
+      const receipt = (await response.json()) as CreateProjectResult;
+      const expectedId = input.id.trim();
+      const expectedHref = `/p/${encodeURIComponent(expectedId)}`;
+      const issuePrefix = `${expectedHref}/issue/`;
+      if (response.ok && receipt.ok && receipt.data.id === expectedId && receipt.data.url === expectedHref &&
+          receipt.data.foundingIssue.url.startsWith(issuePrefix) &&
+          /^sha256%3A[0-9a-f]{64}$/.test(receipt.data.foundingIssue.url.slice(issuePrefix.length))) {
+        setResult(receipt.data);
+        router.refresh();
+      } else if (!response.ok && receipt.ok === false && typeof receipt.error.message === "string") {
+        setError(receipt.error);
       } else {
-        setError(`${data.error.step ? data.error.step + ": " : ""}${data.error.message}`);
+        setError(unknownOutcome);
       }
-    } catch (err) {
-      setError((err as Error).message);
+    } catch {
+      setError(unknownOutcome);
     } finally {
-      setBusy(false);
+      setPendingAction(null);
+      endSubmission();
     }
   }
 
-  return (
-    <form onSubmit={submit} className="wb-panel p-4 space-y-3">
-      <h2 className="text-sm font-semibold wb-muted uppercase tracking-wide">New hubnot project</h2>
-      <p className="wb-muted text-xs">
-        Creates a real repository in the projects folder: git tree, instance identity (.git/hn),
-        governance policy, and a founding signed issue — verified facts from minute one.
-      </p>
-      <div className="flex gap-3">
-        <input required value={id} onChange={(e) => setId(e.target.value)} placeholder="project-id (folder name)"
-               className="wb-mono text-sm flex-1 px-3 py-2 rounded border bg-transparent" style={{ borderColor: "var(--wb-border)" }} />
-        <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Display name (optional)"
-               className="text-sm flex-1 px-3 py-2 rounded border bg-transparent" style={{ borderColor: "var(--wb-border)" }} />
+  if (result) {
+    return (
+      <div className="space-y-4">
+        <p role="status" className="wrap-anywhere text-sm">Created project <strong>{result.id}</strong>.</p>
+        <div className="flex flex-wrap items-center gap-3">
+          <Link ref={projectLink} href={result.url} className="wb-link text-sm font-medium">Open project</Link>
+          <Link href={result.foundingIssue.url} className="wb-link text-sm">Open founding issue</Link>
+          <Close className="wb-btn ml-auto">Close</Close>
+        </div>
       </div>
-      <input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="What is this project for?"
-             className="w-full text-sm px-3 py-2 rounded border bg-transparent" style={{ borderColor: "var(--wb-border)" }} />
-      <button type="submit" disabled={busy || id.length === 0} className="wb-btn">
-        {busy ? "creating…" : "Create project"}
-      </button>
-      {result && <p className="text-sm" style={{ color: "var(--wb-open)" }}>{result}</p>}
-      {error && <p className="text-sm" style={{ color: "var(--wb-warn)" }}>{error}</p>}
+    );
+  }
+
+  return (
+    <form onSubmit={submit} className="space-y-4">
+      <label className="block text-sm">
+        <span className="mb-1 block font-medium">Project ID</span>
+        <input
+          name="id" value={input.id} onChange={(event) => update("id", event.target.value)}
+          className={`${inputClass} wb-mono`} required readOnly={busy} autoComplete="off"
+        />
+      </label>
+      <label className="block text-sm">
+        <span className="mb-1 block font-medium">Display name</span>
+        <input
+          name="name" value={input.name} onChange={(event) => update("name", event.target.value)}
+          className={inputClass} readOnly={busy} placeholder="Defaults to the project ID"
+        />
+      </label>
+      <label className="block text-sm">
+        <span className="mb-1 block font-medium">Description</span>
+        <textarea
+          name="description" value={input.description} onChange={(event) => update("description", event.target.value)}
+          className={inputClass} readOnly={busy} rows={3}
+        />
+      </label>
+      {error && <p role="alert" className="text-sm text-[var(--wb-warn)]">{error.message}</p>}
+      {busy && <p role="status" className="wb-muted text-sm">{retryIndex ? "Indexing project…" : "Creating project…"}</p>}
+      <div className="flex flex-wrap justify-end gap-2">
+        <Close className="wb-btn" aria-disabled={busy}>Cancel</Close>
+        <button
+          type="submit" className="wb-btn bg-[var(--wb-accent-dim)] font-medium aria-disabled:opacity-50"
+          aria-disabled={busy}
+        >
+          {retryIndex ? "Retry indexing" : "Create project"}
+        </button>
+      </div>
     </form>
   );
 }
