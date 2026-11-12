@@ -126,7 +126,8 @@
       "notes": [
         "Implement dashboard and project creation MCP parity and run integrated verification.",
         "Production build, all 69 tests, scoped ESLint, TypeScript, legacy MCP self-test, and desktop and narrow browser checks passed.",
-        "Independent fleet reviewer checked shared browser/MCP data, PNG, signed issue creation, duplicate races, recovery and exact quiet behavior."
+        "Independent fleet reviewer checked shared browser/MCP data, PNG, signed issue creation, duplicate races, recovery and exact quiet behavior.",
+        "Independent review approved. Production HTTP and MCP stdio share ranking, counts, coverage and links; signed founding issues are readable from both, and cross-surface index retry preserves Git state."
       ],
       "provider": "__resolved_provider_absent__",
       "review_result": {
