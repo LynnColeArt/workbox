@@ -1,8 +1,8 @@
 # Mission Specification: Automatic proposal checks
 
-**Mission Branch**: `codex/automatic-proposal-checks`  
-**Created**: 2026-11-12  
-**Status**: Draft
+- **Mission Branch**: `codex/automatic-proposal-checks`
+- **Created**: 2026-11-12
+- **Status**: Draft
 
 When a Hubnot proposal opens or receives a new code revision, run the pipelines that the repository has configured for that event. Show developers and agents which checks ran for the revision they are reviewing and what is still blocking it.
 
