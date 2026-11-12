@@ -1,4 +1,16 @@
 {
+  "acceptance_history": [
+    {
+      "acceptance_mode": "local",
+      "accepted_at": "2026-11-12T23:27:56.785347+00:00",
+      "accepted_by": "codex",
+      "accepted_from_commit": "7c86511a4348970bf9a902616832bfe33b49fd66"
+    }
+  ],
+  "acceptance_mode": "local",
+  "accepted_at": "2026-11-12T23:27:56.785347+00:00",
+  "accepted_by": "codex",
+  "accepted_from_commit": "7c86511a4348970bf9a902616832bfe33b49fd66",
   "created_at": "2026-11-12T21:59:57.161074+00:00",
   "flattened": false,
   "friendly_name": "issues and discussions",
