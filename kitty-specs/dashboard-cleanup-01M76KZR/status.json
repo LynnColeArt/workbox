@@ -60,7 +60,8 @@
       "notes": [
         "Implement shared project creation, validation and recovery.",
         "Shared project creation at a58e07b. Seven fixtures including real signed bootstrap and index recovery passed.",
-        "Independent reviewer checks exclusive claims, native bootstrap and recovery."
+        "Independent reviewer checks exclusive claims, native bootstrap and recovery.",
+        "Fix unfinished discovery through symlink aliases."
       ],
       "provider": "__resolved_provider_absent__",
       "review": null,
