@@ -127,7 +127,12 @@
         "Implement dashboard and project creation MCP parity and run integrated verification."
       ],
       "provider": "__resolved_provider_absent__",
-      "role": "implementer"
+      "role": "implementer",
+      "subtasks": {
+        "T010": "done",
+        "T011": "done",
+        "T012": "done"
+      }
     }
   }
 }
