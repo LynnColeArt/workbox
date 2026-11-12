@@ -1,0 +1,136 @@
+schema_version: 1
+mission_id: 01M78NQMKNBVKB7X2T94GEV5JD
+mission_slug: pipeline-graph-editor-01M78NQM
+mission_number: 5
+friendly_name: Pipeline graph editor in Settings
+mission_type: software-dev
+target_branch: feat/pipeline-graph-editor
+created_at: '2026-11-12T20:41:21.872860+00:00'
+created_by:
+  kind: human
+  id: cli
+  display: spec-kitty retrospect
+provenance:
+  kind: explicit_create
+  invoked_at: '2026-11-12T20:41:21.872860+00:00'
+  policy_resolved_from:
+    enabled: <default>
+    timing: <default>
+    failure_policy: <default>
+    write_record: <default>
+    generate_proposals: <default>
+    apply_proposals: <default>
+    permissions.write_record: <default>
+    permissions.inspect_mission_artifacts: <default>
+    permissions.propose_glossary_changes: <default>
+    permissions.propose_drg_changes: <default>
+    permissions.propose_doctrine_changes: <default>
+    permissions.apply_low_risk_changes: <default>
+    permissions.apply_structural_changes: <default>
+    precedence: <default>
+    generator: <default>
+  command: spec-kitty retrospect create
+policy_source:
+  enabled: <default>
+  timing: <default>
+  failure_policy: <default>
+  write_record: <default>
+  generate_proposals: <default>
+  apply_proposals: <default>
+  permissions.write_record: <default>
+  permissions.inspect_mission_artifacts: <default>
+  permissions.propose_glossary_changes: <default>
+  permissions.propose_drg_changes: <default>
+  permissions.propose_doctrine_changes: <default>
+  permissions.apply_low_risk_changes: <default>
+  permissions.apply_structural_changes: <default>
+  precedence: <default>
+  generator: <default>
+findings_status: has_findings
+helped:
+- id: h-001
+  category: implementation
+  summary: WP01 completed without rejection cycles
+  evidence_refs:
+  - e-011
+- id: h-002
+  category: implementation
+  summary: WP02 completed without rejection cycles
+  evidence_refs:
+  - e-011
+- id: h-003
+  category: implementation
+  summary: WP03 completed without rejection cycles
+  evidence_refs:
+  - e-011
+- id: h-004
+  category: implementation
+  summary: WP04 completed without rejection cycles
+  evidence_refs:
+  - e-011
+- id: h-005
+  category: implementation
+  summary: WP05 completed without rejection cycles
+  evidence_refs:
+  - e-011
+- id: h-006
+  category: implementation
+  summary: WP06 completed without rejection cycles
+  evidence_refs:
+  - e-011
+not_helpful:
+- id: n-001
+  category: review_loop
+  summary: mission-review-report.md present with findings
+  evidence_refs:
+  - e-012
+  details: A mission-review-report.md artifact is present for this mission. Review its findings to understand documented
+    review outcomes.
+gaps:
+- id: g-001
+  category: doc
+  summary: research.md absent
+  evidence_refs:
+  - e-002
+  details: spec.md is present but research.md is missing. Research artifacts help future maintainers understand design
+    decisions.
+proposals: []
+evidence_refs:
+- id: e-001
+  kind: file
+  path: kitty-specs/pipeline-graph-editor-01M78NQM/meta.json
+- id: e-002
+  kind: file
+  path: kitty-specs/pipeline-graph-editor-01M78NQM/spec.md
+- id: e-003
+  kind: file
+  path: kitty-specs/pipeline-graph-editor-01M78NQM/plan.md
+- id: e-004
+  kind: file
+  path: kitty-specs/pipeline-graph-editor-01M78NQM/tasks.md
+- id: e-005
+  kind: file
+  path: kitty-specs/pipeline-graph-editor-01M78NQM/tasks/WP01-repo-templates.md
+- id: e-006
+  kind: file
+  path: kitty-specs/pipeline-graph-editor-01M78NQM/tasks/WP02-shared-draft.md
+- id: e-007
+  kind: file
+  path: kitty-specs/pipeline-graph-editor-01M78NQM/tasks/WP03-exact-review.md
+- id: e-008
+  kind: file
+  path: kitty-specs/pipeline-graph-editor-01M78NQM/tasks/WP04-settings-transport.md
+- id: e-009
+  kind: file
+  path: kitty-specs/pipeline-graph-editor-01M78NQM/tasks/WP05-graph-editor.md
+- id: e-010
+  kind: file
+  path: kitty-specs/pipeline-graph-editor-01M78NQM/tasks/WP06-parity-verification.md
+- id: e-011
+  kind: file
+  path: kitty-specs/pipeline-graph-editor-01M78NQM/status.events.jsonl
+- id: e-012
+  kind: file
+  path: kitty-specs/pipeline-graph-editor-01M78NQM/mission-review-report.md
+generator_version: '1.0'
+provenance_history: []
