@@ -14,6 +14,7 @@ const TABS = [
   { key: "ci", label: "CI" },
   { key: "discussions", label: "Discussions" },
   { key: "insights", label: "Insights" },
+  { key: "settings", label: "Settings" },
 ] as const;
 
 export default async function ProjectLayout({
@@ -45,7 +46,7 @@ export default async function ProjectLayout({
         </div>
         <h1 className="text-xl font-semibold">{p.name}</h1>
         <p className="wb-muted text-sm mb-4">{p.description}</p>
-        <nav className="flex gap-1 border-b" style={{ borderColor: "var(--wb-border)" }}>
+        <nav aria-label="Repository" className="flex flex-wrap gap-1 border-b" style={{ borderColor: "var(--wb-border)" }}>
           {TABS.map((t) => {
             const href = `/p/${id}/${t.key}`;
             const badge =

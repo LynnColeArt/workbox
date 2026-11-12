@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { connection } from "next/server";
 import { getProject } from "@/lib/workbox/queries";
 import { openDb } from "@/lib/workbox/db";
@@ -26,6 +27,9 @@ export default async function CIPage({ params }: { params: Promise<{ id: string 
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-4">
+      <p className="mb-3 text-sm">
+        <Link className="wb-link" href={`/p/${encodeURIComponent(id)}/settings#pipeline-draft`}>Prepare a pipeline change in Settings</Link>
+      </p>
       <CreateForm
         label="New pipeline"
         endpoint={`/api/projects/${id}/pipelines`}

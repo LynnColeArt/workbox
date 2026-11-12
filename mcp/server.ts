@@ -27,6 +27,7 @@ import { readRepositoryActivity } from "../src/lib/workbox/repository-activity";
 import { renderActivityChartPng } from "../src/lib/workbox/activity-chart-svg";
 import { readDashboard } from "../src/lib/workbox/dashboard";
 import { renderDashboardPng } from "../src/lib/workbox/dashboard-chart";
+import { runSettingsOperation } from "../src/lib/workbox/settings-operations";
 import { createProject } from "../src/lib/workbox/create";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -303,7 +304,50 @@ const TOOLS = [
       required: ["id"], additionalProperties: false,
     },
   },
+  {
+    name: "workbox_repo_settings",
+    description: "Read repository details and pinned workflow definitions.",
+    inputSchema: {
+      type: "object",
+      properties: { project: { type: "string" }, },
+      required: ["project"], additionalProperties: false,
+    },
+  },
+  {
+    name: "workbox_update_repo_details",
+    description: "Update local display name or description.",
+    inputSchema: {
+      type: "object",
+      properties: { project: { type: "string" }, name: { type: "string" }, description: { type: "string" }, },
+      required: ["project"], additionalProperties: false,
+    },
+  },
+  {
+    name: "workbox_preview_pipeline",
+    description: "Validate a pipeline draft and preview its exact change without writing.",
+    inputSchema: {
+      type: "object",
+      properties: { project: { type: "string" }, name: { type: "string" }, definition: { type: "string" }, },
+      required: ["project", "name", "definition"], additionalProperties: false,
+    },
+  },
+  {
+    name: "workbox_submit_pipeline_proposal",
+    description: "Submit an explicitly confirmed pipeline proposal when the installed Hubnot supports safe publication.",
+    inputSchema: {
+      type: "object",
+      properties: { project: { type: "string" }, name: { type: "string" }, definition: { type: "string" }, digest: { type: "string" }, operationId: { type: "string" }, confirmed: { type: "boolean" }, },
+      required: ["project", "name", "definition", "digest", "operationId", "confirmed"], additionalProperties: false,
+    },
+  },
 ] as const;
+
+const SETTINGS_ACTIONS = new Map([
+  ["workbox_repo_settings", "read"],
+  ["workbox_update_repo_details", "update"],
+  ["workbox_preview_pipeline", "preview"],
+  ["workbox_submit_pipeline_proposal", "submit"],
+]);
 
 const HANDLERS: Record<string, (args: Json) => Promise<unknown>> = {
   workbox_projects: () => toolProjects(),
@@ -456,6 +500,18 @@ async function handle(msg: Json): Promise<void> {
     const name = String(params.name ?? "");
     if (name === "workbox_create_project") {
       const result = await createProject(params.arguments);
+      rpcResult(id, {
+        content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+        isError: !result.ok,
+      });
+      return;
+    }
+    const settingsAction = SETTINGS_ACTIONS.get(name);
+    if (settingsAction) {
+      const { project, ...fields } = params.arguments ?? {};
+      const result = typeof project === "string"
+        ? await runSettingsOperation(project, { ...fields, action: settingsAction }, true)
+        : { ok: false, error: { code: "invalid_input", message: "Repository ID is required." } };
       rpcResult(id, {
         content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
         isError: !result.ok,
