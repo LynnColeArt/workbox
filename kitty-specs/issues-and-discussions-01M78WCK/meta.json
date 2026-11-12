@@ -23,6 +23,7 @@
   "purpose_context": "This mission advances issues and discussions on codex/issues-and-discussions so stakeholders can track the work from mission creation onward.",
   "purpose_tldr": "issues and discussions",
   "slug": "issues-and-discussions-01M78WCK",
+  "status_phase": "1",
   "target_branch": "codex/issues-and-discussions",
   "topology": "single_branch",
   "vcs": "git",
