@@ -1,0 +1,28 @@
+{
+  "event_count": 1,
+  "last_event_id": "01M78X7MQZ0XRY42HMX55JXP5A",
+  "materialized_at": "2026-11-12T22:14:42.687685+00:00",
+  "mission_number": "",
+  "mission_slug": "issues-and-discussions-01M78WCK",
+  "mission_type": "software-dev",
+  "summary": {
+    "approved": 0,
+    "blocked": 0,
+    "canceled": 0,
+    "claimed": 0,
+    "done": 0,
+    "for_review": 0,
+    "in_progress": 0,
+    "in_review": 0,
+    "planned": 1
+  },
+  "work_packages": {
+    "WP01": {
+      "actor": "finalize-tasks",
+      "force_count": 0,
+      "lane": "planned",
+      "last_event_id": "01M78X7MQZ0XRY42HMX55JXP5A",
+      "last_transition_at": "2026-11-12T22:14:42.687685+00:00"
+    }
+  }
+}
