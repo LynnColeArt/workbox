@@ -64,6 +64,9 @@ export async function signCollaboration(
   const outcome = result.data.value;
   const id = mutation.family === "issue" ? outcome.issue_id : outcome.resource_id;
   if (!id) return collaborationError("native_unavailable", "Hubnot did not return a resource ID. Retry the original submission.");
+  if (outcome.admission === "hidden") {
+    return collaborationError("admission_hidden", "Hubnot signed the operation, but repository policy hides it.");
+  }
   if (outcome.admission && outcome.admission !== "admitted") {
     return collaborationError("admission_pending", "Hubnot signed the operation. Retry the original submission when admission is complete.");
   }
@@ -91,7 +94,7 @@ export async function signCollaboration(
 export function collaborationResponse<T>(result: CollaborationResult<T>) {
   if (result.ok) return Response.json(result);
   const statuses: Record<string, number> = {
-    not_found: 404, actor_mismatch: 403, permission_denied: 403, admission_refused: 403,
+    not_found: 404, actor_mismatch: 403, permission_denied: 403, admission_refused: 403, admission_hidden: 403,
     stale_revision: 409, stale_cursor: 409, issue_conflict: 409, resource_conflict: 409, operation_conflict: 409,
     signer_unavailable: 409, admission_pending: 409, concurrent_update: 409, native_unavailable: 503, output_limit: 503,
   };
@@ -107,8 +110,10 @@ export function canSignCollaborationRequest(request: Request) {
   if (!host) return false;
   try {
     const local = new URL(`http://${host}`);
-    return ["localhost", "127.0.0.1", "[::1]"].includes(local.hostname) &&
-      (!origin || (new URL(origin).host === local.host && origin === new URL(origin).origin));
+    if (!["localhost", "127.0.0.1", "[::1]"].includes(local.hostname)) return false;
+    if (!origin) return true;
+    const source = new URL(origin);
+    return ["http:", "https:"].includes(source.protocol) && source.host === local.host && source.origin === origin;
   } catch {
     return false;
   }
