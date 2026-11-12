@@ -35,6 +35,14 @@ People can participate in and manage Issues and Discussions from Workbox without
 - Issue comment editing, deletion, and additional moderation actions depend on the native resource model. Planning must confirm which operations Hubnot supports and identify native changes for any required flow, without simulating signed changes in Workbox's index.
 - Preserve compatibility for existing MCP issue tools and links. MCP parity covers listing, filters, pagination, detail, conversation, available actions, and mutations.
 
+## Functional Requirements
+
+- **FR-001** Browse and manage issues from creation through closure, with searchable, paginated lists and a signed conversation.
+- **FR-002** Browse and manage discussion threads and replies, including categories, moderation and exact-revision accepted answers.
+- **FR-003** Apply Hubnot permissions and identity consistently in the browser and MCP. Preserve user drafts on conflicts and recover signed writes on retry.
+- **FR-004** Share rich Markdown composition, preview and safe rendering while retaining the original source.
+- **FR-005** Provide browser and MCP parity for all supported actions while preserving existing links and tools.
+
 ## Acceptance
 
 - A person can open, comment on, edit, label, close, and reopen an issue without leaving Workbox. An agent can complete the same sequence through MCP under the same identity and permissions.
