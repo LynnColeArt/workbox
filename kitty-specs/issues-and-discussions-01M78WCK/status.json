@@ -42,10 +42,15 @@
     "WP03": {
       "actor": "codex",
       "agent": "codex",
+      "agent_profile": "__resolved_profile_absent__",
+      "agent_profile_version": "__resolved_profile_version_absent__",
       "force_count": 0,
       "lane": "in_progress",
       "last_event_id": "01M78Y9TR5K3160EEMB0FN9NTG",
       "last_transition_at": "2026-11-12T22:33:22.949278+00:00",
+      "model": "__resolved_model_absent__",
+      "provider": "__resolved_provider_absent__",
+      "role": "implementer",
       "shell_pid": 81886,
       "shell_pid_created_at": "1794522768.53"
     },
