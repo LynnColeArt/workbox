@@ -29,7 +29,8 @@
       "model": "__resolved_model_absent__",
       "notes": [
         "Implement pinned repository template catalog and expansion.",
-        "Pinned templates implemented and verified with five focused fixtures."
+        "Pinned templates implemented and verified with five focused fixtures.",
+        "Independent review of read-only catalog and typed expansion."
       ],
       "provider": "__resolved_provider_absent__",
       "role": "reviewer",
