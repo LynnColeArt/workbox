@@ -22,12 +22,15 @@ history: []
 agent_profile: node-norris
 authoritative_surface: src/
 create_intent:
+- src/lib/workbox/settings-operations.ts
 - src/app/p/[id]/settings/page.tsx
 - src/app/api/projects/[id]/settings/route.ts
 - src/components/repo-settings.tsx
 - tests/settings-parity.test.ts
 execution_mode: code_change
 owned_files:
+- src/lib/workbox/settings-operations.ts
+- src/app/p/[id]/ci/page.tsx
 - src/app/p/[id]/layout.tsx
 - src/app/p/[id]/settings/page.tsx
 - src/app/api/projects/[id]/settings/route.ts
@@ -49,3 +52,5 @@ Read the [spec](../spec.md) and [plan](../plan.md).
 - **T007** Expose common settings, update, validation and submission operations through browser routes and MCP.
 - **T008** Render the Settings tab, retained draft and exact preview, including clear submission availability and outcomes.
 - **T009** Verify browser and MCP parity and production build. Full OS qualification is reserved for release.
+
+Publication parity is pending WP03. The transport integration test covers reads, curation, no-write preview, stale inputs and the controlled unavailable result through both surfaces.

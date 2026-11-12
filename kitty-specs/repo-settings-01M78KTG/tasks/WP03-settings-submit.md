@@ -35,3 +35,7 @@ Read the [spec](../spec.md) and [plan](../plan.md).
 
 - **T005** Verify signer pinning and idempotent native publication and recovery against a compatible binary.
 - **T006** Bind the exact proposal intent, confirm stale and unauthorized inputs append nothing, and verify interruption and concurrent retry behavior.
+
+## Blocking dependency
+
+The installed Hubnot binary does not expose the [native publication and recovery contract](../contracts/proposal-publication.md). The verified fallback checks the confirmation and preview and returns an unavailable capability result without signing or creating Git objects. Acceptance still requires successful native publication and cross-surface retry tests.
