@@ -179,7 +179,12 @@
         "Integrated parity fixtures and production regression checks completed."
       ],
       "provider": "__resolved_provider_absent__",
-      "role": "implementer"
+      "role": "implementer",
+      "subtasks": {
+        "T014": "done",
+        "T015": "done",
+        "T016": "done"
+      }
     }
   }
 }
