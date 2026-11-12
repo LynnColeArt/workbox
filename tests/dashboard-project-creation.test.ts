@@ -115,6 +115,12 @@ test("an indexing failure retains signed Git state and a matching retry indexes 
   const eventRef = git(dir, "for-each-ref", "--format=%(objectname)", "refs/hn/actors/");
   assert.match(eventRef, /^[a-f0-9]{40,64}$/);
   assert.equal(isHubnotRepo(dir), false);
+  const alias = join(root, "retry-alias");
+  if (process.platform !== "win32") {
+    symlinkSync(dir, alias);
+    assert.equal(isHubnotRepo(alias), false);
+    assert.ok(!discoverProjects().some(({ id }) => id === "retry-alias"));
+  }
   assert.equal(failureCode(await createProject({ id: "retry", name: "Other" })), "conflict");
 
   rmSync(database, { recursive: true });
@@ -125,6 +131,10 @@ test("an indexing failure retains signed Git state and a matching retry indexes 
   assert.equal(git(dir, "for-each-ref", "--format=%(objectname)", "refs/hn/actors/"), eventRef);
   assert.equal(git(dir, "rev-list", "--count", "main"), "2");
   assert.equal(isHubnotRepo(dir), true);
+  if (process.platform !== "win32") {
+    assert.equal(isHubnotRepo(alias), true);
+    assert.ok(discoverProjects().some(({ id }) => id === "retry-alias"));
+  }
 });
 
 test("a Git initialization failure cleans up its own directory", { skip: process.platform === "win32" }, async (t) => {
@@ -152,7 +162,11 @@ test("interrupted initialization remains hidden and refuses to claim a replaced 
     for (let elapsed = 0; !existsSync(ready) && elapsed < 100; elapsed++) await delay(20);
     assert.ok(existsSync(ready), "native stub reached its pause");
     const dir = join(root, "interrupted");
+    const alias = join(root, "interrupted-alias");
+    symlinkSync(dir, alias);
     assert.equal(isHubnotRepo(dir), false);
+    assert.equal(isHubnotRepo(alias), false);
+    assert.ok(!discoverProjects().some(({ id }) => id === "interrupted-alias"));
     assert.equal(failureCode(await createProject({ id: "interrupted" })), "conflict");
 
     const exited = once(child, "close");

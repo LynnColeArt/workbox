@@ -1,4 +1,4 @@
-import { readdirSync, statSync, lstatSync, existsSync } from "node:fs";
+import { readdirSync, statSync, lstatSync, existsSync, realpathSync } from "node:fs";
 import { basename, dirname, join, resolve } from "node:path";
 import { actorRefs } from "../hn/gitread";
 
@@ -44,7 +44,7 @@ export function projectCreationStatePath(repoPath: string): string {
   return join(/*turbopackIgnore: true*/ dirname(repoPath), ".workbox-project-creation", `${basename(repoPath)}.json`);
 }
 
-function hasPendingCreation(repoPath: string): boolean {
+function hasCreationMarker(repoPath: string): boolean {
   try {
     lstatSync(/*turbopackIgnore: true*/ projectCreationStatePath(repoPath));
     return true;
@@ -54,7 +54,14 @@ function hasPendingCreation(repoPath: string): boolean {
 }
 
 export function isHubnotRepo(repoPath: string): boolean {
-  if (hasPendingCreation(repoPath)) return false;
+  if (hasCreationMarker(repoPath)) return false;
+  try {
+    const canonical = realpathSync(/*turbopackIgnore: true*/ repoPath);
+    // A sibling symlink may use a different name from the exclusive claim.
+    if (canonical !== repoPath && hasCreationMarker(canonical)) return false;
+  } catch {
+    return false;
+  }
   if (!existsSync(join(repoPath, ".git"))) return false;
   // Cheap check first: private identity state qualifies (never read contents).
   try {
