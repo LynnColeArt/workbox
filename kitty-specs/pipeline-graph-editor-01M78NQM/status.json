@@ -30,7 +30,8 @@
       "notes": [
         "Implement pinned repository template catalog and expansion.",
         "Pinned templates implemented and verified with five focused fixtures.",
-        "Independent review of read-only catalog and typed expansion."
+        "Independent review of read-only catalog and typed expansion.",
+        "Verified pinned read, diagnostics, and typed literal expansion with passing focused tests."
       ],
       "provider": "__resolved_provider_absent__",
       "review_result": {
