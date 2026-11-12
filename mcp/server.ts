@@ -184,6 +184,45 @@ async function toolActivity(args: Json): Promise<Json[]> {
 
 // ---------------------------------------------------------------- registry
 
+const pipelineDraftInput = { type: "object", description: "The exact draft snapshot returned by a previous pipeline draft operation." };
+const draftRevisionInput = { type: "string", pattern: "^[a-f0-9]{64}$", description: "The revision of the snapshot being edited or reviewed." };
+const draftRequestProperties = { project: { type: "string" }, draft: pipelineDraftInput, expectedRevision: draftRevisionInput };
+const draftRequestRequired = ["project", "draft", "expectedRevision"];
+
+function draftEditSchema(kind: string, properties: Record<string, object> = {}, required = Object.keys(properties)) {
+  return {
+    type: "object",
+    properties: { kind: { const: kind }, ...properties },
+    required: ["kind", ...required],
+    additionalProperties: false,
+  };
+}
+
+const nodeIdInput = { type: "string", pattern: "^step-[a-f0-9]{24}$" };
+const stepPatchInput = {
+  type: "object", additionalProperties: false,
+  description: "Native step fields to update. Null removes an optional field.",
+  properties: {
+    name: { type: "string" },
+    command: { type: "string" },
+    args: { type: ["array", "null"], maxItems: 256, items: { type: "string" } },
+    workingDirectory: { type: ["string", "null"] },
+    timeoutSeconds: { type: ["number", "null"] },
+  },
+};
+const draftEditInput = {
+  oneOf: [
+    draftEditSchema("replace_json", { definition: { type: "string" } }),
+    draftEditSchema("restore"),
+    draftEditSchema("add"),
+    draftEditSchema("expand_template", { templateId: { type: "string" }, inputs: { type: "object" } }, ["templateId"]),
+    draftEditSchema("patch", { nodeId: nodeIdInput, patch: stepPatchInput }),
+    draftEditSchema("duplicate", { nodeId: nodeIdInput }),
+    draftEditSchema("remove", { nodeId: nodeIdInput }),
+    draftEditSchema("reorder", { nodeId: nodeIdInput, index: { type: "integer", minimum: 0, maximum: 63 } }),
+  ],
+};
+
 const TOOLS = [
   {
     name: "workbox_projects",
@@ -340,6 +379,44 @@ const TOOLS = [
       required: ["project", "name", "definition", "digest", "actor", "base", "operationId", "confirmed"], additionalProperties: false,
     },
   },
+  {
+    name: "workbox_open_pipeline_draft",
+    description: "Open a repository pipeline draft with exact JSON, ordered nodes, and a pinned base.",
+    inputSchema: {
+      type: "object", properties: { project: { type: "string" }, name: { type: "string" } },
+      required: ["project", "name"], additionalProperties: false,
+    },
+  },
+  {
+    name: "workbox_pipeline_templates",
+    description: "Read the node templates pinned to a pipeline draft's base revision.",
+    inputSchema: {
+      type: "object", properties: { project: { type: "string" }, draft: pipelineDraftInput },
+      required: ["project", "draft"], additionalProperties: false,
+    },
+  },
+  {
+    name: "workbox_edit_pipeline_draft",
+    description: "Apply one structured graph or JSON edit to a draft revision without writing to the repository.",
+    inputSchema: {
+      type: "object", properties: { ...draftRequestProperties, edit: draftEditInput },
+      required: [...draftRequestRequired, "edit"], additionalProperties: false,
+    },
+  },
+  {
+    name: "workbox_refresh_pipeline_draft",
+    description: "Refresh a draft's base and retain its exact draft JSON.",
+    inputSchema: {
+      type: "object", properties: draftRequestProperties, required: draftRequestRequired, additionalProperties: false,
+    },
+  },
+  {
+    name: "workbox_review_pipeline_draft",
+    description: "Review exact pipeline changes and get the payload for an explicit proposal submission.",
+    inputSchema: {
+      type: "object", properties: draftRequestProperties, required: draftRequestRequired, additionalProperties: false,
+    },
+  },
 ] as const;
 
 const SETTINGS_ACTIONS = new Map([
@@ -347,6 +424,11 @@ const SETTINGS_ACTIONS = new Map([
   ["workbox_update_repo_details", "update"],
   ["workbox_preview_pipeline", "preview"],
   ["workbox_submit_pipeline_proposal", "submit"],
+  ["workbox_open_pipeline_draft", "draft_open"],
+  ["workbox_pipeline_templates", "draft_templates"],
+  ["workbox_edit_pipeline_draft", "draft_edit"],
+  ["workbox_refresh_pipeline_draft", "draft_refresh"],
+  ["workbox_review_pipeline_draft", "draft_review"],
 ]);
 
 const HANDLERS: Record<string, (args: Json) => Promise<unknown>> = {
