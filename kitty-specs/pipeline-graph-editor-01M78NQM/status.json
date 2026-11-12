@@ -1,7 +1,7 @@
 {
-  "event_count": 33,
-  "last_event_id": "01M78PTEWHEN7JTFD8DJT141QG",
-  "materialized_at": "2026-11-12T20:22:39.249985+00:00",
+  "event_count": 34,
+  "last_event_id": "01M78PTS1GP1S7FBK7YRQM5J34",
+  "materialized_at": "2026-11-12T20:22:49.648286+00:00",
   "mission_number": "",
   "mission_slug": "pipeline-graph-editor-01M78NQM",
   "mission_type": "software-dev",
@@ -11,8 +11,8 @@
     "canceled": 0,
     "claimed": 0,
     "done": 0,
-    "for_review": 0,
-    "in_progress": 1,
+    "for_review": 1,
+    "in_progress": 0,
     "in_review": 0,
     "planned": 0
   },
@@ -171,9 +171,9 @@
       "agent_profile": "__resolved_profile_absent__",
       "agent_profile_version": "__resolved_profile_version_absent__",
       "force_count": 0,
-      "lane": "in_progress",
-      "last_event_id": "01M78PTEWHEN7JTFD8DJT141QG",
-      "last_transition_at": "2026-11-12T20:22:39.249985+00:00",
+      "lane": "for_review",
+      "last_event_id": "01M78PTS1GP1S7FBK7YRQM5J34",
+      "last_transition_at": "2026-11-12T20:22:49.648286+00:00",
       "model": "__resolved_model_absent__",
       "notes": [
         "Integrated parity fixtures and production regression checks completed."
