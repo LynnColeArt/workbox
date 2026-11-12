@@ -76,8 +76,8 @@ export async function signCollaboration(
     using db = openDb();
     db.exec("BEGIN IMMEDIATE");
     try {
-      const projection = indexProject(db, project);
-      indexed = projection.errors.length === 0 && !!db.prepare(
+      indexProject(db, project);
+      indexed = !!db.prepare(
         "SELECT 1 FROM events WHERE project_id = ? AND event_id = ? AND verified = 1",
       ).get(project.id, outcome.event_id);
       db.exec(indexed ? "COMMIT" : "ROLLBACK");
