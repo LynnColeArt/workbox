@@ -29,7 +29,8 @@
       "model": "__resolved_model_absent__",
       "notes": [
         "Implement the shared repository Settings operations.",
-        "Implementation committed and focused verification passed."
+        "Implementation committed and focused verification passed.",
+        "Independent fleet review of the implemented work package."
       ],
       "provider": "__resolved_provider_absent__",
       "role": "reviewer",
