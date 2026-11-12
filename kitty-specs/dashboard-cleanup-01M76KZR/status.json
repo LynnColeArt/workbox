@@ -29,7 +29,8 @@
       "model": "__resolved_model_absent__",
       "notes": [
         "Implement shared dashboard snapshot and chart rendering.",
-        "Snapshot and shared rendering at 8d44b79. Focused tests, lint and TypeScript passed."
+        "Snapshot and shared rendering at 8d44b79. Focused tests, lint and TypeScript passed.",
+        "Independent review verifies ranked coverage, feed and PNG parity."
       ],
       "provider": "__resolved_provider_absent__",
       "role": "reviewer",
