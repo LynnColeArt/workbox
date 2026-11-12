@@ -1,7 +1,7 @@
 {
-  "event_count": 14,
-  "last_event_id": "01M78BZ2A1HAV6GTGNNW823KQ0",
-  "materialized_at": "2026-11-12T17:12:55.873417+00:00",
+  "event_count": 15,
+  "last_event_id": "01M78BZ9VCPH52VRK4368P2RN3",
+  "materialized_at": "2026-11-12T17:13:03.596857+00:00",
   "mission_number": "",
   "mission_slug": "dashboard-cleanup-01M76KZR",
   "mission_type": "software-dev",
@@ -9,12 +9,12 @@
     "approved": 1,
     "blocked": 0,
     "canceled": 0,
-    "claimed": 0,
+    "claimed": 1,
     "done": 0,
     "for_review": 0,
     "in_progress": 0,
     "in_review": 0,
-    "planned": 3
+    "planned": 2
   },
   "work_packages": {
     "WP01": {
@@ -53,9 +53,9 @@
       "agent_profile": "__resolved_profile_absent__",
       "agent_profile_version": "__resolved_profile_version_absent__",
       "force_count": 1,
-      "lane": "planned",
-      "last_event_id": "01M78BZ2A1HAV6GTGNNW823KQ0",
-      "last_transition_at": "2026-11-12T17:12:55.873417+00:00",
+      "lane": "claimed",
+      "last_event_id": "01M78BZ9VCPH52VRK4368P2RN3",
+      "last_transition_at": "2026-11-12T17:13:03.596857+00:00",
       "model": "__resolved_model_absent__",
       "notes": [
         "Implement shared project creation, validation and recovery.",
