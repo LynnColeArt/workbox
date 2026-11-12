@@ -119,7 +119,8 @@
       "notes": [
         "Browser HTTP and MCP transport implementations available.",
         "Shared operations verified through production HTTP and MCP.",
-        "Independent transport review with schema parity fixes."
+        "Independent transport review with schema parity fixes.",
+        "Verified matching shared dispatch and preserved existing Settings contracts."
       ],
       "provider": "__resolved_provider_absent__",
       "review_result": {
