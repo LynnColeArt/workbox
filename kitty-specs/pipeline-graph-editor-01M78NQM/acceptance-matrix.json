@@ -2,97 +2,97 @@
   "mission_slug": "pipeline-graph-editor-01M78NQM",
   "mission_number": "",
   "mission_type": "software-dev",
-  "overall_verdict": "pending",
+  "overall_verdict": "pass",
   "criteria": [
     {
       "criterion_id": "FR-001",
-      "description": "Verify FR-001 is satisfied",
+      "description": "Production parity fixtures exercise all node operations and exact ordered edges. Browser keyboard tab and editing smoke passed.",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "Production parity fixtures exercise all node operations and exact ordered edges. Browser keyboard tab and editing smoke passed.",
+      "pass_fail": "pass",
+      "verified_by": "codex",
+      "verified_at": "2026-11-12T20:40:45.352636+00:00",
+      "notes": "Production build and 94 Linux tests passed. Full OS qualification is reserved for release."
     },
     {
       "criterion_id": "FR-002",
-      "description": "Verify FR-002 is satisfied",
+      "description": "Production parity preserves empty and literal arguments. Draft validation fixtures cover native step fields and diagnostics.",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "Production parity preserves empty and literal arguments. Draft validation fixtures cover native step fields and diagnostics.",
+      "pass_fail": "pass",
+      "verified_by": "codex",
+      "verified_at": "2026-11-12T20:40:45.352654+00:00",
+      "notes": "Production build and 94 Linux tests passed. Full OS qualification is reserved for release."
     },
     {
       "criterion_id": "FR-003",
-      "description": "Verify FR-003 is satisfied",
+      "description": "Catalog tests verify exact commit pinning, source link, unavailable and invalid states, and dirty checkout isolation.",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "Catalog tests verify exact commit pinning, source link, unavailable and invalid states, and dirty checkout isolation.",
+      "pass_fail": "pass",
+      "verified_by": "codex",
+      "verified_at": "2026-11-12T20:40:45.352657+00:00",
+      "notes": "Production build and 94 Linux tests passed. Full OS qualification is reserved for release."
     },
     {
       "criterion_id": "FR-004",
-      "description": "Verify FR-004 is satisfied",
+      "description": "Catalog expansion tests verify typed defaults, literal values, malformed input and unchanged repository state.",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "Catalog expansion tests verify typed defaults, literal values, malformed input and unchanged repository state.",
+      "pass_fail": "pass",
+      "verified_by": "codex",
+      "verified_at": "2026-11-12T20:40:45.352658+00:00",
+      "notes": "Production build and 94 Linux tests passed. Full OS qualification is reserved for release."
     },
     {
       "criterion_id": "FR-005",
-      "description": "Verify FR-005 is satisfied",
+      "description": "Draft fixtures and browser checks verify stale invalid JSON, restoration, and unsaved inspector edit protection.",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "Draft fixtures and browser checks verify stale invalid JSON, restoration, and unsaved inspector edit protection.",
+      "pass_fail": "pass",
+      "verified_by": "codex",
+      "verified_at": "2026-11-12T20:40:45.352660+00:00",
+      "notes": "Production build and 94 Linux tests passed. Full OS qualification is reserved for release."
     },
     {
       "criterion_id": "FR-006",
-      "description": "Verify FR-006 is satisfied",
+      "description": "Exact text survives projection and tab switches. Browser publication verifies CRLF and mixed line endings in the Git blob.",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "Exact text survives projection and tab switches. Browser publication verifies CRLF and mixed line endings in the Git blob.",
+      "pass_fail": "pass",
+      "verified_by": "codex",
+      "verified_at": "2026-11-12T20:40:45.352662+00:00",
+      "notes": "Production build and 94 Linux tests passed. Full OS qualification is reserved for release."
     },
     {
       "criterion_id": "FR-007",
-      "description": "Verify FR-007 is satisfied",
+      "description": "Production review tests verify bounded exact diff, final newline, formatting-only changes and proposal bytes.",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "Production review tests verify bounded exact diff, final newline, formatting-only changes and proposal bytes.",
+      "pass_fail": "pass",
+      "verified_by": "codex",
+      "verified_at": "2026-11-12T20:40:45.352663+00:00",
+      "notes": "Production build and 94 Linux tests passed. Full OS qualification is reserved for release."
     },
     {
       "criterion_id": "FR-008",
-      "description": "Verify FR-008 is satisfied",
+      "description": "Production parity verifies stable retry after base advancement. Existing Settings tests cover stale and wrong signer outcomes.",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "Production parity verifies stable retry after base advancement. Existing Settings tests cover stale and wrong signer outcomes.",
+      "pass_fail": "pass",
+      "verified_by": "codex",
+      "verified_at": "2026-11-12T20:40:45.352664+00:00",
+      "notes": "Production build and 94 Linux tests passed. Full OS qualification is reserved for release."
     },
     {
       "criterion_id": "FR-009",
-      "description": "Verify FR-009 is satisfied",
+      "description": "Production HTTP and MCP tests compare graph edits, template data, diagnostics and diffs, and recover the original proposal. Legacy Hubnot verification passed.",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "Production HTTP and MCP tests compare graph edits, template data, diagnostics and diffs, and recover the original proposal. Legacy Hubnot verification passed.",
+      "pass_fail": "pass",
+      "verified_by": "codex",
+      "verified_at": "2026-11-12T20:40:45.352666+00:00",
+      "notes": "Production build and 94 Linux tests passed. Full OS qualification is reserved for release."
     }
   ],
   "negative_invariants": []
