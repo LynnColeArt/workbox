@@ -30,6 +30,12 @@ import { renderDashboardPng } from "../src/lib/workbox/dashboard-chart";
 import { runSettingsOperation } from "../src/lib/workbox/settings-operations";
 import { createProject } from "../src/lib/workbox/create";
 
+import { issueTools } from "./issues";
+import { discussionTools } from "./discussions";
+
+const collaborationTools = [...issueTools, ...discussionTools];
+const collaborationHandlers = new Map(collaborationTools.map(tool => [tool.name, tool.call]));
+
 const HERE = dirname(fileURLToPath(import.meta.url));
 process.chdir(resolve(HERE, "..")); // DB and env resolve from the project root
 
@@ -224,6 +230,7 @@ const draftEditInput = {
 };
 
 const TOOLS = [
+  ...collaborationTools.map(({ name, description, inputSchema }) => ({ name, description, inputSchema })),
   {
     name: "workbox_projects",
     description: "List all hubnot projects in this Workbox instance with issue/event counts.",
@@ -586,6 +593,19 @@ async function handle(msg: Json): Promise<void> {
         content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
         isError: !result.ok,
       });
+      return;
+    }
+    const collaborationHandler = collaborationHandlers.get(name);
+    if (collaborationHandler) {
+      try {
+        const result = await collaborationHandler(params.arguments ?? {});
+        rpcResult(id, { content: [{ type: "text", text: JSON.stringify(result, null, 2) }], isError: !result.ok });
+      } catch {
+        rpcResult(id, {
+          content: [{ type: "text", text: JSON.stringify({ ok: false, error: { code: "unavailable", message: "Workbox could not complete this operation." } }) }],
+          isError: true,
+        });
+      }
       return;
     }
     const settingsAction = SETTINGS_ACTIONS.get(name);
