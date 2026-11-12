@@ -9,7 +9,8 @@ import type { IssueDetails } from "@/lib/workbox/issues";
 type IssueFormProps = { project: string; signer: SigningAvailability };
 type Outcome = { href: string; indexed: boolean; eventId: string };
 type Operation = Record<string, unknown> & { action: string };
-const uncertain = new Set(["native_unavailable", "concurrent_update", "admission_pending", "output_limit"]);
+const uncertain = new Set(["native_unavailable", "concurrent_update", "admission_pending", "output_limit", "invalid_history", "repository_error"]);
+const blockedRetry = new Set(["signer_unavailable", "actor_mismatch", "not_found"]);
 
 function useIssueSubmission(project: string, signer: SigningAvailability) {
   const router = useRouter();
@@ -32,7 +33,8 @@ function useIssueSubmission(project: string, signer: SigningAvailability) {
       });
       const result = await response.json();
       if (!result.ok) {
-        setPending(uncertain.has(result.error?.code) ? request : null);
+        const code = result.error?.code;
+        setPending(uncertain.has(code) || (pending && blockedRetry.has(code)) ? request : null);
         setError(result.error?.message ?? "Workbox could not save the issue change.");
         return;
       }

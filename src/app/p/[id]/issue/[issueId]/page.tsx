@@ -22,7 +22,10 @@ export default async function IssuePage({ params, searchParams }: {
   const issueId = normalizeIssueIdentifier(rawIssueId);
   const cursor = typeof query.cursor === "string" ? query.cursor : undefined;
   const revisionCursor = typeof query.revisionCursor === "string" ? query.revisionCursor : undefined;
-  const result = await readIssueDetail(project, { action: "detail", issueId, cursor, revisionCursor, limit: 25 });
+  const requested = await readIssueDetail(project, { action: "detail", issueId, cursor, revisionCursor, limit: 25 });
+  const paginationReset = !requested.ok && requested.error.code === "stale_cursor" && !!(cursor || revisionCursor);
+  // Keep the current route mounted when signed changes invalidate its pagination.
+  const result = paginationReset ? await readIssueDetail(project, { action: "detail", issueId, limit: 25 }) : requested;
   const list = `/p/${encodeURIComponent(id)}/issues`;
   if (!result.ok) return (
     <main className="mx-auto max-w-6xl space-y-3 px-4 py-6">
@@ -34,8 +37,8 @@ export default async function IssuePage({ params, searchParams }: {
   const issue = result.data;
   function nextPage(field: "cursor" | "revisionCursor", value: string) {
     const params = new URLSearchParams();
-    if (cursor) params.set("cursor", cursor);
-    if (revisionCursor) params.set("revisionCursor", revisionCursor);
+    if (cursor && !paginationReset) params.set("cursor", cursor);
+    if (revisionCursor && !paginationReset) params.set("revisionCursor", revisionCursor);
     params.set(field, value);
     return `${issue.href}?${params}#${field === "cursor" ? "comments" : "revisions"}`;
   }
@@ -43,6 +46,7 @@ export default async function IssuePage({ params, searchParams }: {
   return (
     <main className="mx-auto max-w-6xl px-4 py-6">
       <Link className="wb-link text-sm" href={list}>All issues</Link>
+      {paginationReset && <p role="status" className="wb-muted mt-2 text-sm">The issue changed. Showing the first page of the current conversation and revisions.</p>}
       <h1 className="my-3 break-words text-2xl sm:text-3xl">
         {issue.state?.title ?? "Issue with competing revisions"}{" "}
         {issue.number !== null && <span className="wb-muted font-light">#{issue.number}</span>}
@@ -88,23 +92,47 @@ export default async function IssuePage({ params, searchParams }: {
           </article>
         ))}
         {issue.nextCursor && <Link className="wb-link text-sm" href={nextPage("cursor", issue.nextCursor)}>Next comments</Link>}
-        {cursor && <Link className="wb-link ml-3 text-sm" href={`${issue.href}#comments`}>First comments</Link>}
+        {cursor && !paginationReset && <Link className="wb-link ml-3 text-sm" href={`${issue.href}#comments`}>First comments</Link>}
       </section>
       <IssueCommentForm project={id} signer={issue.signer} issueId={issue.issueId} />
       <section id="revisions" className="space-y-3" aria-label="Signed issue revisions">
         <h2 className="font-semibold">Signed revisions</h2>
         <ul className="wb-panel divide-y divide-[var(--wb-border)] text-sm">
           {issue.revisions.map(revision => (
-            <li key={revision.id} className="flex flex-wrap items-center gap-3 px-4 py-3" title={revision.id}>
-              <span className="wb-chip">{revision.intent ?? revision.kind}</span>
-              <span>{revision.actorName}</span>
-              <code>{revision.id.slice(7, 19)}</code>
-              <time className="wb-muted" dateTime={revision.timestamp}>{revision.timestamp.slice(0, 16).replace("T", " ")}</time>
+            <li key={revision.id} className="px-4 py-3">
+              <details>
+                <summary className="cursor-pointer">
+                  <span className="wb-chip mr-2">{revision.intent ?? revision.kind}</span>
+                  <span className="mr-2">{revision.actorName}</span>
+                  <code className="mr-2">{revision.id.slice(7, 19)}</code>
+                  <time className="wb-muted" dateTime={revision.timestamp}>{revision.timestamp.slice(0, 16).replace("T", " ")}</time>
+                </summary>
+                <div className="mt-3 space-y-2">
+                  <p className="wb-muted">Revision <code className="break-all">{revision.id}</code></p>
+                  {revision.parents.length > 0 && (
+                    <ul aria-label="Parent revisions" className="wb-muted">
+                      {revision.parents.map(parent => <li key={parent}>Parent <code className="break-all">{parent}</code></li>)}
+                    </ul>
+                  )}
+                  {revision.state && (
+                    <>
+                      <p className="font-semibold">{revision.state.title}</p>
+                      <p className="wb-muted">{revision.state.status === "closed" ? "Closed" : "Open"}</p>
+                      <MarkdownContent html={renderMarkdown(revision.state.body)} />
+                      {revision.state.labels.length > 0 && (
+                        <ul aria-label="Labels in this revision" className="flex flex-wrap gap-2">
+                          {revision.state.labels.map(label => <li className="wb-chip" key={label}>{label}</li>)}
+                        </ul>
+                      )}
+                    </>
+                  )}
+                </div>
+              </details>
             </li>
           ))}
         </ul>
         {issue.nextRevisionCursor && <Link className="wb-link text-sm" href={nextPage("revisionCursor", issue.nextRevisionCursor)}>Next revisions</Link>}
-        {revisionCursor && <Link className="wb-link ml-3 text-sm" href={`${issue.href}#revisions`}>First revisions</Link>}
+        {revisionCursor && !paginationReset && <Link className="wb-link ml-3 text-sm" href={`${issue.href}#revisions`}>First revisions</Link>}
       </section>
     </main>
   );

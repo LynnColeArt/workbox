@@ -109,7 +109,7 @@ test("signed issue lifecycle, synced conflicts and Markdown match production bro
   assert.ok(initial.signer.available);
   const { actor } = initial.signer.identity;
   const source = "  **Keep this**\r\n\r\n- Markdown\n";
-  const create = { action: "create", actor, operationId: "issue-open", title: "Issue lifecycle", body: source, labels: ["bug"] };
+  const create = { action: "create", actor, operationId: "issue-open", title: "Issue lifecycle", body: source, labels: [" bug "] };
   const opened = data(await http<Written>(create));
   assert.ok(opened.indexed);
   assert.equal(opened.number, 1);
@@ -118,14 +118,15 @@ test("signed issue lifecycle, synced conflicts and Markdown match production bro
     await post({ source }, "/api/markdown").then(value => value.result),
     await mcp("workbox_preview_markdown", { source }),
   );
-  const list = { q: "#1", label: "bug", status: "open", limit: 1 };
+  const list = { q: "#1", label: " bug ", status: "open", limit: 1 };
   const filtered = await http<IssueList>({ ...list, action: "list" });
   assert.deepEqual(filtered, await mcp("workbox_list_issues", { project, ...list }));
   assert.equal(data(filtered).items[0].issueId, opened.issueId);
-  assert.match(await markup(`/p/${project}/issues?q=%231&label=bug&status=open`), /Issue lifecycle/);
+  assert.match(await markup(`/p/${project}/issues?q=%231&label=%20bug%20&status=open`), /Issue lifecycle/);
   assert.match(await markup(opened.href), /<strong>Keep this<\/strong>/);
   const detail = data(await show(opened.issueId));
   assert.equal(detail.state?.body, source);
+  assert.deepEqual(detail.state?.labels, [" bug "]);
   assert.deepEqual(await mcp("workbox_issue_detail", { project, issueId: opened.number }), { ok: true, data: detail });
 
   const comment = { action: "comment", issueId: opened.issueId, body: source, actor, operationId: "issue-comment" };

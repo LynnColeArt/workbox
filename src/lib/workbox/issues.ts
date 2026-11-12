@@ -105,7 +105,7 @@ function decodeListCursor(raw: string | undefined, query: string) {
 export async function readIssueList(project: ProjectSummary, input: z.infer<typeof listInput>) {
   if (!listInput.safeParse(input).success) return collaborationError("invalid_input", "Review the issue filters and page options.");
   const q = input.q?.trim().toLowerCase() ?? "";
-  const label = input.label?.trim().toLowerCase() ?? "";
+  const label = input.label?.toLowerCase() ?? "";
   const numberQuery = /^#?(\d+)$/.exec(q)?.[1];
   const query = createHash("sha256").update(JSON.stringify([project.id, q, label, input.status, input.limit])).digest("hex");
   const start = decodeListCursor(input.cursor, query);
