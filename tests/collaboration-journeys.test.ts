@@ -32,7 +32,9 @@ test("production browser endpoints and MCP share discussion changes and native p
   const scratch = mkdtempSync(join(tmpdir(), "workbox-collaboration-journeys-"));
   const repository = join(scratch, project);
   const database = join(scratch, "index.sqlite");
+  const openRepo = join(scratch, "open-fixture");
   mkdirSync(repository);
+  mkdirSync(openRepo);
   const children: ChildProcessWithoutNullStreams[] = [];
   t.after(async () => {
     await Promise.all(children.map(async child => {
@@ -50,8 +52,8 @@ test("production browser endpoints and MCP share discussion changes and native p
     GIT_COMMITTER_NAME: "Workbox fixture", GIT_COMMITTER_EMAIL: "workbox@example.invalid",
     WORKBOX_HN_BIN: hn, WORKBOX_DB_PATH: database, WORKBOX_PROJECTS_ROOT: scratch,
   };
-  const command = (bin: string, args: string[]) =>
-    execFileSync(bin, args, { cwd: repository, env, encoding: "utf8", timeout: 10_000 });
+  const command = (bin: string, args: string[], cwd = repository) =>
+    execFileSync(bin, args, { cwd, env, encoding: "utf8", timeout: 10_000 });
   command("git", ["init", "-q", "-b", "main"]);
   command(hn, ["init", "--name", "Parity signer"]);
   const actor: string = JSON.parse(command(hn, ["identity", "show", "--json"])).data.actor;
@@ -71,9 +73,14 @@ test("production browser endpoints and MCP share discussion changes and native p
   command("git", ["add", ".hn/policy.json"]);
   command("git", ["commit", "-qm", "Set fixture policy"]);
   command(hn, ["contribution", "authority", "set", "--ref", "refs/heads/main", "--expect", "absent"]);
+  command("git", ["init", "-q", "-b", "main"], openRepo);
+  command(hn, ["init", "--name", "Moderation signer"], openRepo);
+  const openActor: string = JSON.parse(command(hn, ["identity", "show", "--json"], openRepo)).data.actor;
   {
     using db = openDb(database);
-    db.prepare("INSERT INTO projects(id, name, repo_path) VALUES (?, ?, ?)").run(project, "Fixture", repository);
+    const insert = db.prepare("INSERT INTO projects(id, name, repo_path) VALUES (?, ?, ?)");
+    insert.run(project, "Fixture", repository);
+    insert.run("open-fixture", "Moderation fixture", openRepo);
   }
 
   const server = spawn(process.execPath, [
@@ -109,8 +116,8 @@ test("production browser endpoints and MCP share discussion changes and native p
     assert.equal(response.error, undefined, JSON.stringify(response));
     return JSON.parse(response.result.content[0].text) as CollaborationResult<T>;
   }
-  async function http<T>(resource: "issues" | "discussions", fields: Record<string, unknown>) {
-    const response = await fetch(`${origin}/api/projects/${project}/${resource}`, {
+  async function http<T>(resource: "issues" | "discussions", fields: Record<string, unknown>, repositoryId = project) {
+    const response = await fetch(`${origin}/api/projects/${repositoryId}/${resource}`, {
       method: "POST", headers: { "content-type": "application/json", origin, "sec-fetch-site": "same-origin" },
       body: JSON.stringify(fields), signal: t.signal,
     });
@@ -146,4 +153,24 @@ test("production browser endpoints and MCP share discussion changes and native p
     assert.deepEqual(await mcp(tool, fields), denied);
   }
   assert.equal(command("git", ["show-ref"]), before);
+
+  const openProject = "open-fixture";
+  const second = data(await http<Write>("discussions", {
+    action: "create", ...create, actor: openActor, operationId: "moderated-thread",
+  }, openProject));
+  const answer = data(await mcp<Write>("workbox_reply_discussion", {
+    project: openProject, actor: openActor, discussionId: second.id, operationId: "moderated-reply", body: "Original answer",
+  }));
+  const mark = { action: "answer", actor: openActor, discussionId: second.id, operationId: "mark-answer",
+    expected: second.eventId, replyRevision: answer.eventId };
+  const accepted = data(await http<Write>("discussions", mark, openProject));
+  assert.deepEqual(data(await mcp<Write>("workbox_discussion_action", { project: openProject, ...mark })), { ...accepted, replayed: true });
+  const edit = { action: "editReply", actor: openActor, discussionId: second.id, operationId: "edit-answer",
+    expected: answer.eventId, replyId: answer.id, body: "Edited answer" };
+  const edited = data(await mcp<Write>("workbox_discussion_action", { project: openProject, ...edit }));
+  assert.deepEqual(data(await http<Write>("discussions", edit, openProject)), { ...edited, replayed: true });
+  const updated = data(await http<Discussion>("discussions", { action: "detail", discussionId: second.id }, openProject));
+  assert.equal(updated.thread.accepted_answer?.id, answer.eventId);
+  assert.equal(updated.thread.accepted_answer?.state.body, "Original answer");
+  assert.equal(updated.replies[0].state.body, "Edited answer");
 });
