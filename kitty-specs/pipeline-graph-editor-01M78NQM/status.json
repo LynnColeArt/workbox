@@ -137,6 +137,7 @@
     },
     "WP05": {
       "actor": "codex",
+      "agent": "codex",
       "agent_profile": "__resolved_profile_absent__",
       "agent_profile_version": "__resolved_profile_version_absent__",
       "force_count": 0,
@@ -144,6 +145,9 @@
       "last_event_id": "01M78PFWBJKDG75JZY4AV0H749",
       "last_transition_at": "2026-11-12T20:16:52.594680+00:00",
       "model": "__resolved_model_absent__",
+      "notes": [
+        "Implement browser Graph, JSON, and exact review tabs."
+      ],
       "provider": "__resolved_provider_absent__",
       "role": "implementer"
     },
