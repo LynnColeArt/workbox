@@ -2,67 +2,67 @@
   "mission_slug": "dashboard-cleanup-01M76KZR",
   "mission_number": "",
   "mission_type": "software-dev",
-  "overall_verdict": "pending",
+  "overall_verdict": "pass",
   "criteria": [
     {
       "criterion_id": "FR-001",
-      "description": "Verify FR-001 is satisfied",
-      "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "description": "Keep dashboard summary, activity and Explore access while removing the catalog sidebar",
+      "proof_type": "manual",
+      "evidence": "Browser checks at desktop and 390 px with 23 indexed projects; tests/dashboard-parity.test.ts verifies ten rows and the Explore destination.",
+      "pass_fail": "pass",
+      "verified_by": "codex",
+      "verified_at": "2026-11-12T18:19:16.174069+00:00",
+      "notes": "Fleet review and Linux verification. Full OS qualification is deferred."
     },
     {
       "criterion_id": "FR-002",
-      "description": "Verify FR-002 is satisfied",
+      "description": "Preserve the seven-day snapshot and communicate source coverage",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "tests/dashboard-read.test.ts and tests/dashboard-parity.test.ts exercise ranking, bounded window, source counts, empty, quiet and incomplete activity.",
+      "pass_fail": "pass",
+      "verified_by": "codex",
+      "verified_at": "2026-11-12T18:19:16.174082+00:00",
+      "notes": "Fleet review and Linux verification. Full OS qualification is deferred."
     },
     {
       "criterion_id": "FR-003",
-      "description": "Verify FR-003 is satisfied",
-      "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "description": "Open and dismiss the header creation modal with accessible focus",
+      "proof_type": "manual",
+      "evidence": "Browser keyboard smoke verified initial field focus, Escape restoring trigger focus, and no directory for the dismissed draft.",
+      "pass_fail": "pass",
+      "verified_by": "codex",
+      "verified_at": "2026-11-12T18:19:16.174085+00:00",
+      "notes": "Fleet review and Linux verification. Full OS qualification is deferred."
     },
     {
       "criterion_id": "FR-004",
-      "description": "Verify FR-004 is satisfied",
+      "description": "Initialize and index a signed founding issue with safe collision and retry behavior",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "tests/dashboard-project-creation.test.ts and tests/dashboard-parity.test.ts use real Hubnot and cover concurrent attempts, collisions and index-only recovery. Browser smoke verified retained fields and success links.",
+      "pass_fail": "pass",
+      "verified_by": "codex",
+      "verified_at": "2026-11-12T18:19:16.174087+00:00",
+      "notes": "Fleet review and Linux verification. Full OS qualification is deferred."
     },
     {
       "criterion_id": "FR-005",
-      "description": "Verify FR-005 is satisfied",
+      "description": "Expose the same dashboard data and its visual over MCP",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "tests/dashboard-parity.test.ts compares production HTML and MCP stdio project order, counts, coverage, feed and links and checks the PNG.",
+      "pass_fail": "pass",
+      "verified_by": "codex",
+      "verified_at": "2026-11-12T18:19:16.174089+00:00",
+      "notes": "Fleet review and Linux verification. Full OS qualification is deferred."
     },
     {
       "criterion_id": "FR-006",
-      "description": "Verify FR-006 is satisfied",
+      "description": "Expose equivalent project creation over MCP",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "tests/dashboard-parity.test.ts verifies normalized creation in separate instances, issue access through both surfaces, controlled errors and a retry that preserves signed refs.",
+      "pass_fail": "pass",
+      "verified_by": "codex",
+      "verified_at": "2026-11-12T18:19:16.174090+00:00",
+      "notes": "Fleet review and Linux verification. Full OS qualification is deferred."
     }
   ],
   "negative_invariants": []
