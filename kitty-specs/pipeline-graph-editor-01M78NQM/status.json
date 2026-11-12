@@ -89,7 +89,8 @@
       "notes": [
         "Exact byte review implementation and verification available.",
         "Exact diff and existing proposal binding verified.",
-        "Independent review of diff bounds, newline fidelity, and receipt reuse."
+        "Independent review of diff bounds, newline fidelity, and receipt reuse.",
+        "Verified byte significance, stale preview rejection, and existing proposal retry contract."
       ],
       "provider": "__resolved_provider_absent__",
       "review_result": {
