@@ -37,11 +37,11 @@ People can participate in and manage Issues and Discussions from Workbox without
 
 ## Functional Requirements
 
-- **FR-001** Browse and manage issues from creation through closure, with searchable, paginated lists and a signed conversation.
-- **FR-002** Browse and manage discussion threads and replies, including categories, moderation and exact-revision accepted answers.
-- **FR-003** Apply Hubnot permissions and identity consistently in the browser and MCP. Preserve user drafts on conflicts and recover signed writes on retry.
-- **FR-004** Share rich Markdown composition, preview and safe rendering while retaining the original source.
-- **FR-005** Provide browser and MCP parity for all supported actions while preserving existing links and tools.
+- **FR-001** - Browse and manage issues from creation through closure, with searchable, paginated lists and a signed conversation.
+- **FR-002** - Browse and manage discussion threads and replies, including categories, moderation and exact-revision accepted answers.
+- **FR-003** - Apply Hubnot permissions and identity consistently in the browser and MCP. Preserve user drafts on conflicts and recover signed writes on retry.
+- **FR-004** - Share rich Markdown composition, preview and safe rendering while retaining the original source.
+- **FR-005** - Provide browser and MCP parity for all supported actions while preserving existing links and tools.
 
 ## Acceptance
 
