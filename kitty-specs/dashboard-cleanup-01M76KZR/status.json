@@ -1,16 +1,16 @@
 {
-  "event_count": 29,
-  "last_event_id": "01M78CKDKNR06DKFVYNP2GV30M",
-  "materialized_at": "2026-11-12T17:24:02.805858+00:00",
+  "event_count": 33,
+  "last_event_id": "01M78FWRPH126BTW7PCBDSRP5K",
+  "materialized_at": "2026-11-12T18:21:34.801464+00:00",
   "mission_number": "",
   "mission_slug": "dashboard-cleanup-01M76KZR",
   "mission_type": "software-dev",
   "summary": {
-    "approved": 4,
+    "approved": 0,
     "blocked": 0,
     "canceled": 0,
     "claimed": 0,
-    "done": 0,
+    "done": 4,
     "for_review": 0,
     "in_progress": 0,
     "in_review": 0,
@@ -18,14 +18,14 @@
   },
   "work_packages": {
     "WP01": {
-      "actor": "codex",
+      "actor": "merge",
       "agent": "codex",
       "agent_profile": "__resolved_profile_absent__",
       "agent_profile_version": "__resolved_profile_version_absent__",
       "force_count": 0,
-      "lane": "approved",
-      "last_event_id": "01M78BY0KDWWVMZNBS6HC9J4Q1",
-      "last_transition_at": "2026-11-12T17:12:21.357235+00:00",
+      "lane": "done",
+      "last_event_id": "01M78FWRPH126BTW7PCBDSRP5G",
+      "last_transition_at": "2026-11-12T18:21:34.801399+00:00",
       "model": "__resolved_model_absent__",
       "notes": [
         "Implement shared dashboard snapshot and chart rendering.",
@@ -48,14 +48,14 @@
       }
     },
     "WP02": {
-      "actor": "codex",
+      "actor": "merge",
       "agent": "codex",
       "agent_profile": "__resolved_profile_absent__",
       "agent_profile_version": "__resolved_profile_version_absent__",
       "force_count": 1,
-      "lane": "approved",
-      "last_event_id": "01M78C1ZZWJGJCS6ZM1A47A47G",
-      "last_transition_at": "2026-11-12T17:14:31.804351+00:00",
+      "lane": "done",
+      "last_event_id": "01M78FWRPH126BTW7PCBDSRP5H",
+      "last_transition_at": "2026-11-12T18:21:34.801434+00:00",
       "model": "__resolved_model_absent__",
       "notes": [
         "Implement shared project creation, validation and recovery.",
@@ -84,14 +84,14 @@
       }
     },
     "WP03": {
-      "actor": "codex",
+      "actor": "merge",
       "agent": "codex",
       "agent_profile": "__resolved_profile_absent__",
       "agent_profile_version": "__resolved_profile_version_absent__",
       "force_count": 0,
-      "lane": "approved",
-      "last_event_id": "01M78CCMM76YBE5YEN0PFAJ6DQ",
-      "last_transition_at": "2026-11-12T17:20:20.615216+00:00",
+      "lane": "done",
+      "last_event_id": "01M78FWRPH126BTW7PCBDSRP5J",
+      "last_transition_at": "2026-11-12T18:21:34.801449+00:00",
       "model": "__resolved_model_absent__",
       "notes": [
         "Implement the dashboard header dialog and remove the project sidebar.",
@@ -114,14 +114,14 @@
       }
     },
     "WP04": {
-      "actor": "codex",
+      "actor": "merge",
       "agent": "codex",
       "agent_profile": "__resolved_profile_absent__",
       "agent_profile_version": "__resolved_profile_version_absent__",
       "force_count": 0,
-      "lane": "approved",
-      "last_event_id": "01M78CKDKNR06DKFVYNP2GV30M",
-      "last_transition_at": "2026-11-12T17:24:02.805858+00:00",
+      "lane": "done",
+      "last_event_id": "01M78FWRPH126BTW7PCBDSRP5K",
+      "last_transition_at": "2026-11-12T18:21:34.801464+00:00",
       "model": "__resolved_model_absent__",
       "notes": [
         "Implement dashboard and project creation MCP parity and run integrated verification.",
