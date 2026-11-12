@@ -1,0 +1,14 @@
+{
+  "created_at": "2026-11-12T20:03:38.852429+00:00",
+  "flattened": false,
+  "friendly_name": "Pipeline graph editor in Settings",
+  "mission_id": "01M78NQMKNBVKB7X2T94GEV5JD",
+  "mission_number": null,
+  "mission_slug": "pipeline-graph-editor-01M78NQM",
+  "mission_type": "software-dev",
+  "purpose_context": "Give maintainers and MCP clients equivalent pipeline editing, repository templates, validation, and proposal review.",
+  "purpose_tldr": "Edit ordered Hubnot pipelines in a graph, inspect JSON, and review the exact proposal diff.",
+  "slug": "pipeline-graph-editor-01M78NQM",
+  "target_branch": "feat/pipeline-graph-editor",
+  "topology": "single_branch"
+}
