@@ -59,7 +59,8 @@
       "notes": [
         "Shared draft implementation and fixtures available for review.",
         "Exact JSON and shared draft state verified in focused fixtures.",
-        "Independent review of graph edits, stale state, restoration, and pinned template expansion."
+        "Independent review of graph edits, stale state, restoration, and pinned template expansion.",
+        "Verified exact JSON, revision checks, stable node IDs, pinned reads, and restore."
       ],
       "provider": "__resolved_provider_absent__",
       "review_result": {
