@@ -1,39 +1,76 @@
+import Link from "next/link";
 import { connection } from "next/server";
-import { getProject } from "@/lib/workbox/queries";
-import { openDb } from "@/lib/workbox/db";
+import { runDiscussionOperation } from "@/lib/workbox/discussions";
+import { DiscussionForm } from "./discussion-form";
 
 export const instant = false;
 
-export default async function DiscussionsPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function DiscussionsPage({ params, searchParams }: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ category?: string; status?: string; cursor?: string }>;
+}) {
   await connection();
-  const { id } = await params;
-  const db = openDb();
-  const rows = db.prepare(`
-    SELECT e.event_id, e.kind, e.timestamp, e.actor, e.verified, e.payload_json
-    FROM events e WHERE e.project_id = ? AND e.kind LIKE 'discussion%'
-    ORDER BY e.timestamp DESC LIMIT 50`).all(id) as unknown as Array<{
-    event_id: string; kind: string; timestamp: string; actor: string; verified: number; payload_json: string;
-  }>;
+  const [{ id }, query] = await Promise.all([params, searchParams]);
+  const base = `/p/${encodeURIComponent(id)}/discussions`;
+  const category = typeof query.category === "string" ? query.category.trim() : "";
+  const status = query.status === "open" || query.status === "closed" ? query.status : "";
+  const filter = new URLSearchParams();
+  if (category) filter.set("category", category);
+  if (status) filter.set("status", status);
+  const result = await runDiscussionOperation(id, {
+    action: "list", category: category || undefined, status: status || undefined, cursor: query.cursor,
+  });
+  const listing = result.ok && result.data.kind === "list" ? result.data : null;
+  const next = new URLSearchParams(filter);
+  if (listing?.nextCursor) next.set("cursor", listing.nextCursor);
+
   return (
-    <main className="mx-auto max-w-6xl px-4 py-4">
-      {rows.length === 0 && (
-        <div className="wb-panel p-4">
-          <p className="wb-muted text-sm">No discussions indexed.</p>
-          <p className="wb-muted text-xs mt-1">Discussions and replies are the same signed-event pattern — they will appear here as soon as one exists.</p>
-        </div>
+    <main className="mx-auto max-w-6xl space-y-5 px-4 py-6">
+      <header className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-semibold">Discussions</h1>
+        {listing?.signer.available && <a className="wb-btn" href="#new-discussion">New discussion</a>}
+      </header>
+      <form action={base} method="get" className="flex flex-wrap items-end gap-3">
+        <label className="text-sm">Category
+          <input name="category" defaultValue={category} className="wb-btn ml-2" />
+        </label>
+        <label className="text-sm">Status
+          <select name="status" defaultValue={status} className="wb-btn ml-2">
+            <option value="">Any status</option>
+            <option value="open">Open</option>
+            <option value="closed">Closed</option>
+          </select>
+        </label>
+        <button type="submit" className="wb-btn">Filter</button>
+      </form>
+      {!result.ok && <div className="wb-panel space-y-2 p-4" role="status">
+        <p>{result.error.message}</p>
+        {query.cursor && <Link className="wb-link" href={`${base}?${filter}`}>Return to the first page</Link>}
+      </div>}
+      {listing && (
+        <section className="wb-panel overflow-hidden" aria-label="Discussion threads">
+          {listing.items.length === 0 && <p className="wb-muted p-4">No discussions match on this page.</p>}
+          <ul className="divide-y divide-[var(--wb-border)]">
+            {listing.items.map(item => (
+              <li key={item.id} className="space-y-1 p-4">
+                <Link className="wb-link font-semibold" href={item.href}>{item.state?.title ?? item.heads[0]?.state.title ?? "Discussion"}</Link>
+                <p className="wb-muted text-sm">
+                  {item.conflict ? "Conflicting revisions" : [item.state?.category, item.state?.status === "closed" ? "Closed" : "Open",
+                    item.state?.accepted_reply_revision && "Answered"].filter(Boolean).join(" · ")}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
-      <div className="space-y-3">
-        {rows.map((e) => (
-          <div key={e.event_id} className="wb-panel p-4" title={e.event_id}>
-            <div className="flex items-center gap-3 text-sm">
-              <span className="wb-chip">{e.kind}</span>
-              <span className="wb-muted text-xs wb-mono">{e.actor.slice(7, 19)}</span>
-              <span className="wb-muted text-xs ml-auto">{e.timestamp?.slice(0, 16).replace("T", " ")}</span>
-              <span style={{ color: e.verified === 1 ? "var(--wb-open)" : "var(--wb-warn)" }}>{e.verified === 1 ? "✓" : "⚠"}</span>
-            </div>
-          </div>
-        ))}
-      </div>
+      {listing?.nextCursor && <Link className="wb-link block" href={`${base}?${next}`}>Next page</Link>}
+      {listing && <section id="new-discussion">
+        {listing.signer.available ? <DiscussionForm
+          endpoint={`/api/projects/${encodeURIComponent(id)}/discussions`} actor={listing.signer.identity}
+          action={{ action: "create" }} fields={{ title: "", category: "", body: "" }}
+          heading="Start a discussion" submitLabel="Start discussion" navigate
+        /> : <p className="wb-muted">{listing.signer.reason}</p>}
+      </section>}
     </main>
   );
 }
