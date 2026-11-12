@@ -59,7 +59,8 @@
       "model": "__resolved_model_absent__",
       "notes": [
         "Implement shared project creation, validation and recovery.",
-        "Shared project creation at a58e07b. Seven fixtures including real signed bootstrap and index recovery passed."
+        "Shared project creation at a58e07b. Seven fixtures including real signed bootstrap and index recovery passed.",
+        "Independent reviewer checks exclusive claims, native bootstrap and recovery."
       ],
       "provider": "__resolved_provider_absent__",
       "role": "reviewer",
