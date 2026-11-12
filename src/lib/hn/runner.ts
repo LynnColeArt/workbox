@@ -17,24 +17,56 @@ export interface RunResult {
   stderr: string;
 }
 
+interface RunOptions {
+  maxOutputBytes?: number;
+  localRead?: boolean;
+}
+
 export async function runHn(
   repoPath: string,
   args: string[],
   timeoutMs = SPAWN_TIMEOUT_MS,
+  { maxOutputBytes = Infinity, localRead = false }: RunOptions = {},
 ): Promise<RunResult> {
   return new Promise((resolve, reject) => {
+    const env: NodeJS.ProcessEnv = { ...process.env, GIT_TERMINAL_PROMPT: "0" };
+    if (localRead) {
+      for (const key of ["GIT_DIR", "GIT_COMMON_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_NAMESPACE", "GIT_OBJECT_DIRECTORY",
+        "GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_LITERAL_PATHSPECS", "GIT_GLOB_PATHSPECS", "GIT_NOGLOB_PATHSPECS",
+        "GIT_ICASE_PATHSPECS", "GIT_CONFIG_COUNT", "GIT_CONFIG_PARAMETERS"]) {
+        delete env[key];
+      }
+      Object.assign(env, { GIT_NO_REPLACE_OBJECTS: "1", GIT_NO_LAZY_FETCH: "1", GIT_ALLOW_PROTOCOL: "", GIT_OPTIONAL_LOCKS: "0" });
+    }
     const child = spawn(HN_BIN, args, {
       cwd: repoPath,
       timeout: timeoutMs,
-      env: { ...process.env, GIT_TERMINAL_PROMPT: "0" },
+      env,
     });
-    let stdout = "";
-    let stderr = "";
-    child.stdout.on("data", (c) => (stdout += c.toString()));
-    child.stderr.on("data", (c) => (stderr += c.toString()));
+    const stdout: Buffer[] = [];
+    const stderrChunks: Buffer[] = [];
+    let outputBytes = 0;
+    let outputLimit = false;
+    const collect = (chunks: Buffer[]) => (chunk: Buffer) => {
+      if (outputLimit) return;
+      outputBytes += chunk.length;
+      if (outputBytes > maxOutputBytes) {
+        outputLimit = true;
+        child.kill("SIGKILL");
+        return;
+      }
+      chunks.push(chunk);
+    };
+    child.stdout.on("data", collect(stdout));
+    child.stderr.on("data", collect(stderrChunks));
     child.on("error", reject);
     child.on("close", (code) => {
-      const trimmed = stdout.trim();
+      if (outputLimit) {
+        resolve({ envelope: { ok: false, data: null, error: { code: "output_limit", message: "Hubnot output exceeded the read limit." } }, exitCode: -1, stderr: "" });
+        return;
+      }
+      const stderr = Buffer.concat(stderrChunks).toString();
+      const trimmed = Buffer.concat(stdout).toString().trim();
       let envelope: Envelope;
       if (trimmed.startsWith("{")) {
         try {

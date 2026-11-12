@@ -22,6 +22,7 @@ export interface IndexOutcome {
 export function openDb(path = dbPath()): DatabaseSync {
   mkdirSync(dirname(path), { recursive: true });
   const db = new DatabaseSync(path);
+  db.exec("PRAGMA busy_timeout = 5000");
   db.exec("PRAGMA journal_mode = WAL");
   db.exec("PRAGMA synchronous = NORMAL");
   db.exec("PRAGMA foreign_keys = ON");
@@ -124,7 +125,18 @@ CREATE TABLE IF NOT EXISTS activity (
 CREATE INDEX IF NOT EXISTS idx_activity_time ON activity(timestamp DESC);
 CREATE TABLE IF NOT EXISTS project_meta (
   id TEXT PRIMARY KEY REFERENCES projects(id),
-  description TEXT NOT NULL DEFAULT ''
+  description TEXT NOT NULL DEFAULT '',
+  name TEXT,
+  description_curated INTEGER NOT NULL DEFAULT 1
 );
 `);
+  const hasColumn = (name: string) => db.prepare("PRAGMA table_info(project_meta)").all().some(column => column.name === name);
+  for (const [name, type] of [["name", "TEXT"], ["description_curated", "INTEGER NOT NULL DEFAULT 1"]]) {
+    if (hasColumn(name)) continue;
+    try {
+      db.exec(`ALTER TABLE project_meta ADD COLUMN ${name} ${type}`);
+    } catch (error) {
+      if (!hasColumn(name)) throw error;
+    }
+  }
 }

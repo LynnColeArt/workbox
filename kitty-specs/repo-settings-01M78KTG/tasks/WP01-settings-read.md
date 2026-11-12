@@ -20,6 +20,10 @@ create_intent:
 - tests/settings-read.test.ts
 execution_mode: code_change
 owned_files:
+- src/lib/hn/runner.ts
+- src/lib/workbox/activity.ts
+- src/lib/workbox/index.ts
+- src/lib/workbox/settings-preview.ts
 - src/lib/workbox/settings-read.ts
 - src/lib/workbox/db.ts
 - src/lib/workbox/queries.ts

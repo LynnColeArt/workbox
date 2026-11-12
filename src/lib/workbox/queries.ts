@@ -16,13 +16,21 @@ export interface ProjectSummary {
   repoPath: string;
 }
 
+export const projectSummaryColumns = `
+  p.id, COALESCE(m.name, p.name) AS name,
+  CASE WHEN m.description_curated = 1 THEN m.description ELSE p.description END AS description,
+  p.repo_path AS repoPath`;
+
 export function listProjects(db: DatabaseSync): ProjectSummary[] {
-  return db.prepare("SELECT id, name, description, repo_path AS repoPath FROM projects ORDER BY name").all() as unknown as ProjectSummary[];
+  return db.prepare(`
+    SELECT ${projectSummaryColumns}
+    FROM projects p LEFT JOIN project_meta m ON m.id = p.id
+    ORDER BY name, p.id`).all() as unknown as ProjectSummary[];
 }
 
 export function getProject(db: DatabaseSync, id: string): ProjectSummary | null {
   const row = db.prepare(`
-    SELECT p.id, p.name, COALESCE(m.description, p.description) AS description, p.repo_path AS repoPath
+    SELECT ${projectSummaryColumns}
     FROM projects p LEFT JOIN project_meta m ON m.id = p.id
     WHERE p.id = ?`).get(id) as ProjectSummary | undefined;
   return row ?? null;

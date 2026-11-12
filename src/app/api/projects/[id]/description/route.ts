@@ -1,5 +1,6 @@
 import { NextResponse, connection } from "next/server";
 import { openDb } from "@/lib/workbox/db";
+import { updateRepoDetails } from "@/lib/workbox/settings-read";
 
 export const instant = false;
 
@@ -12,13 +13,11 @@ export async function PUT(request: Request, { params }: { params: Promise<{ id: 
   } catch {
     return NextResponse.json({ ok: false, error: { message: "body must be JSON" } }, { status: 400 });
   }
-  const description = String(body.description ?? "").slice(0, 1024);
-  const db = openDb();
-  const exists = db.prepare("SELECT id FROM projects WHERE id = ?").get(id);
-  if (!exists) {
+  const description = String(body?.description ?? "").slice(0, 1024);
+  using db = openDb();
+  const result = updateRepoDetails(db, id, { description });
+  if (!result.ok) {
     return NextResponse.json({ ok: false, error: { message: `unknown project '${id}'` } }, { status: 404 });
   }
-  db.prepare(`INSERT INTO project_meta (id, description) VALUES (?, ?)
-              ON CONFLICT(id) DO UPDATE SET description = excluded.description`).run(id, description);
-  return NextResponse.json({ ok: true, data: { id, description } });
+  return NextResponse.json({ ok: true, data: { id, description: result.data.description } });
 }

@@ -161,9 +161,12 @@ function readPipelineBefore(repoPath: string, commit: string, filename: string):
   return undefined;
 }
 
+export function isPipelineName(value: unknown): value is string {
+  return typeof value === "string" && /^[A-Za-z0-9_.-]{1,64}$/.test(value) && value !== "." && value !== "..";
+}
+
 export function previewPipeline(db: DatabaseSync, projectId: string, input: unknown): PipelinePreviewResult {
-  if (!record(input) || typeof input.name !== "string" || !/^[A-Za-z0-9_.-]{1,64}$/.test(input.name)
-    || input.name === "." || input.name === "..") {
+  if (!record(input) || !isPipelineName(input.name)) {
     return previewError("invalid_input", "Enter a valid pipeline name.", [
       { path: "name", message: "Use 1 to 64 letters, digits, periods, underscores or hyphens. Names cannot be . or .." },
     ]);

@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import { z } from "zod";
 import { HN_BIN } from "../hn/runner";
 import { openDb } from "./db";
+import { projectSummaryColumns } from "./queries";
 import type { DatabaseSync } from "node:sqlite";
 
 /**
@@ -250,9 +251,9 @@ export function collectHubnotActivity(
 
 export function listProjectRuntime(db: DatabaseSync): ProjectRuntime[] {
   return db.prepare(`
-    SELECT p.id, p.name, COALESCE(m.description, p.description) AS description, p.repo_path AS repoPath
+    SELECT ${projectSummaryColumns}
     FROM projects p LEFT JOIN project_meta m ON m.id = p.id
-    ORDER BY p.name COLLATE NOCASE`).all() as unknown as ProjectRuntime[];
+    ORDER BY name COLLATE NOCASE, p.id`).all() as unknown as ProjectRuntime[];
 }
 
 /**

@@ -1,5 +1,5 @@
 import { actorRefs, memoryRefs } from "../hn/gitread";
-import { openDb, type IndexOutcome } from "./db";
+import type { IndexOutcome } from "./db";
 import { readChain } from "./read";
 import type { DatabaseSync } from "node:sqlite";
 
@@ -217,7 +217,7 @@ export function indexProject(
 export function ensureProject(db: DatabaseSync, p: { id: string; name: string; description: string; repoPath: string }): void {
   db.prepare(`INSERT INTO projects (id, repo_path, name, description) VALUES (?, ?, ?, ?)
               ON CONFLICT(id) DO UPDATE SET name=excluded.name, repo_path=excluded.repo_path,
-              description=CASE WHEN EXISTS (SELECT 1 FROM project_meta m WHERE m.id = excluded.id) THEN projects.description ELSE excluded.description END`)
+              description=CASE WHEN EXISTS (SELECT 1 FROM project_meta m WHERE m.id = excluded.id AND m.description_curated = 1) THEN projects.description ELSE excluded.description END`)
     .run(p.id, p.repoPath, p.name, p.description);
 }
 
