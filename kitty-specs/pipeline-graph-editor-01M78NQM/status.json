@@ -147,7 +147,8 @@
       "model": "__resolved_model_absent__",
       "notes": [
         "Implement browser Graph, JSON, and exact review tabs.",
-        "Production browser verified keyboard tabs, unsaved edit protection, exact CRLF and mixed line endings, and publication."
+        "Production browser verified keyboard tabs, unsaved edit protection, exact CRLF and mixed line endings, and publication.",
+        "Independent re-review cleared unsaved edits, focus, line endings, and retry retention findings."
       ],
       "provider": "__resolved_provider_absent__",
       "role": "reviewer",
