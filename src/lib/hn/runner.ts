@@ -41,7 +41,6 @@ export async function runHn(
     const child = spawn(HN_BIN, args, {
       cwd: repoPath,
       timeout: timeoutMs,
-      stdio: ["ignore", "pipe", "pipe"],
       env,
     });
     const stdout: Buffer[] = [];
@@ -60,7 +59,10 @@ export async function runHn(
     };
     child.stdout.on("data", collect(stdout));
     child.stderr.on("data", collect(stderrChunks));
-    child.on("error", reject);
+    child.on("error", error => {
+      child.stdin.destroy();
+      reject(error);
+    });
     child.on("close", (code) => {
       if (outputLimit) {
         resolve({ envelope: { ok: false, data: null, error: { code: "output_limit", message: "Hubnot output exceeded the read limit." } }, exitCode: -1, stderr: "" });
