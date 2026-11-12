@@ -111,7 +111,9 @@
       "provider": "__resolved_provider_absent__",
       "role": "implementer",
       "subtasks": {
-        "T008": "done"
+        "T007": "done",
+        "T008": "done",
+        "T009": "done"
       }
     }
   }
