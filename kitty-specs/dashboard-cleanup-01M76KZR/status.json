@@ -1,7 +1,7 @@
 {
-  "event_count": 12,
-  "last_event_id": "01M78BYBXGG38CWKQ9F727P98K",
-  "materialized_at": "2026-11-12T17:12:32.944608+00:00",
+  "event_count": 13,
+  "last_event_id": "01M78BYK25J1M60STNETDNSGNM",
+  "materialized_at": "2026-11-12T17:12:40.261577+00:00",
   "mission_number": "",
   "mission_slug": "dashboard-cleanup-01M76KZR",
   "mission_type": "software-dev",
@@ -11,9 +11,9 @@
     "canceled": 0,
     "claimed": 0,
     "done": 0,
-    "for_review": 1,
+    "for_review": 0,
     "in_progress": 0,
-    "in_review": 0,
+    "in_review": 1,
     "planned": 2
   },
   "work_packages": {
@@ -53,16 +53,16 @@
       "agent_profile": "__resolved_profile_absent__",
       "agent_profile_version": "__resolved_profile_version_absent__",
       "force_count": 0,
-      "lane": "for_review",
-      "last_event_id": "01M78BYBXGG38CWKQ9F727P98K",
-      "last_transition_at": "2026-11-12T17:12:32.944608+00:00",
+      "lane": "in_review",
+      "last_event_id": "01M78BYK25J1M60STNETDNSGNM",
+      "last_transition_at": "2026-11-12T17:12:40.261577+00:00",
       "model": "__resolved_model_absent__",
       "notes": [
         "Implement shared project creation, validation and recovery.",
         "Shared project creation at a58e07b. Seven fixtures including real signed bootstrap and index recovery passed."
       ],
       "provider": "__resolved_provider_absent__",
-      "role": "implementer",
+      "role": "reviewer",
       "subtasks": {
         "T004": "done",
         "T005": "done",
