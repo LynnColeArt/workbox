@@ -3,7 +3,7 @@
   "flattened": false,
   "friendly_name": "issues and discussions",
   "mission_id": "01M78WCKC4QR9S1X0XG1FNZM4R",
-  "mission_number": null,
+  "mission_number": 6,
   "mission_slug": "issues-and-discussions-01M78WCK",
   "mission_type": "software-dev",
   "purpose_context": "This mission advances issues and discussions on codex/issues-and-discussions so stakeholders can track the work from mission creation onward.",
