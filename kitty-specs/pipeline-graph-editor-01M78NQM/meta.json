@@ -23,6 +23,7 @@
   "purpose_context": "Give maintainers and MCP clients equivalent pipeline editing, repository templates, validation, and proposal review.",
   "purpose_tldr": "Edit ordered Hubnot pipelines in a graph, inspect JSON, and review the exact proposal diff.",
   "slug": "pipeline-graph-editor-01M78NQM",
+  "status_phase": "1",
   "target_branch": "feat/pipeline-graph-editor",
   "topology": "single_branch"
 }
