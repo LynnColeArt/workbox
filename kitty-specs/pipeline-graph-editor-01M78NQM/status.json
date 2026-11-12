@@ -146,7 +146,8 @@
       "last_transition_at": "2026-11-12T20:22:17.035638+00:00",
       "model": "__resolved_model_absent__",
       "notes": [
-        "Implement browser Graph, JSON, and exact review tabs."
+        "Implement browser Graph, JSON, and exact review tabs.",
+        "Production browser verified keyboard tabs, unsaved edit protection, exact CRLF and mixed line endings, and publication."
       ],
       "provider": "__resolved_provider_absent__",
       "role": "implementer",
