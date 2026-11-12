@@ -120,7 +120,11 @@
         "Browser HTTP and MCP transport implementations available."
       ],
       "provider": "__resolved_provider_absent__",
-      "role": "implementer"
+      "role": "implementer",
+      "subtasks": {
+        "T009": "done",
+        "T010": "done"
+      }
     },
     "WP05": {
       "actor": "finalize-tasks",
