@@ -53,6 +53,13 @@ test("discussion reads and replies share native state, paging and operation repl
   const nativeList = await runDiscussionOperation("fixture", { action: "list" });
   assert.ok(nativeList.ok && nativeList.data.kind === "list");
   assert.equal(nativeList.data.items.find(item => item.state?.title === oversized.title)?.state?.body, oversized.body);
+  const imported = nativeList.data.items.find(item => item.state?.title === oversized.title);
+  assert.ok(imported);
+  const importedEdit = await byMcp("workbox_discussion_action", {
+    action: "revise", actor, operationId: "edit-imported", discussionId: imported.id, expected: imported.heads[0].id,
+    title: oversized.title, category: oversized.category, body: oversized.body,
+  });
+  assert.ok(importedEdit.ok, JSON.stringify(importedEdit));
   const filters = { category: "questions", status: "open" };
   assert.deepEqual(await byMcp("workbox_list_discussions", filters),
     await runDiscussionOperation("fixture", { action: "list", ...filters }));

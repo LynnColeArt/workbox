@@ -4,9 +4,13 @@ import {
   paginationFields, signCollaboration, signingFields,
 } from "./collaboration";
 
-const title = z.string().trim().min(1).max(512);
-const category = z.string().trim().min(1).max(128);
-const body = z.string().max(60_000);
+function nativeText(limit: number, label: string, required = false) {
+  return z.string().refine(value => (!required || value.trim().length > 0) &&
+    Buffer.byteLength(value, "utf8") <= limit, `${label} must fit in ${limit} UTF-8 bytes.`);
+}
+const title = nativeText(1024, "Title", true);
+const category = nativeText(256, "Category", true);
+const body = nativeText(65_536, "Body");
 const status = z.enum(["open", "closed"]);
 const post = z.looseObject({ title: z.string(), category: z.string(), body: z.string(), status, accepted_reply_revision: eventId.optional() });
 const reply = z.looseObject({ discussion_id: eventId, reply_to: eventId.optional(), body: z.string() });
@@ -153,7 +157,7 @@ export async function runDiscussionOperation(projectId: string, raw: unknown, ma
       if (!listing.ok) return listing;
       const { items, next_cursor, snapshot } = listing.data.value;
       const results = items.filter(item => (!input.status || item.state?.status === input.status) &&
-        (!input.category || item.state?.category.toLowerCase() === input.category.toLowerCase()));
+        (!input.category || item.state?.category.trim().toLowerCase() === input.category.trim().toLowerCase()));
       if (results.length || !next_cursor || scanned === 9) return { ok: true, data: {
         kind: "list", items: results.map(item => ({ ...item, href: discussionHref(project.id, item.id) })),
         nextCursor: next_cursor ?? null, snapshot, signer: await collaborationSigner(project),

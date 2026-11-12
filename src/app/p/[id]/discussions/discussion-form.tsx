@@ -35,6 +35,39 @@ export function DiscussionForm({ endpoint, actor, action, fields, replies, submi
   const [message, setMessage] = useState("");
   const [stale, setStale] = useState(false);
   const locked = busy || pending !== null;
+  const draftKey = fields?.body !== undefined && action.discussionId
+    ? `workbox:discussion-draft:${endpoint}:${String(action.replyId ?? action.discussionId)}` : null;
+
+  function refreshDiscussion() {
+    if (draftKey) {
+      try {
+        sessionStorage.setItem(draftKey, JSON.stringify({ title, category, body }));
+      } catch {
+        setMessage("Your draft is still here. Copy it before reloading to review the new revision.");
+        return;
+      }
+    }
+    router.refresh();
+    setStale(false);
+    setMessage("Review the refreshed revisions before submitting again. Your draft is still here.");
+  }
+
+  function restoreDraft() {
+    try {
+      const raw = draftKey && sessionStorage.getItem(draftKey);
+      if (!raw) {
+        setMessage("There is no saved draft for this item.");
+        return;
+      }
+      const saved = JSON.parse(raw) as FormFields;
+      if (typeof saved.title === "string" && fields?.title !== undefined) setTitle(saved.title);
+      if (typeof saved.category === "string" && fields?.category !== undefined) setCategory(saved.category);
+      if (typeof saved.body === "string") setBody(saved.body);
+      setMessage("Draft restored. Review it against the selected revision before signing.");
+    } catch {
+      setMessage("Workbox could not read the saved draft.");
+    }
+  }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -67,6 +100,9 @@ export function DiscussionForm({ endpoint, actor, action, fields, replies, submi
       }
       setPending(null);
       setMessage("Change signed.");
+      try {
+        if (draftKey) sessionStorage.removeItem(draftKey);
+      } catch { /* The signed write already succeeded. */ }
       if (action.action === "reply") {
         setBody("");
         setReplyTo("");
@@ -107,11 +143,9 @@ export function DiscussionForm({ endpoint, actor, action, fields, replies, submi
         <span className="wb-muted text-xs" title={actor.actor}>Signing as {actor.name || actor.actor.slice(0, 12)}</span>
       </div>
       {message && <p role="status" className="text-sm">{message}</p>}
-      {stale && <button type="button" className="wb-btn" onClick={() => {
-        router.refresh();
-        setStale(false);
-        setMessage("Review the refreshed revisions before submitting again. Your draft is still here.");
-      }}>Refresh discussion</button>}
+      {stale && <button type="button" className="wb-btn" onClick={refreshDiscussion}>Refresh discussion</button>}
+      {draftKey && (action.action === "resolve" || action.action === "resolveReply") &&
+        <button type="button" disabled={locked} className="wb-btn" onClick={restoreDraft}>Restore saved draft</button>}
     </form>
   );
 }
