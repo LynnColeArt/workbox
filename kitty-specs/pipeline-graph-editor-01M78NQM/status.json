@@ -58,7 +58,8 @@
       "model": "__resolved_model_absent__",
       "notes": [
         "Shared draft implementation and fixtures available for review.",
-        "Exact JSON and shared draft state verified in focused fixtures."
+        "Exact JSON and shared draft state verified in focused fixtures.",
+        "Independent review of graph edits, stale state, restoration, and pinned template expansion."
       ],
       "provider": "__resolved_provider_absent__",
       "role": "reviewer",
