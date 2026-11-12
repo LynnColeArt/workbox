@@ -1,0 +1,149 @@
+{
+  "version": 1,
+  "mission_slug": "issues-and-discussions-01M78WCK",
+  "mission_id": "01M78WCKC4QR9S1X0XG1FNZM4R",
+  "mission_branch": "kitty/mission-issues-and-discussions-01M78WCK",
+  "target_branch": "codex/issues-and-discussions",
+  "lanes": [
+    {
+      "lane_id": "lane-a",
+      "wp_ids": [
+        "WP01"
+      ],
+      "write_scope": [
+        "tests/collaboration-native.test.ts"
+      ],
+      "predicted_surfaces": [
+        "api",
+        "legacy-cleanup",
+        "tracker-integration"
+      ],
+      "depends_on_lanes": [],
+      "parallel_group": 0
+    },
+    {
+      "lane_id": "lane-c",
+      "wp_ids": [
+        "WP03"
+      ],
+      "write_scope": [
+        "package-lock.json",
+        "package.json",
+        "src/app/api/markdown/route.ts",
+        "src/components/markdown-editor.tsx",
+        "src/lib/workbox/markdown.ts",
+        "tests/markdown.test.ts"
+      ],
+      "predicted_surfaces": [
+        "api",
+        "artifact-rendering"
+      ],
+      "depends_on_lanes": [],
+      "parallel_group": 0
+    },
+    {
+      "lane_id": "lane-b",
+      "wp_ids": [
+        "WP02"
+      ],
+      "write_scope": [
+        "mcp/server.ts",
+        "src/lib/hn/collaboration.ts",
+        "src/lib/workbox/collaboration.ts",
+        "tests/collaboration-service.test.ts"
+      ],
+      "predicted_surfaces": [
+        "api"
+      ],
+      "depends_on_lanes": [
+        "lane-a"
+      ],
+      "parallel_group": 1
+    },
+    {
+      "lane_id": "lane-d",
+      "wp_ids": [
+        "WP04"
+      ],
+      "write_scope": [
+        "mcp/issues.ts",
+        "src/app/api/projects/[id]/issues/**",
+        "src/app/p/[id]/issue/**",
+        "src/app/p/[id]/issues/**",
+        "src/lib/workbox/issues.ts",
+        "tests/issues-parity.test.ts"
+      ],
+      "predicted_surfaces": [
+        "api",
+        "artifact-rendering",
+        "tracker-integration"
+      ],
+      "depends_on_lanes": [
+        "lane-b",
+        "lane-c"
+      ],
+      "parallel_group": 2
+    },
+    {
+      "lane_id": "lane-e",
+      "wp_ids": [
+        "WP05",
+        "WP06"
+      ],
+      "write_scope": [
+        "mcp/discussions.ts",
+        "src/app/api/projects/[id]/discussions/**",
+        "src/app/p/[id]/discussions/**",
+        "src/lib/workbox/discussions.ts",
+        "tests/discussions-parity.test.ts"
+      ],
+      "predicted_surfaces": [
+        "api",
+        "artifact-rendering",
+        "tracker-integration"
+      ],
+      "depends_on_lanes": [
+        "lane-b",
+        "lane-c"
+      ],
+      "parallel_group": 2
+    },
+    {
+      "lane_id": "lane-f",
+      "wp_ids": [
+        "WP07"
+      ],
+      "write_scope": [
+        "tests/collaboration-journeys.test.ts"
+      ],
+      "predicted_surfaces": [
+        "api",
+        "tracker-integration"
+      ],
+      "depends_on_lanes": [
+        "lane-d",
+        "lane-e"
+      ],
+      "parallel_group": 3
+    }
+  ],
+  "computed_at": "2026-11-12T22:14:48.799457+00:00",
+  "computed_from": "dependency_graph+ownership",
+  "planning_artifact_wps": [],
+  "planning_commit_sha": "006faea9792eed31afdcc8a2671b5ac01ea6b731",
+  "collapse_report": {
+    "events": [
+      {
+        "wp_a": "WP05",
+        "wp_b": "WP06",
+        "rule": "write_scope_overlap",
+        "evidence": "overlapping globs: 'src/app/p/[id]/discussions/**' vs 'src/app/p/[id]/discussions/**', 'src/app/api/projects/[id]/discussions/**' vs 'src/app/api/projects/[id]/discussions/**', 'src/lib/workbox/discussions.ts' vs 'src/lib/workbox/discussions.ts', 'mcp/discussions.ts' vs 'mcp/discussions.ts', 'tests/discussions-parity.test.ts' vs 'tests/discussions-parity.test.ts'; WP06 depends on WP05"
+      }
+    ],
+    "total_merges": 1,
+    "independent_wps_collapsed": 0,
+    "by_rule": {
+      "write_scope_overlap": 1
+    }
+  }
+}
