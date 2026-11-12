@@ -77,6 +77,7 @@
     },
     "WP03": {
       "actor": "codex",
+      "agent": "codex",
       "agent_profile": "__resolved_profile_absent__",
       "agent_profile_version": "__resolved_profile_version_absent__",
       "force_count": 0,
@@ -84,6 +85,9 @@
       "last_event_id": "01M78MJ4A189BNYJZP0GKT8MXN",
       "last_transition_at": "2026-11-12T19:43:09.121531+00:00",
       "model": "__resolved_model_absent__",
+      "notes": [
+        "Checked native signer and retry capability. Current native command cannot safely publish or recover Settings proposals."
+      ],
       "provider": "__resolved_provider_absent__",
       "role": "implementer"
     },
