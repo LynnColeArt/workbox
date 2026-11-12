@@ -86,6 +86,8 @@ export async function previewSettingsPipeline(db: DatabaseSync, projectId: strin
 function publicationFailure(code: string | undefined) {
   if (code === "denied" || code === "actor_mismatch") return failure("denied", "Hubnot refused the selected signer or proposal.");
   if (code === "stale_base") return failure("stale_preview", "Refresh the preview before submitting.");
+  if (code === "admission_pending") return failure("admission_pending", "The proposal was signed and awaits repository admission. Retry with the same operation after admission.");
+  if (code === "invalid_input") return failure("invalid_input", "Hubnot rejected the confirmed proposal input.");
   if (code === "operation_conflict") return failure("operation_conflict", "This operation ID already belongs to a different proposal.");
   return failure("recovery_required", "Workbox could not confirm publication. Retry with the same confirmed preview and operation ID.");
 }
@@ -135,7 +137,7 @@ export async function submitSettingsProposal(db: DatabaseSync, projectId: string
       priorId = prior.data.id;
       break;
     }
-    if (!lookup || lookup.exitCode === 0 || lookup.envelope.error?.code !== "not_found") {
+    if (!lookup || lookup.exitCode === 0 || lookup.envelope.ok || lookup.envelope.error?.code !== "not_found") {
       return publicationFailure(lookup?.envelope.error?.code);
     }
     if (attempt === 1) return publicationFailure("stale_base");
