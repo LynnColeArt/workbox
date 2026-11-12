@@ -53,4 +53,4 @@ Read the [spec](../spec.md) and [plan](../plan.md).
 - **T008** Render the Settings tab, retained draft and exact preview, including clear submission availability and outcomes.
 - **T009** Verify browser and MCP parity and production build. Full OS qualification is reserved for release.
 
-Publication parity is pending WP03. The transport integration test covers reads, curation, no-write preview, stale inputs and the controlled unavailable result through both surfaces.
+The transport integration test uses the native publication binary and covers concurrent submission, retry after base advancement, verified index and code ref recovery, and the older binary fallback.

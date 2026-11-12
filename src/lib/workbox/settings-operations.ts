@@ -1,8 +1,8 @@
 import { DatabaseSync } from "node:sqlite";
 import { dbPath, openDb } from "./db";
+import { getProject } from "./queries";
 import { readRepoSettings, updateRepoDetails } from "./settings-read";
-import { previewPipeline } from "./settings-preview";
-import { settingsProposalAvailability, submitSettingsProposal } from "./settings-submit";
+import { previewSettingsPipeline, settingsProposalAccess, submitSettingsProposal } from "./settings-submit";
 
 export async function runSettingsOperation(project: string, input: unknown, localOperator: boolean) {
   if (!input || typeof input !== "object" || Array.isArray(input)) {
@@ -19,13 +19,14 @@ export async function runSettingsOperation(project: string, input: unknown, loca
     switch (action) {
       case "read": {
         const settings = await readRepoSettings(db, project);
-        return settings
-          ? { ok: true, data: { ...settings, proposalSubmission: settingsProposalAvailability } } as const
+        const repo = getProject(db, project);
+        return settings && repo
+          ? { ok: true, data: { ...settings, proposalSubmission: await settingsProposalAccess(repo.repoPath) } } as const
           : { ok: false, error: { code: "not_found", message: "Repository not found." } } as const;
       }
       case "update": return updateRepoDetails(db, project, fields);
-      case "preview": return previewPipeline(db, project, fields);
-      case "submit": return submitSettingsProposal(db, project, fields);
+      case "preview": return await previewSettingsPipeline(db, project, fields);
+      case "submit": return await submitSettingsProposal(db, project, fields);
       default: return { ok: false, error: { code: "invalid_input", message: "Unknown Settings action." } } as const;
     }
   } catch {

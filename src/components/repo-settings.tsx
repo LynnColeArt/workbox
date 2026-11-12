@@ -4,10 +4,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState, type FormEvent } from "react";
 import type { readRepoSettings } from "@/lib/workbox/settings-read";
-import type { previewPipeline } from "@/lib/workbox/settings-preview";
+import type { previewSettingsPipeline } from "@/lib/workbox/settings-submit";
 
 type Settings = NonNullable<Awaited<ReturnType<typeof readRepoSettings>>>;
-type Preview = Extract<Awaited<ReturnType<typeof previewPipeline>>, { ok: true }>["data"];
+type Preview = Extract<Awaited<ReturnType<typeof previewSettingsPipeline>>, { ok: true }>["data"];
 type Diagnostic = { path: string; message: string };
 type SettingsError = { code: string; message: string; diagnostics?: Diagnostic[] };
 type SubmissionAvailability = { available: boolean; reason?: string };
@@ -183,7 +183,7 @@ function PipelineEditor({ settings, endpoint, submission }: { settings: Settings
   }
 
   async function submit() {
-    if (!preview || !submission.available || pending) return;
+    if (!preview || !preview.proposalSubmission.available || pending) return;
     setPending("submit");
     setError(null);
     const result = await request<{ href: string }>(endpoint, {
@@ -191,6 +191,8 @@ function PipelineEditor({ settings, endpoint, submission }: { settings: Settings
       name: preview.name,
       definition: preview.definition,
       digest: preview.digest,
+      actor: preview.actor,
+      base: preview.base,
       operationId: `settings_${preview.digest}`,
       confirmed: true,
     });
@@ -284,6 +286,7 @@ function PipelineEditor({ settings, endpoint, submission }: { settings: Settings
               <code className="wb-mono">{preview.base.branch}</code>{" "}
               <code className="wb-mono" title={preview.base.commit}>{preview.base.commit.slice(0, 12)}</code>
             </p>
+            {preview.actor && <p className="wb-muted break-all text-sm">Signing identity <code className="wb-mono">{preview.actor}</code></p>}
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="min-w-0 space-y-1">
                 <h5 className="text-sm font-medium">Committed definition</h5>
@@ -296,15 +299,15 @@ function PipelineEditor({ settings, endpoint, submission }: { settings: Settings
               </div>
             </div>
             {proposalHref ? <p role="status"><Link href={proposalHref} className="wb-link text-sm">View proposal</Link></p> :
-              <button type="button" className="wb-btn" disabled={!submission.available || pending !== null}
-                aria-describedby={submission.available ? undefined : "settings-submit-unavailable"} onClick={submit}>
+              <button type="button" className="wb-btn" disabled={!preview.proposalSubmission.available || pending !== null}
+                aria-describedby={preview.proposalSubmission.available ? undefined : "settings-submit-unavailable"} onClick={submit}>
                 {pending === "submit" ? "Opening proposal…" : "Open Hubnot proposal"}
               </button>}
           </div>
         )}
-        {!submission.available && (
+        {!(preview?.proposalSubmission ?? submission).available && (
           <p id="settings-submit-unavailable" className="wb-muted text-sm">
-            {submission.reason ?? "Opening a proposal is unavailable."}
+            {(preview?.proposalSubmission ?? submission).reason ?? "Opening a proposal is unavailable."}
           </p>
         )}
       </section>

@@ -336,8 +336,8 @@ const TOOLS = [
     description: "Submit an explicitly confirmed pipeline proposal when the installed Hubnot supports safe publication.",
     inputSchema: {
       type: "object",
-      properties: { project: { type: "string" }, name: { type: "string" }, definition: { type: "string" }, digest: { type: "string" }, operationId: { type: "string" }, confirmed: { type: "boolean" }, },
-      required: ["project", "name", "definition", "digest", "operationId", "confirmed"], additionalProperties: false,
+      properties: { project: { type: "string" }, name: { type: "string" }, definition: { type: "string" }, digest: { type: "string" }, actor: { type: ["string", "null"] }, base: { type: "object", properties: { branch: { type: "string" }, commit: { type: "string" } }, required: ["branch", "commit"], additionalProperties: false }, operationId: { type: "string" }, confirmed: { type: "boolean" }, },
+      required: ["project", "name", "definition", "digest", "actor", "base", "operationId", "confirmed"], additionalProperties: false,
     },
   },
 ] as const;
