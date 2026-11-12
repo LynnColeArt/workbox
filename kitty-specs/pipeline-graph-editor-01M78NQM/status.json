@@ -118,7 +118,8 @@
       "model": "__resolved_model_absent__",
       "notes": [
         "Browser HTTP and MCP transport implementations available.",
-        "Shared operations verified through production HTTP and MCP."
+        "Shared operations verified through production HTTP and MCP.",
+        "Independent transport review with schema parity fixes."
       ],
       "provider": "__resolved_provider_absent__",
       "role": "reviewer",
