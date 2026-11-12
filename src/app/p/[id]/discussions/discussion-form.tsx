@@ -35,7 +35,7 @@ export function DiscussionForm({ endpoint, actor, action, fields, replies, submi
   const [message, setMessage] = useState("");
   const [stale, setStale] = useState(false);
   const locked = busy || pending !== null;
-  const draftKey = fields?.body !== undefined && action.discussionId
+  const draftKey = fields?.body !== undefined && action.discussionId && action.action !== "reply"
     ? `workbox:discussion-draft:${endpoint}:${String(action.replyId ?? action.discussionId)}` : null;
 
   function refreshDiscussion() {
@@ -47,7 +47,15 @@ export function DiscussionForm({ endpoint, actor, action, fields, replies, submi
         return;
       }
     }
-    router.refresh();
+    const url = new URL(window.location.href);
+    if (url.searchParams.has("cursor")) {
+      url.searchParams.delete("cursor");
+      if (typeof action.replyId === "string") {
+        url.searchParams.set("reply", action.replyId);
+        url.hash = "reply-context";
+      }
+      router.push(url.pathname + url.search + url.hash);
+    } else router.refresh();
     setStale(false);
     setMessage("Review the refreshed revisions before submitting again. Your draft is still here.");
   }
@@ -144,7 +152,7 @@ export function DiscussionForm({ endpoint, actor, action, fields, replies, submi
       </div>
       {message && <p role="status" className="text-sm">{message}</p>}
       {stale && <button type="button" className="wb-btn" onClick={refreshDiscussion}>Refresh discussion</button>}
-      {draftKey && (action.action === "resolve" || action.action === "resolveReply") &&
+      {draftKey &&
         <button type="button" disabled={locked} className="wb-btn" onClick={restoreDraft}>Restore saved draft</button>}
     </form>
   );
