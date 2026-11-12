@@ -1,16 +1,17 @@
 {
   "mission_slug": "issues-and-discussions-01M78WCK",
-  "snapshot_id": "85b9b4fb-677c-45fa-9606-eb111ffc9beb",
-  "total_artifacts": 31,
+  "snapshot_id": "8ec8b9a7-cb80-45c4-8d97-aa0d691e9991",
+  "total_artifacts": 34,
   "required_artifacts": 3,
   "required_present": 3,
   "required_missing": 0,
-  "optional_artifacts": 28,
-  "optional_present": 28,
+  "optional_artifacts": 31,
+  "optional_present": 31,
   "completeness_status": "complete",
-  "parity_hash_sha256": "sha256:4705a1bca7871f2c29d642f037e8c0cf2ba6c3cd7fc1e29764774d4fb38ec910",
+  "parity_hash_sha256": "sha256:f8d2ca351f3ed5e71b5259dbcb60dbf906b170683e64cc0c7f0566de37f5d97d",
   "parity_hash_components": [
     "03bf1c0a54671c1359d54b389beda188e48156c0f7b917308024f779a5147a16",
+    "06361080540a4be4eb8a5f86b16b9912df76366f9406b0b7cd446e8ff20e75c7",
     "06dbee6bbd295a29ff330edd8a21c4f350bb2abd5691ab1041c3d60b044708b6",
     "0d47ebd46c75fe893356d33c3271e41b742d4e28e8acb82a5dbf6dab48c8b1fb",
     "16fce72ed5bf6b7247a3c23eeb9935e0929050ab57f7d6cc54aa12c668879d70",
@@ -20,29 +21,45 @@
     "568f4430801a6de1a4cf86866ba460fb5f7b73481d40c7ed20720f8b340efc63",
     "5eee8f3c2f2fc4449e1e1c60a7c18168351199c000c87ca0b98f9d8f649c6f9c",
     "67efca7e42c0dcf2e256c57ce132877c1481664c166e1179baeef5018d4643da",
+    "723bd4aadd41191d57df5f40425cb518cf50f49fe0071be19eda7a2b7847f9bc",
     "746028d8ca9310abaa6741305ff663c00ad3f48075e848e533a15ab853762be1",
     "74caa706eefd8480b0f6b278034d16fae5ed40e8dbafcc5eeaac8e727f459ad0",
+    "85380cb2d1ba8ed370694092e7b29518c66c26889e1f1d14a0dba9d59aafeee3",
     "87c0c4aed5ca958476467a204b47ce57f2b2d33866df85bfb8d4ed69335f2484",
     "8a991621f368d32524859373eaa7e51c33680ae1171f7ff13ca40e882d38f597",
     "8d0975021231bedb242657200af890d4f956dcae7af38c8c91d6f0f55be0f71f",
     "8dbdb560e67975f11f3d19362004bd6cd372f9324df219c67b49198f4b850f20",
+    "93e7d4e7ef449435b586d75371c920cbc8f1661b9017c4cb7a7c32d640f30674",
     "a301f777cb675b54130128a3870b825ac80ce01d03216dcee5083562dc8eca1f",
     "a5db37ba8fa3a64ab25fec33813276a9fcd89fb0358534f6d4307aa03626a6dd",
     "a7a11221ee992be6bdd7776df9a6a6c8aad2953b0b6cb1b18b9542aae62eae19",
-    "a8f9a7d0bd5fb0e971e4d4a0547273e397fbc4c93b53cc08221f7f58b62937cb",
     "bc5746bcc8a5b2f101f9c81baca16e24cfeb3921505c6027d5b79704ef8a76ea",
     "c0497dc3d25aae3c545ab436a3688aff680657ae2fac82d62929c83a39538669",
     "d01628cb59bba5d40c569f78b4fb19b0c8418ee90c6905855aaea54f1cd2233d",
+    "d53e36db326512bb96844a85781bbe3b079865f416ec7bc62e03d4bffaccd603",
     "d6760909a46177d587728426e05eba1f59537fe6af287bb93230526661c62752",
     "d9dcb3e2f8f689ae77a73d669032e65312bec4cceaba4b0911e3ef1442e27bd6",
     "db94ef562eebbd16546434ac4cd454b2ead1d1590a4f809321c22bd1533e89cf",
     "dca18513f7e43f907feb0f76b26338a9e22b54a00135fdc7dce574f20e6d1ccb",
     "defac817ad0a0b2ec49df88cef77fa8f594ac9870e0d81227815a79054203fa9",
-    "ef9f58ef9c08616b4b3abe80eaaf42a28331d8d773e3a199eb356a3e30812280",
     "f0bcdc67065be2b923c0e8c837b3a957fc6ec2cea98fea58f2a5f32a99c514ef",
     "f4e588ba1f2ecf179db53ef091296c63c82861aa31d5940ac36f5eefa5339ef8"
   ],
   "artifact_summaries": [
+    {
+      "artifact_key": "artifact.acceptance-evidence",
+      "artifact_class": "output",
+      "relative_path": "research/acceptance-evidence.md",
+      "content_hash_sha256": "723bd4aadd41191d57df5f40425cb518cf50f49fe0071be19eda7a2b7847f9bc",
+      "size_bytes": 1808,
+      "wp_id": null,
+      "step_id": null,
+      "required_status": "optional",
+      "is_present": true,
+      "error_reason": null,
+      "indexed_at": "2026-11-12T23:05:12.363857+00:00",
+      "provenance": null
+    },
     {
       "artifact_key": "artifact.acceptance-matrix",
       "artifact_class": "output",
@@ -54,7 +71,7 @@
       "required_status": "optional",
       "is_present": true,
       "error_reason": null,
-      "indexed_at": "2026-11-12T22:58:06.430165+00:00",
+      "indexed_at": "2026-11-12T23:05:12.301133+00:00",
       "provenance": null
     },
     {
@@ -68,7 +85,7 @@
       "required_status": "optional",
       "is_present": true,
       "error_reason": null,
-      "indexed_at": "2026-11-12T22:58:06.448160+00:00",
+      "indexed_at": "2026-11-12T23:05:12.319090+00:00",
       "provenance": null
     },
     {
@@ -82,7 +99,7 @@
       "required_status": "optional",
       "is_present": true,
       "error_reason": null,
-      "indexed_at": "2026-11-12T22:58:06.499008+00:00",
+      "indexed_at": "2026-11-12T23:05:12.371537+00:00",
       "provenance": null
     },
     {
@@ -96,7 +113,7 @@
       "required_status": "optional",
       "is_present": true,
       "error_reason": null,
-      "indexed_at": "2026-11-12T22:58:06.504058+00:00",
+      "indexed_at": "2026-11-12T23:05:12.376611+00:00",
       "provenance": null
     },
     {
@@ -110,7 +127,7 @@
       "required_status": "optional",
       "is_present": true,
       "error_reason": null,
-      "indexed_at": "2026-11-12T22:58:06.509211+00:00",
+      "indexed_at": "2026-11-12T23:05:12.381764+00:00",
       "provenance": null
     },
     {
@@ -124,7 +141,21 @@
       "required_status": "optional",
       "is_present": true,
       "error_reason": null,
-      "indexed_at": "2026-11-12T22:58:06.514829+00:00",
+      "indexed_at": "2026-11-12T23:05:12.387929+00:00",
+      "provenance": null
+    },
+    {
+      "artifact_key": "artifact.baseline-tests",
+      "artifact_class": "evidence",
+      "relative_path": "tasks/WP07-acceptance/baseline-tests.json",
+      "content_hash_sha256": "d53e36db326512bb96844a85781bbe3b079865f416ec7bc62e03d4bffaccd603",
+      "size_bytes": 335,
+      "wp_id": null,
+      "step_id": null,
+      "required_status": "optional",
+      "is_present": true,
+      "error_reason": null,
+      "indexed_at": "2026-11-12T23:05:12.392948+00:00",
       "provenance": null
     },
     {
@@ -138,7 +169,7 @@
       "required_status": "optional",
       "is_present": true,
       "error_reason": null,
-      "indexed_at": "2026-11-12T22:58:06.520022+00:00",
+      "indexed_at": "2026-11-12T23:05:12.397941+00:00",
       "provenance": null
     },
     {
@@ -152,7 +183,7 @@
       "required_status": "optional",
       "is_present": true,
       "error_reason": null,
-      "indexed_at": "2026-11-12T22:58:06.525333+00:00",
+      "indexed_at": "2026-11-12T23:05:12.405590+00:00",
       "provenance": null
     },
     {
@@ -166,7 +197,7 @@
       "required_status": "optional",
       "is_present": true,
       "error_reason": null,
-      "indexed_at": "2026-11-12T22:58:06.435320+00:00",
+      "indexed_at": "2026-11-12T23:05:12.306193+00:00",
       "provenance": null
     },
     {
@@ -180,7 +211,7 @@
       "required_status": "optional",
       "is_present": true,
       "error_reason": null,
-      "indexed_at": "2026-11-12T22:58:06.437854+00:00",
+      "indexed_at": "2026-11-12T23:05:12.308807+00:00",
       "provenance": null
     },
     {
@@ -194,7 +225,7 @@
       "required_status": "optional",
       "is_present": true,
       "error_reason": null,
-      "indexed_at": "2026-11-12T22:58:06.442877+00:00",
+      "indexed_at": "2026-11-12T23:05:12.313895+00:00",
       "provenance": null
     },
     {
@@ -208,7 +239,7 @@
       "required_status": "optional",
       "is_present": true,
       "error_reason": null,
-      "indexed_at": "2026-11-12T22:58:06.493678+00:00",
+      "indexed_at": "2026-11-12T23:05:12.366358+00:00",
       "provenance": null
     },
     {
@@ -222,7 +253,7 @@
       "required_status": "optional",
       "is_present": true,
       "error_reason": null,
-      "indexed_at": "2026-11-12T22:58:06.473646+00:00",
+      "indexed_at": "2026-11-12T23:05:12.344417+00:00",
       "provenance": null
     },
     {
@@ -236,7 +267,7 @@
       "required_status": "optional",
       "is_present": true,
       "error_reason": null,
-      "indexed_at": "2026-11-12T22:58:06.496426+00:00",
+      "indexed_at": "2026-11-12T23:05:12.368964+00:00",
       "provenance": null
     },
     {
@@ -250,7 +281,7 @@
       "required_status": "optional",
       "is_present": true,
       "error_reason": null,
-      "indexed_at": "2026-11-12T22:58:06.501496+00:00",
+      "indexed_at": "2026-11-12T23:05:12.374039+00:00",
       "provenance": null
     },
     {
@@ -264,7 +295,7 @@
       "required_status": "optional",
       "is_present": true,
       "error_reason": null,
-      "indexed_at": "2026-11-12T22:58:06.506680+00:00",
+      "indexed_at": "2026-11-12T23:05:12.379236+00:00",
       "provenance": null
     },
     {
@@ -278,7 +309,21 @@
       "required_status": "optional",
       "is_present": true,
       "error_reason": null,
-      "indexed_at": "2026-11-12T22:58:06.511718+00:00",
+      "indexed_at": "2026-11-12T23:05:12.385317+00:00",
+      "provenance": null
+    },
+    {
+      "artifact_key": "artifact.review-cycle-1",
+      "artifact_class": "output",
+      "relative_path": "tasks/WP07-acceptance/review-cycle-1.md",
+      "content_hash_sha256": "06361080540a4be4eb8a5f86b16b9912df76366f9406b0b7cd446e8ff20e75c7",
+      "size_bytes": 452,
+      "wp_id": null,
+      "step_id": null,
+      "required_status": "optional",
+      "is_present": true,
+      "error_reason": null,
+      "indexed_at": "2026-11-12T23:05:12.390437+00:00",
       "provenance": null
     },
     {
@@ -292,7 +337,7 @@
       "required_status": "optional",
       "is_present": true,
       "error_reason": null,
-      "indexed_at": "2026-11-12T22:58:06.517377+00:00",
+      "indexed_at": "2026-11-12T23:05:12.395434+00:00",
       "provenance": null
     },
     {
@@ -306,35 +351,35 @@
       "required_status": "optional",
       "is_present": true,
       "error_reason": null,
-      "indexed_at": "2026-11-12T22:58:06.522516+00:00",
+      "indexed_at": "2026-11-12T23:05:12.400437+00:00",
       "provenance": null
     },
     {
       "artifact_key": "artifact.status",
       "artifact_class": "output",
       "relative_path": "status.json",
-      "content_hash_sha256": "ef9f58ef9c08616b4b3abe80eaaf42a28331d8d773e3a199eb356a3e30812280",
-      "size_bytes": 7950,
+      "content_hash_sha256": "93e7d4e7ef449435b586d75371c920cbc8f1661b9017c4cb7a7c32d640f30674",
+      "size_bytes": 9021,
       "wp_id": null,
       "step_id": null,
       "required_status": "optional",
       "is_present": true,
       "error_reason": null,
-      "indexed_at": "2026-11-12T22:58:06.427646+00:00",
+      "indexed_at": "2026-11-12T23:05:12.298606+00:00",
       "provenance": null
     },
     {
       "artifact_key": "artifact.status.events",
       "artifact_class": "output",
       "relative_path": "status.events.jsonl",
-      "content_hash_sha256": "a8f9a7d0bd5fb0e971e4d4a0547273e397fbc4c93b53cc08221f7f58b62937cb",
-      "size_bytes": 47004,
+      "content_hash_sha256": "85380cb2d1ba8ed370694092e7b29518c66c26889e1f1d14a0dba9d59aafeee3",
+      "size_bytes": 53964,
       "wp_id": null,
       "step_id": null,
       "required_status": "optional",
       "is_present": true,
       "error_reason": null,
-      "indexed_at": "2026-11-12T22:58:06.432683+00:00",
+      "indexed_at": "2026-11-12T23:05:12.303659+00:00",
       "provenance": null
     },
     {
@@ -348,7 +393,7 @@
       "required_status": "optional",
       "is_present": true,
       "error_reason": null,
-      "indexed_at": "2026-11-12T22:58:06.484977+00:00",
+      "indexed_at": "2026-11-12T23:05:12.355350+00:00",
       "provenance": null
     },
     {
@@ -362,7 +407,7 @@
       "required_status": "optional",
       "is_present": true,
       "error_reason": null,
-      "indexed_at": "2026-11-12T22:58:06.459838+00:00",
+      "indexed_at": "2026-11-12T23:05:12.330603+00:00",
       "provenance": null
     },
     {
@@ -376,7 +421,7 @@
       "required_status": "optional",
       "is_present": true,
       "error_reason": null,
-      "indexed_at": "2026-11-12T22:58:06.490672+00:00",
+      "indexed_at": "2026-11-12T23:05:12.361028+00:00",
       "provenance": null
     },
     {
@@ -390,7 +435,7 @@
       "required_status": "optional",
       "is_present": true,
       "error_reason": null,
-      "indexed_at": "2026-11-12T22:58:06.465383+00:00",
+      "indexed_at": "2026-11-12T23:05:12.336128+00:00",
       "provenance": null
     },
     {
@@ -404,7 +449,7 @@
       "required_status": "optional",
       "is_present": true,
       "error_reason": null,
-      "indexed_at": "2026-11-12T22:58:06.470989+00:00",
+      "indexed_at": "2026-11-12T23:05:12.341708+00:00",
       "provenance": null
     },
     {
@@ -418,7 +463,7 @@
       "required_status": "optional",
       "is_present": true,
       "error_reason": null,
-      "indexed_at": "2026-11-12T22:58:06.454012+00:00",
+      "indexed_at": "2026-11-12T23:05:12.324808+00:00",
       "provenance": null
     },
     {
@@ -426,13 +471,13 @@
       "artifact_class": "output",
       "relative_path": "tasks/WP07-acceptance.md",
       "content_hash_sha256": "06dbee6bbd295a29ff330edd8a21c4f350bb2abd5691ab1041c3d60b044708b6",
-      "size_bytes": 1782,
+      "size_bytes": 1938,
       "wp_id": null,
       "step_id": null,
       "required_status": "optional",
       "is_present": true,
       "error_reason": null,
-      "indexed_at": "2026-11-12T22:58:06.479039+00:00",
+      "indexed_at": "2026-11-12T23:05:12.349924+00:00",
       "provenance": null
     },
     {
@@ -446,7 +491,7 @@
       "required_status": "required",
       "is_present": true,
       "error_reason": null,
-      "indexed_at": "2026-11-12T22:58:06.440321+00:00",
+      "indexed_at": "2026-11-12T23:05:12.311385+00:00",
       "provenance": null
     },
     {
@@ -460,7 +505,7 @@
       "required_status": "required",
       "is_present": true,
       "error_reason": null,
-      "indexed_at": "2026-11-12T22:58:06.424771+00:00",
+      "indexed_at": "2026-11-12T23:05:12.295570+00:00",
       "provenance": null
     },
     {
@@ -474,9 +519,9 @@
       "required_status": "required",
       "is_present": true,
       "error_reason": null,
-      "indexed_at": "2026-11-12T22:58:06.445346+00:00",
+      "indexed_at": "2026-11-12T23:05:12.316386+00:00",
       "provenance": null
     }
   ],
-  "computed_at": "2026-11-12 22:58:06.634970+00:00"
+  "computed_at": "2026-11-12 23:05:12.523709+00:00"
 }

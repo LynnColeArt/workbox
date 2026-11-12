@@ -206,7 +206,8 @@
       "last_transition_at": "2026-11-12T23:05:11.156324+00:00",
       "model": "__resolved_model_absent__",
       "notes": [
-        "Production build, changed-file lint, all 107 tests and both Chrome journeys passed"
+        "Production build, changed-file lint, all 107 tests and both Chrome journeys passed",
+        "Independent review completed after governed lock and revision-bound draft fixes. Production build, 107 tests, lint and Chrome journeys passed."
       ],
       "provider": "__resolved_provider_absent__",
       "review_result": {
