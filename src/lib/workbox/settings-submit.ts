@@ -86,6 +86,7 @@ export async function previewSettingsPipeline(db: DatabaseSync, projectId: strin
 function publicationFailure(code: string | undefined) {
   if (code === "denied" || code === "actor_mismatch") return failure("denied", "Hubnot refused the selected signer or proposal.");
   if (code === "stale_base") return failure("stale_preview", "Refresh the preview before submitting.");
+  if (code === "policy_required") return failure("policy_required", "Commit a Hubnot policy on the default branch before opening a proposal.");
   if (code === "admission_pending") return failure("admission_pending", "The proposal was signed and awaits repository admission. Retry with the same operation after admission.");
   if (code === "invalid_input") return failure("invalid_input", "Hubnot rejected the confirmed proposal input.");
   if (code === "operation_conflict") return failure("operation_conflict", "This operation ID already belongs to a different proposal.");

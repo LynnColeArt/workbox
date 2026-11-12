@@ -9,7 +9,7 @@ function response(result: Awaited<ReturnType<typeof runSettingsOperation>>) {
   if (result.ok) return Response.json(result);
   const status = new Map([
     ["invalid_input", 400], ["denied", 403], ["not_found", 404],
-    ["admission_pending", 409], ["operation_conflict", 409], ["recovery_required", 503], ["stale_preview", 409], ["unchanged", 409], ["unsupported", 501], ["unavailable", 503],
+    ["policy_required", 409], ["admission_pending", 409], ["operation_conflict", 409], ["recovery_required", 503], ["stale_preview", 409], ["unchanged", 409], ["unsupported", 501], ["unavailable", 503],
   ]).get(result.error.code) ?? 400;
   return Response.json(result, { status });
 }

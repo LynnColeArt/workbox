@@ -136,6 +136,20 @@ test("Settings submits one exact native proposal across browser and MCP retries"
   const { repo, dbPath, origin, git, hn, browser, agent } = await settingsFixture(t, process.env.WORKBOX_HN_BIN);
   hn("init", "--name", "Settings Fixture");
   const { actor } = JSON.parse(hn("identity", "show", "--json")).data as { actor: string };
+  const initialDraft = { name: "check", definition: '{"version":"hn.pipeline/0","steps":[{"name":"check","command":"true"}]}' };
+  const initialPreview = (await browser({ action: "preview", ...initialDraft })).data;
+  assert.equal(initialPreview.ok, true);
+  const withoutPolicy = {
+    ...initialDraft, actor, base: initialPreview.data.base, digest: initialPreview.data.digest,
+    operationId: "settings-no-policy-001", confirmed: true,
+  };
+  const beforePolicy = git("show-ref");
+  const policyRequired = await browser({ action: "submit", ...withoutPolicy });
+  assert.equal(policyRequired.status, 409);
+  assert.equal(policyRequired.data.error.code, "policy_required");
+  assert.deepEqual((await agent("workbox_submit_pipeline_proposal", withoutPolicy)).data, policyRequired.data);
+  assert.equal(git("show-ref"), beforePolicy);
+
   mkdirSync(join(repo, ".hn"), { recursive: true });
   writeFileSync(join(repo, ".hn", "policy.json"), JSON.stringify({
     version: "hn.policy/0",
