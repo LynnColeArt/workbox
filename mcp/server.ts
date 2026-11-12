@@ -25,7 +25,9 @@ import { readExplore } from "../src/lib/workbox/explore";
 import { readCode } from "../src/lib/workbox/code-browser";
 import { readRepositoryActivity } from "../src/lib/workbox/repository-activity";
 import { renderActivityChartPng } from "../src/lib/workbox/activity-chart-svg";
-import type { ActivityChartModel } from "../src/lib/workbox/activity-chart";
+import { readDashboard } from "../src/lib/workbox/dashboard";
+import { renderDashboardPng } from "../src/lib/workbox/dashboard-chart";
+import { createProject } from "../src/lib/workbox/create";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 process.chdir(resolve(HERE, "..")); // DB and env resolve from the project root
@@ -287,6 +289,20 @@ const TOOLS = [
       required: ["project"], additionalProperties: false,
     },
   },
+  {
+    name: "workbox_dashboard",
+    description: "Read the Dashboard summary, recent feed, and ranked seven-day snapshot. Returns exact counts, coverage and links, with a PNG of the snapshot.",
+    inputSchema: { type: "object", properties: {}, additionalProperties: false },
+  },
+  {
+    name: "workbox_create_project",
+    description: "Explicitly create a local Git and Hubnot project and index its signed founding issue. If indexing failed after creation, resubmit the same project details to retry indexing only.",
+    inputSchema: {
+      type: "object",
+      properties: { id: { type: "string" }, name: { type: "string" }, description: { type: "string" } },
+      required: ["id"], additionalProperties: false,
+    },
+  },
 ] as const;
 
 const HANDLERS: Record<string, (args: Json) => Promise<unknown>> = {
@@ -300,14 +316,19 @@ const HANDLERS: Record<string, (args: Json) => Promise<unknown>> = {
   workbox_activity: (a) => toolActivity(a),
 };
 
-type ParityRead = { data: object; chart?: ActivityChartModel };
+type ParityRead = { data: object; renderImage?: () => Promise<Buffer> };
 type ParityHandler = (args: Json) => ParityRead;
 
 const PARITY_READS = new Map<string, ParityHandler>([
+  ["workbox_dashboard", () => {
+    using db = openDb();
+    const data = readDashboard(db);
+    return { data, renderImage: () => renderDashboardPng(data) };
+  }],
   ["workbox_explore", (args) => {
     using db = openDb();
     const data = readExplore(db, args);
-    return { data, chart: data.chart };
+    return { data, renderImage: () => renderActivityChartPng(data.chart) };
   }],
   ["workbox_code", (args) => {
     using db = openDb();
@@ -316,14 +337,14 @@ const PARITY_READS = new Map<string, ParityHandler>([
   ["workbox_repository_activity", (args) => {
     using db = openDb();
     const data = readRepositoryActivity(db, typeof args.project === "string" ? args.project : "", args);
-    return { data, chart: data.kind === "activity" ? data.chart : undefined };
+    return { data, renderImage: data.kind === "activity" ? () => renderActivityChartPng(data.chart) : undefined };
   }],
 ]);
 
-async function parityContent({ data, chart }: ParityRead): Promise<Json[]> {
+async function parityContent({ data, renderImage }: ParityRead): Promise<Json[]> {
   const content: Json[] = [{ type: "text", text: JSON.stringify(data, null, 2) }];
-  if (chart) {
-    const image = await renderActivityChartPng(chart);
+  const image = await renderImage?.();
+  if (image) {
     content.push({ type: "image", mimeType: "image/png", data: image.toString("base64") });
   }
   return content;
@@ -433,6 +454,14 @@ async function handle(msg: Json): Promise<void> {
   if (method === "tools/call") {
     const params = (msg.params ?? {}) as { name?: string; arguments?: Json };
     const name = String(params.name ?? "");
+    if (name === "workbox_create_project") {
+      const result = await createProject(params.arguments);
+      rpcResult(id, {
+        content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+        isError: !result.ok,
+      });
+      return;
+    }
     const parityRead = PARITY_READS.get(name);
     if (parityRead) {
       try {
