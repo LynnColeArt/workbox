@@ -18,6 +18,7 @@ create_intent:
 - tests/settings-preview.test.ts
 execution_mode: code_change
 owned_files:
+- src/lib/workbox/repo.ts
 - src/lib/workbox/settings-preview.ts
 - tests/settings-preview.test.ts
 priority: P1

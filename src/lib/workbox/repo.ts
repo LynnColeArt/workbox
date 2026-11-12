@@ -287,9 +287,10 @@ export function readPinnedTree(repoPath: string, commit: string, directory: stri
   return { entries, incomplete };
 }
 
-export function readPinnedBlob(repoPath: string, object: string, size: number | null) {
-  if (size === null || size > BLOB_BYTES) return { content: null, binary: false, unavailable: true };
-  const bytes = objectGit(repoPath, ["cat-file", "blob", object], BLOB_BYTES);
+export function readPinnedBlob(repoPath: string, object: string, size: number | null, maxBytes = BLOB_BYTES) {
+  const limit = Math.min(maxBytes, 1024 * 1024);
+  if (size === null || size > limit) return { content: null, binary: false, unavailable: true };
+  const bytes = objectGit(repoPath, ["cat-file", "blob", object], limit);
   if (!bytes) return { content: null, binary: false, unavailable: true };
   if (bytes.includes(0)) return { content: null, binary: true, unavailable: false };
   try {
