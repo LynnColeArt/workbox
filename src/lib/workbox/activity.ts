@@ -41,10 +41,6 @@ export type ActivityCoverage = "complete" | "partial" | "unavailable";
 
 const DAY_MS = 86_400_000;
 
-function isoDaysAgo(days: number): string {
-  return new Date(Date.now() - days * DAY_MS).toISOString();
-}
-
 /** Normalize any wall-clock string we might get to a sortable ISO instant. */
 export function toIso(ts: string): string {
   if (!ts) return "";
@@ -312,36 +308,44 @@ function humanKind(kind: string): string {
   return kind;
 }
 
-/**
- * Ranked view for the Dashboard (top N) and Explore (all). FR-001: most
- * recent qualifying timestamp wins; ties by name then id (spec edge rule).
- */
-export function recentProjects(db: DatabaseSync, opts?: { sinceDays?: number }): RecentProject[] {
-  const since = toIso(isoDaysAgo(opts?.sinceDays ?? 7));
-  const runtimes = listProjectRuntime(db).sort(byProjectId);
-  const hubnot = readIndexedHubnotActivity(db);
+export type RecentActivityCoverage = { git: ActivityCoverage; hubnot: ActivityCoverage };
+
+/** Collect both sources once and preserve the legacy timestamp, name and ID ranking. */
+export function collectRecentProjectActivity(
+  runtimes: ProjectRuntime[],
+  hubnot: ReturnType<typeof readIndexedHubnotActivity>,
+  since: string,
+  until?: string,
+) {
   const budget = createHubnotActivityBudget();
-  const out: RecentProject[] = [];
-  for (const p of runtimes) {
-    const gitRows = readGitActivity(p.repoPath).rows;
-    const events = collectHubnotActivity(p.repoPath, hubnot.get(p.id) ?? [], budget).rows;
-    const all: ActivityRow[] = [...events, ...gitRows];
-    const dated = all.filter((r) => r.ts !== "");
-    dated.sort((a, b) => b.ts.localeCompare(a.ts));
+  const coverage = new Map<string, RecentActivityCoverage>();
+  const ranked: RecentProject[] = [];
+  for (const p of [...runtimes].sort(byProjectId)) {
+    const git = readGitActivity(p.repoPath);
+    const events = collectHubnotActivity(p.repoPath, hubnot.get(p.id) ?? [], budget);
+    coverage.set(p.id, { git: git.coverage, hubnot: events.coverage });
+    const dated = [...events.rows, ...git.rows]
+      .filter((r) => r.ts !== "" && (until === undefined || r.ts <= until))
+      .sort((a, b) => b.ts.localeCompare(a.ts));
     const latest = dated[0];
     if (!latest) continue; // no qualifying activity: Explore-only, order after actives
     const gitLast7 = dated.filter((r) => r.type === "git" && r.ts >= since).length;
     const hubLast7 = dated.filter((r) => r.type === "hubnot" && r.ts >= since).length;
-    out.push({
+    ranked.push({
       id: p.id, name: p.name, description: p.description,
       latestAt: latest.ts, latestSource: latest.type,
       latestSummary: latest.summary,
       gitLast7, hubnotLast7: hubLast7,
     });
   }
-  out.sort((a, b) =>
+  ranked.sort((a, b) =>
     b.latestAt.localeCompare(a.latestAt) || a.name.localeCompare(b.name) || a.id.localeCompare(b.id));
-  return out;
+  return { ranked, coverage };
+}
+
+export function recentProjects(db: DatabaseSync, opts?: { sinceDays?: number }): RecentProject[] {
+  const since = new Date(Date.now() - (opts?.sinceDays ?? 7) * DAY_MS).toISOString();
+  return collectRecentProjectActivity(listProjectRuntime(db), readIndexedHubnotActivity(db), since).ranked;
 }
 
 export function activityCount(db: DatabaseSync): number {
