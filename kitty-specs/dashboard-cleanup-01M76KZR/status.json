@@ -58,7 +58,8 @@
       "last_transition_at": "2026-11-12T17:12:32.944608+00:00",
       "model": "__resolved_model_absent__",
       "notes": [
-        "Implement shared project creation, validation and recovery."
+        "Implement shared project creation, validation and recovery.",
+        "Shared project creation at a58e07b. Seven fixtures including real signed bootstrap and index recovery passed."
       ],
       "provider": "__resolved_provider_absent__",
       "role": "implementer",
