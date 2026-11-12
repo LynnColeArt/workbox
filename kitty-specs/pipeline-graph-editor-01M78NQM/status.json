@@ -2,7 +2,7 @@
   "event_count": 42,
   "last_event_id": "01M78QWMYKQ2NQMJ7YSJ8EJHG8",
   "materialized_at": "2026-11-12T20:41:19.571605+00:00",
-  "mission_number": "",
+  "mission_number": "5",
   "mission_slug": "pipeline-graph-editor-01M78NQM",
   "mission_type": "software-dev",
   "summary": {
