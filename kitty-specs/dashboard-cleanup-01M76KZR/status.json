@@ -97,7 +97,12 @@
         "Implement the dashboard header dialog and remove the project sidebar."
       ],
       "provider": "__resolved_provider_absent__",
-      "role": "implementer"
+      "role": "implementer",
+      "subtasks": {
+        "T007": "done",
+        "T008": "done",
+        "T009": "done"
+      }
     },
     "WP04": {
       "actor": "finalize-tasks",
