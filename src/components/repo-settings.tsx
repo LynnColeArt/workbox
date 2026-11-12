@@ -2,12 +2,11 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useRef, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import type { readRepoSettings } from "@/lib/workbox/settings-read";
-import type { previewSettingsPipeline } from "@/lib/workbox/settings-submit";
+import { LoadPipelineDraftButton, PipelineGraphEditor } from "./pipeline-graph-editor";
 
 type Settings = NonNullable<Awaited<ReturnType<typeof readRepoSettings>>>;
-type Preview = Extract<Awaited<ReturnType<typeof previewSettingsPipeline>>, { ok: true }>["data"];
 type Diagnostic = { path: string; message: string };
 type SettingsError = { code: string; message: string; diagnostics?: Diagnostic[] };
 type SubmissionAvailability = { available: boolean; reason?: string };
@@ -148,63 +147,6 @@ function SignedWorkflows({ workflows }: { workflows: Settings["workflows"] }) {
 
 function PipelineEditor({ settings, endpoint, submission }: { settings: Settings; endpoint: string; submission: SubmissionAvailability }) {
   const { details, pipelines } = settings;
-  const [name, setName] = useState("");
-  const [definition, setDefinition] = useState("");
-  const [preview, setPreview] = useState<Preview | null>(null);
-  const [pending, setPending] = useState<"preview" | "submit" | null>(null);
-  const [error, setError] = useState<SettingsError | null>(null);
-  const [proposalHref, setProposalHref] = useState<string | null>(null);
-  const editor = useRef<HTMLTextAreaElement>(null);
-
-  function resetPreview() {
-    setPreview(null);
-    setError(null);
-    setProposalHref(null);
-  }
-
-  function loadPipeline(pipeline: Settings["pipelines"]["items"][number]) {
-    setName(pipeline.name);
-    setDefinition(pipeline.definition ?? "");
-    resetPreview();
-    editor.current?.focus();
-  }
-
-  async function validate(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setPending("preview");
-    resetPreview();
-    const result = await request<Preview>(endpoint, { action: "preview", name, definition });
-    setPending(null);
-    if (result.ok) {
-      setPreview(result.data);
-    } else {
-      setError(result.error);
-    }
-  }
-
-  async function submit() {
-    if (!preview || !preview.proposalSubmission.available || pending) return;
-    setPending("submit");
-    setError(null);
-    const result = await request<{ href: string }>(endpoint, {
-      action: "submit",
-      name: preview.name,
-      definition: preview.definition,
-      digest: preview.digest,
-      actor: preview.actor,
-      base: preview.base,
-      operationId: `settings_${preview.digest}`,
-      confirmed: true,
-    });
-    setPending(null);
-    if (result.ok) {
-      setProposalHref(result.data.href);
-    } else {
-      if (result.error.code === "stale_preview") setPreview(null);
-      setError(result.error);
-    }
-  }
-
   const pipelineMessages = {
     empty: "No pipelines are committed at this revision.",
     incomplete: "Some committed pipeline definitions could not be read.",
@@ -212,7 +154,7 @@ function PipelineEditor({ settings, endpoint, submission }: { settings: Settings
   };
 
   return (
-    <>
+    <PipelineGraphEditor endpoint={endpoint} availability={submission}>
       <section aria-labelledby="committed-pipelines" className="wb-panel space-y-3 p-4">
         <h3 id="committed-pipelines" className="font-semibold">Committed pipelines</h3>
         {details.commit && (
@@ -239,7 +181,7 @@ function PipelineEditor({ settings, endpoint, submission }: { settings: Settings
                 <div className="flex flex-wrap items-center gap-3">
                   <Link className="wb-link wb-mono break-all text-xs" href={pipeline.href}>{pipeline.path}</Link>
                   {pipeline.definition !== null && (
-                    <button className="wb-btn" type="button" disabled={pending !== null} onClick={() => loadPipeline(pipeline)}>Load into draft</button>
+                    <LoadPipelineDraftButton name={pipeline.name} />
                   )}
                 </div>
                 {pipeline.steps.length > 0 && (
@@ -260,58 +202,7 @@ function PipelineEditor({ settings, endpoint, submission }: { settings: Settings
 
       <SignedWorkflows workflows={settings.workflows} />
 
-      <section id="pipeline-draft" aria-labelledby="pipeline-draft-title" className="wb-panel space-y-3 p-4">
-        <h3 id="pipeline-draft-title" className="font-semibold">Pipeline draft</h3>
-        <form onSubmit={validate}>
-          <fieldset disabled={pending !== null} className="min-w-0 space-y-3">
-            <label className="block space-y-1 text-sm">
-              <span>Pipeline name</span>
-              <input className={fieldClass} value={name} required onChange={(event) => { setName(event.target.value); resetPreview(); }} />
-            </label>
-            <label className="block space-y-1 text-sm">
-              <span>Pipeline definition (JSON)</span>
-              <textarea ref={editor} className={`${fieldClass} wb-mono`} spellCheck={false} rows={10} value={definition} required
-                onChange={(event) => { setDefinition(event.target.value); resetPreview(); }} />
-            </label>
-            <button type="submit" className="wb-btn">{pending === "preview" ? "Validating…" : "Validate draft"}</button>
-          </fieldset>
-        </form>
-        {error && <RequestError error={error} />}
-        {preview && (
-          <div className="space-y-3 border-t border-[var(--wb-border)] pt-3">
-            <h4 className="font-semibold">Preview change</h4>
-            <p role="status" className="wb-muted text-sm">Pipeline format passed. Native validation is unavailable.</p>
-            <p className="wb-muted break-all text-sm">
-              <code className="wb-mono">{preview.path}</code> at{" "}
-              <code className="wb-mono">{preview.base.branch}</code>{" "}
-              <code className="wb-mono" title={preview.base.commit}>{preview.base.commit.slice(0, 12)}</code>
-            </p>
-            {preview.actor && <p className="wb-muted break-all text-sm">Signing identity <code className="wb-mono">{preview.actor}</code></p>}
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="min-w-0 space-y-1">
-                <h5 className="text-sm font-medium">Committed definition</h5>
-                {preview.before === null ? <p className="wb-muted text-sm">New file</p> :
-                  <pre className="wb-mono max-h-80 overflow-auto rounded bg-[var(--wb-bg)] p-3 text-xs">{preview.before}</pre>}
-              </div>
-              <div className="min-w-0 space-y-1">
-                <h5 className="text-sm font-medium">Proposed definition</h5>
-                <pre className="wb-mono max-h-80 overflow-auto rounded bg-[var(--wb-bg)] p-3 text-xs">{preview.definition}</pre>
-              </div>
-            </div>
-            {proposalHref ? <p role="status"><Link href={proposalHref} className="wb-link text-sm">View proposal</Link></p> :
-              <button type="button" className="wb-btn" disabled={!preview.proposalSubmission.available || pending !== null}
-                aria-describedby={preview.proposalSubmission.available ? undefined : "settings-submit-unavailable"} onClick={submit}>
-                {pending === "submit" ? "Opening proposal…" : "Open Hubnot proposal"}
-              </button>}
-          </div>
-        )}
-        {!(preview?.proposalSubmission ?? submission).available && (
-          <p id="settings-submit-unavailable" className="wb-muted text-sm">
-            {(preview?.proposalSubmission ?? submission).reason ?? "Opening a proposal is unavailable."}
-          </p>
-        )}
-      </section>
-    </>
+    </PipelineGraphEditor>
   );
 }
 
