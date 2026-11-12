@@ -10,5 +10,7 @@
   "purpose_tldr": "issues and discussions",
   "slug": "issues-and-discussions-01M78WCK",
   "target_branch": "codex/issues-and-discussions",
-  "topology": "single_branch"
+  "topology": "single_branch",
+  "vcs": "git",
+  "vcs_locked_at": "2026-11-12T22:33:13.537211+00:00"
 }
