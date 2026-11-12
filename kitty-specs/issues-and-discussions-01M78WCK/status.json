@@ -28,7 +28,8 @@
       "last_transition_at": "2026-11-12T22:38:09.388636+00:00",
       "model": "__resolved_model_absent__",
       "notes": [
-        "Native fixtures and focused Hubnot tests passed"
+        "Native fixtures and focused Hubnot tests passed",
+        "Reviewed and independently reran all three native CLI fixtures"
       ],
       "provider": "__resolved_provider_absent__",
       "review_result": {
