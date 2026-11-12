@@ -8,25 +8,28 @@ requirement_refs:
 planning_base_branch: codex/issues-and-discussions
 merge_target_branch: codex/issues-and-discussions
 branch_strategy: Planning artifacts for this mission were generated on codex/issues-and-discussions. During /spec-kitty.implement this WP may branch from a dependency-specific base, but completed changes must merge back into codex/issues-and-discussions unless the human explicitly redirects the landing branch.
+base_branch: kitty/mission-issues-and-discussions-01M78WCK
+base_commit: f6bc7bab25ba173b706c13d9c71a705435759c29
+created_at: '2026-11-12T22:33:22.646879+00:00'
 subtasks:
 - T006
 - T007
 - T008
-owned_files:
-- 'src/components/markdown-editor.tsx'
-- 'src/lib/workbox/markdown.ts'
-- 'src/app/api/markdown/route.ts'
-- 'tests/markdown.test.ts'
-- 'package.json'
-- 'package-lock.json'
 history: []
 authoritative_surface: src/
 create_intent:
-- 'src/components/markdown-editor.tsx'
-- 'src/lib/workbox/markdown.ts'
-- 'src/app/api/markdown/route.ts'
-- 'tests/markdown.test.ts'
+- src/components/markdown-editor.tsx
+- src/lib/workbox/markdown.ts
+- src/app/api/markdown/route.ts
+- tests/markdown.test.ts
 execution_mode: code_change
+owned_files:
+- src/components/markdown-editor.tsx
+- src/lib/workbox/markdown.ts
+- src/app/api/markdown/route.ts
+- tests/markdown.test.ts
+- package.json
+- package-lock.json
 priority: P1
 role: implementer
 tags: []

@@ -13,17 +13,20 @@ requirement_refs:
 planning_base_branch: codex/issues-and-discussions
 merge_target_branch: codex/issues-and-discussions
 branch_strategy: Planning artifacts for this mission were generated on codex/issues-and-discussions. During /spec-kitty.implement this WP may branch from a dependency-specific base, but completed changes must merge back into codex/issues-and-discussions unless the human explicitly redirects the landing branch.
+base_branch: kitty/mission-issues-and-discussions-01M78WCK
+base_commit: f6bc7bab25ba173b706c13d9c71a705435759c29
+created_at: '2026-11-12T22:58:11.153780+00:00'
 subtasks:
 - T017
 - T018
 - T019
-owned_files:
-- 'tests/collaboration-journeys.test.ts'
 history: []
 authoritative_surface: tests/
 create_intent:
-- 'tests/collaboration-journeys.test.ts'
+- tests/collaboration-journeys.test.ts
 execution_mode: code_change
+owned_files:
+- tests/collaboration-journeys.test.ts
 priority: P1
 role: implementer
 tags: []

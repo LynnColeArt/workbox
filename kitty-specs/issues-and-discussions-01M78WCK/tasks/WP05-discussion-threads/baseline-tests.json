@@ -1,0 +1,13 @@
+{
+  "wp_id": "WP05",
+  "captured_at": "2026-11-12T22:42:26Z",
+  "base_branch": "codex/issues-and-discussions",
+  "base_commit": "c908738b67eba22256e10bb88cef40160de9c24c",
+  "test_runner": "pytest",
+  "total": 0,
+  "passed": 0,
+  "failed": 0,
+  "skipped": 0,
+  "failures": [],
+  "source_identity": "GateCoverageScopeSource/junit_xml"
+}
