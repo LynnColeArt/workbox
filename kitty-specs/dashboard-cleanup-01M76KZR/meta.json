@@ -1,4 +1,16 @@
 {
+  "acceptance_history": [
+    {
+      "acceptance_mode": "local",
+      "accepted_at": "2026-11-12T18:19:18.189667+00:00",
+      "accepted_by": "codex",
+      "accepted_from_commit": "c63bf8128be8a40e0bf9ef0ec5b1f8dea8a23c8f"
+    }
+  ],
+  "acceptance_mode": "local",
+  "accepted_at": "2026-11-12T18:19:18.189667+00:00",
+  "accepted_by": "codex",
+  "accepted_from_commit": "c63bf8128be8a40e0bf9ef0ec5b1f8dea8a23c8f",
   "created_at": "2026-11-12T00:54:38.744188+00:00",
   "flattened": false,
   "friendly_name": "Dashboard cleanup and project creation parity",
