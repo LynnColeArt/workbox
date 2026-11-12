@@ -17,9 +17,9 @@ subtasks:
 - T010
 - T011
 owned_files:
-- 'src/app/p/[id]/issue/**'
-- 'src/app/p/[id]/issues/**'
-- 'src/app/api/projects/[id]/issues/**'
+- 'src/app/p/[[]id]/issue/**'
+- 'src/app/p/[[]id]/issues/**'
+- 'src/app/api/projects/[[]id]/issues/**'
 - 'src/lib/workbox/issues.ts'
 - 'mcp/issues.ts'
 - 'tests/issues-parity.test.ts'

@@ -14,6 +14,8 @@ subtasks:
 - T004
 - T005
 owned_files:
+- 'mcp/discussions.ts'
+- 'mcp/issues.ts'
 - 'src/lib/workbox/collaboration.ts'
 - 'src/lib/hn/collaboration.ts'
 - 'mcp/server.ts'
@@ -21,6 +23,8 @@ owned_files:
 history: []
 authoritative_surface: src/lib/
 create_intent:
+- 'mcp/discussions.ts'
+- 'mcp/issues.ts'
 - 'src/lib/workbox/collaboration.ts'
 - 'src/lib/hn/collaboration.ts'
 - 'tests/collaboration-service.test.ts'
@@ -42,7 +46,7 @@ Shared modules under src/lib/workbox and src/lib/hn plus focused service tests.
 ## Subtasks
 
 - **T003** Define common validated inputs and typed outcomes for HTTP and MCP, including resource IDs, cursors, expected revisions, operation IDs, actor choices, and available actions.
-- **T004** Resolve usable actors from caller context. Show equivalent availability reasons on both surfaces and require native authorization on every write. Preserve existing issue tools through compatibility adapters. Provide MCP registration seams for the issue and discussion modules so later packages can add operations within their owned paths.
+- **T004** Resolve usable actors from caller context. Show equivalent availability reasons on both surfaces and require native authorization on every write. Preserve existing issue tools through compatibility adapters. Establish and register the issue and discussion MCP modules with buildable initial exports. Later packages extend those modules.
 - **T005** Bind retries to the original operation and resolve signed outcomes through Hubnot. Refresh the index independently and return canonical IDs, revisions, and indexing state.
 
 ## Review evidence

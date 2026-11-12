@@ -15,14 +15,15 @@ subtasks:
 - T015
 - T016
 owned_files:
-- 'src/app/p/[id]/discussions/**'
-- 'src/app/api/projects/[id]/discussions/**'
+- 'src/app/p/[[]id]/discussions/**'
+- 'src/app/api/projects/[id]/discussions/route.ts'
 - 'src/lib/workbox/discussions.ts'
 - 'mcp/discussions.ts'
 - 'tests/discussions-parity.test.ts'
 history: []
 authoritative_surface: src/
 create_intent:
+- 'src/app/api/projects/[id]/discussions/route.ts'
 - 'src/lib/workbox/discussions.ts'
 - 'mcp/discussions.ts'
 - 'tests/discussions-parity.test.ts'
