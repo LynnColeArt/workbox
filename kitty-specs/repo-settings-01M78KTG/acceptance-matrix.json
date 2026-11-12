@@ -2,77 +2,77 @@
   "mission_slug": "repo-settings-01M78KTG",
   "mission_number": "",
   "mission_type": "software-dev",
-  "overall_verdict": "pending",
+  "overall_verdict": "pass",
   "criteria": [
     {
       "criterion_id": "FR-001",
-      "description": "Verify FR-001 is satisfied",
+      "description": "Production Settings and MCP read and update fixture, including loopback origin denial and compatible local curation.",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "Production Settings and MCP read and update fixture, including loopback origin denial and compatible local curation.",
+      "pass_fail": "pass",
+      "verified_by": "codex",
+      "verified_at": "2026-11-12T19:56:29.029060+00:00",
+      "notes": "Linux feature verification. Full OS qualification is a release activity."
     },
     {
       "criterion_id": "FR-002",
-      "description": "Verify FR-002 is satisfied",
+      "description": "Pinned default branch, dirty checkout, exact pipeline bytes and policy relationship checks in settings-read.test.ts.",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "Pinned default branch, dirty checkout, exact pipeline bytes and policy relationship checks in settings-read.test.ts.",
+      "pass_fail": "pass",
+      "verified_by": "codex",
+      "verified_at": "2026-11-12T19:56:29.029077+00:00",
+      "notes": "Linux feature verification. Full OS qualification is a release activity."
     },
     {
       "criterion_id": "FR-003",
-      "description": "Verify FR-003 is satisfied",
+      "description": "Signed workflow reads and conflict heads in settings-read.test.ts. Older and unavailable Hubnot paths covered.",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "Signed workflow reads and conflict heads in settings-read.test.ts. Older and unavailable Hubnot paths covered.",
+      "pass_fail": "pass",
+      "verified_by": "codex",
+      "verified_at": "2026-11-12T19:56:29.029080+00:00",
+      "notes": "Linux feature verification. Full OS qualification is a release activity."
     },
     {
       "criterion_id": "FR-004",
-      "description": "Verify FR-004 is satisfied",
+      "description": "No-write preview tests compare Git refs, objects, index and worktree, and check the committed pipeline format against Hubnot.",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "No-write preview tests compare Git refs, objects, index and worktree, and check the committed pipeline format against Hubnot.",
+      "pass_fail": "pass",
+      "verified_by": "codex",
+      "verified_at": "2026-11-12T19:56:29.029083+00:00",
+      "notes": "Linux feature verification. Full OS qualification is a release activity."
     },
     {
       "criterion_id": "FR-005",
-      "description": "Verify FR-005 is satisfied",
+      "description": "Browser opened the exact signed proposal. The production parity test checks candidate parent, exact blob bytes, proposal link and preservation of unrelated changes.",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "Browser opened the exact signed proposal. The production parity test checks candidate parent, exact blob bytes, proposal link and preservation of unrelated changes.",
+      "pass_fail": "pass",
+      "verified_by": "codex",
+      "verified_at": "2026-11-12T19:56:29.029086+00:00",
+      "notes": "Linux feature verification. Full OS qualification is a release activity."
     },
     {
       "criterion_id": "FR-006",
-      "description": "Verify FR-006 is satisfied",
+      "description": "Production parity verifies changed intent, wrong signer, stale base, concurrent same-operation submissions, advanced-base replay, and code ref and index repair. Native lost-response and policy tests provide independent evidence.",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "Production parity verifies changed intent, wrong signer, stale base, concurrent same-operation submissions, advanced-base replay, and code ref and index repair. Native lost-response and policy tests provide independent evidence.",
+      "pass_fail": "pass",
+      "verified_by": "codex",
+      "verified_at": "2026-11-12T19:56:29.029089+00:00",
+      "notes": "Linux feature verification. Full OS qualification is a release activity."
     },
     {
       "criterion_id": "FR-007",
-      "description": "Verify FR-007 is satisfied",
+      "description": "Production HTTP and MCP stdio tests exercise the same read, preview, submit, retry and recovery results.",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "Production HTTP and MCP stdio tests exercise the same read, preview, submit, retry and recovery results.",
+      "pass_fail": "pass",
+      "verified_by": "codex",
+      "verified_at": "2026-11-12T19:56:29.029091+00:00",
+      "notes": "Linux feature verification. Full OS qualification is a release activity."
     }
   ],
   "negative_invariants": []
