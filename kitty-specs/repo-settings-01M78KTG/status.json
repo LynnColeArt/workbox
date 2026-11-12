@@ -1,7 +1,7 @@
 {
-  "event_count": 4,
-  "last_event_id": "01M78M2T1KFFCRCN7BVT4Z7369",
-  "materialized_at": "2026-11-12T19:34:47.091289+00:00",
+  "event_count": 5,
+  "last_event_id": "01M78M460WXVDF2SNNNNR87CYA",
+  "materialized_at": "2026-11-12T19:35:32.124041+00:00",
   "mission_number": "",
   "mission_slug": "repo-settings-01M78KTG",
   "mission_type": "software-dev",
@@ -9,20 +9,25 @@
     "approved": 0,
     "blocked": 0,
     "canceled": 0,
-    "claimed": 0,
+    "claimed": 1,
     "done": 0,
     "for_review": 0,
     "in_progress": 0,
     "in_review": 0,
-    "planned": 4
+    "planned": 3
   },
   "work_packages": {
     "WP01": {
-      "actor": "finalize-tasks",
+      "actor": "codex",
+      "agent_profile": "__resolved_profile_absent__",
+      "agent_profile_version": "__resolved_profile_version_absent__",
       "force_count": 0,
-      "lane": "planned",
-      "last_event_id": "01M78M2NVW50EF4ZZDG65Y790M",
-      "last_transition_at": "2026-11-12T19:34:42.812471+00:00"
+      "lane": "claimed",
+      "last_event_id": "01M78M460WXVDF2SNNNNR87CYA",
+      "last_transition_at": "2026-11-12T19:35:32.124041+00:00",
+      "model": "__resolved_model_absent__",
+      "provider": "__resolved_provider_absent__",
+      "role": "implementer"
     },
     "WP02": {
       "actor": "finalize-tasks",
