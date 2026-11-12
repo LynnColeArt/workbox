@@ -1,7 +1,7 @@
 {
-  "event_count": 25,
-  "last_event_id": "01M78N61XNGEPAV148B4T7JZBP",
-  "materialized_at": "2026-11-12T19:54:02.037429+00:00",
+  "event_count": 26,
+  "last_event_id": "01M78N68VM9WCZJTHZM7G4NH46",
+  "materialized_at": "2026-11-12T19:54:09.140231+00:00",
   "mission_number": "",
   "mission_slug": "repo-settings-01M78KTG",
   "mission_type": "software-dev",
@@ -11,8 +11,8 @@
     "canceled": 0,
     "claimed": 0,
     "done": 0,
-    "for_review": 0,
-    "in_progress": 1,
+    "for_review": 1,
+    "in_progress": 0,
     "in_review": 0,
     "planned": 0
   },
@@ -110,9 +110,9 @@
       "agent_profile": "__resolved_profile_absent__",
       "agent_profile_version": "__resolved_profile_version_absent__",
       "force_count": 0,
-      "lane": "in_progress",
-      "last_event_id": "01M78MTR8BYY9CBW5AZYP51FP2",
-      "last_transition_at": "2026-11-12T19:47:51.691270+00:00",
+      "lane": "for_review",
+      "last_event_id": "01M78N68VM9WCZJTHZM7G4NH46",
+      "last_transition_at": "2026-11-12T19:54:09.140231+00:00",
       "model": "__resolved_model_absent__",
       "notes": [
         "Browser and MCP reads, edits, preview, stale inputs and unavailable submit path are implemented. Successful submission parity depends on WP03."
