@@ -177,7 +177,8 @@
       "model": "__resolved_model_absent__",
       "notes": [
         "Integrated parity fixtures and production regression checks completed.",
-        "All 94 production tests passed, including exact browser/MCP parity, legacy Hubnot fallback and retry."
+        "All 94 production tests passed, including exact browser/MCP parity, legacy Hubnot fallback and retry.",
+        "Independent review of final fixture, proposal rendering, and no-write checks."
       ],
       "provider": "__resolved_provider_absent__",
       "role": "reviewer",
