@@ -73,9 +73,11 @@ function Directory({ result, now }: { result: Extract<CodeRead, { kind: "directo
             const Icon = entry.type === "tree" ? FileDirectoryIcon : entry.type === "commit" ? GitMergeIcon : FileIcon;
             return (
               <tr key={entry.path} className="hover:bg-[var(--wb-panel-2)]">
-                <td className="truncate px-4 py-2.5">
-                  <Icon aria-hidden="true" className="wb-muted mr-2 align-text-bottom" />
-                  <Link href={entry.href} prefetch={false} title={entry.name} className="hover:text-[var(--wb-link)] hover:underline">{entry.name}</Link>
+                <td className="px-4 py-2.5">
+                  <Link href={entry.href} prefetch={false} title={entry.name} className="flex items-center gap-2 hover:text-[var(--wb-link)] hover:underline">
+                    <Icon aria-hidden="true" className="wb-muted shrink-0" />
+                    <span className="truncate">{entry.name}</span>
+                  </Link>
                 </td>
                 <td className="wb-muted truncate px-2 py-2.5">
                   {entry.lastChange ? <CommitSummary commit={entry.lastChange} /> : "Unavailable"}
