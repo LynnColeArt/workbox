@@ -47,7 +47,11 @@
         "Implement the shared repository Settings operations."
       ],
       "provider": "__resolved_provider_absent__",
-      "role": "implementer"
+      "role": "implementer",
+      "subtasks": {
+        "T003": "done",
+        "T004": "done"
+      }
     },
     "WP03": {
       "actor": "finalize-tasks",
