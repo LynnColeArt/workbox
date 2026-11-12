@@ -26,6 +26,11 @@ export const discussionTools = [
     { ...paging, discussionId: event, replyId: event }, ["discussionId"]),
   tool("workbox_create_discussion", "Sign a new discussion. Reuse the same operation ID on retry.", "create",
     { ...signing, title: string, category: string, body: string }, ["actor", "operationId", "title", "category", "body"]),
+  tool("workbox_discussion_action", "Edit, close, reopen, answer or resolve a discussion or reply. Use the reviewed revision and reuse the operation ID on retry.", null,
+    { ...signing, action: { enum: ["revise", "close", "reopen", "answer", "editReply", "resolve", "resolveReply"] },
+      discussionId: event, expected: { anyOf: [event, { type: "array", items: event }] }, replyId: event,
+      basis: event, replyRevision: { anyOf: [event, { type: "null" }] }, title: string, category: string, body: string },
+    ["actor", "operationId", "action", "discussionId", "expected"]),
   tool("workbox_reply_discussion", "Sign a reply to a thread or to another reply root.", "reply",
     { ...signing, discussionId: event, replyTo: event, body: string }, ["actor", "operationId", "discussionId", "body"]),
 ];

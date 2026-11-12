@@ -22,13 +22,30 @@ const page = <T extends z.ZodType>(item: T) => z.object({
   items: z.array(item), snapshot: z.string(), next_cursor: z.string().optional(),
 });
 
+const threadWrite = { ...signingFields, discussionId: eventId };
+const expected = eventId;
+const conflictHeads = z.array(eventId).min(2).max(200);
+const replyBody = body.refine(value => value.trim().length > 0, "Enter a reply.");
+
 const discussionInput = z.discriminatedUnion("action", [
   z.strictObject({ action: z.literal("list"), ...paginationFields, category: category.optional(), status: status.optional() }),
   z.strictObject({ action: z.literal("detail"), ...paginationFields, discussionId: eventId, replyId: eventId.optional() }),
   z.strictObject({ action: z.literal("create"), ...signingFields, title, category, body }),
   z.strictObject({
     action: z.literal("reply"), ...signingFields, discussionId: eventId, replyTo: eventId.optional(),
-    body: body.refine(value => value.trim().length > 0, "Enter a reply."),
+    body: replyBody,
+  }),
+  z.strictObject({ action: z.literal("revise"), ...threadWrite, expected, title, category, body }),
+  z.strictObject({ action: z.enum(["close", "reopen"]), ...threadWrite, expected }),
+  z.strictObject({ action: z.literal("answer"), ...threadWrite, expected, replyRevision: eventId.nullable() }),
+  z.strictObject({ action: z.literal("editReply"), ...threadWrite, expected, replyId: eventId, body: replyBody }),
+  z.strictObject({
+    action: z.literal("resolve"), ...threadWrite, expected: conflictHeads, basis: eventId,
+    title: title.optional(), category: category.optional(), body: body.optional(),
+  }),
+  z.strictObject({
+    action: z.literal("resolveReply"), ...threadWrite, expected: conflictHeads, basis: eventId,
+    replyId: eventId, body: replyBody.optional(),
   }),
 ]);
 
@@ -37,6 +54,89 @@ export const discussionHref = (project: string, id: string) =>
 
 function pageFlags(input: { limit: number; cursor?: string }) {
   return ["--limit", String(input.limit), ...(input.cursor ? ["--cursor", input.cursor] : [])];
+}
+
+type DiscussionInput = z.infer<typeof discussionInput>;
+type DiscussionWrite = Exclude<DiscussionInput, { action: "list" | "detail" }>;
+type NativeMutation = Pick<Parameters<typeof signCollaboration>[1], "family" | "args" | "state">;
+
+async function revisionState<T extends z.ZodType>(repo: string, family: NativeMutation["family"], id: string, revision: string, schema: T) {
+  let cursor: string | undefined;
+  do {
+    const history = await nativeCollaboration(repo, [family, "history", id, ...pageFlags({ limit: 50, cursor })], page(head(z.unknown())));
+    if (!history.ok) return history;
+    const matched = history.data.value.items.find(item => item.id === revision);
+    if (matched) {
+      const state = schema.safeParse(matched.state);
+      return state.success ? { ok: true, data: state.data } as const :
+        collaborationError("native_unavailable", "Hubnot returned an unsupported revision.");
+    }
+    cursor = history.data.value.next_cursor;
+  } while (cursor);
+  return collaborationError("stale_revision", "The selected revision is no longer available. Refresh the discussion.");
+}
+
+async function prepareMutation(repo: string, input: DiscussionWrite) {
+  const success = (data: NativeMutation) => ({ ok: true, data }) as const;
+  switch (input.action) {
+    case "create":
+      return success({
+        family: "discussion", args: ["open"],
+        state: { schema: "hn.discussion/1", title: input.title, category: input.category, body: input.body, status: "open" },
+      });
+    case "reply":
+      return success({
+        family: "discussion-reply", args: ["open"],
+        state: { schema: "hn.discussion-reply/1", discussion_id: input.discussionId, reply_to: input.replyTo, body: input.body },
+      });
+    case "revise":
+      return success({
+        family: "discussion",
+        args: ["revise", input.discussionId, "--expect", input.expected, "--title", input.title,
+          "--category", input.category, "--body", input.body],
+      });
+    case "close":
+    case "reopen":
+      return success({ family: "discussion", args: [input.action, input.discussionId, "--expect", input.expected] });
+    case "answer":
+      return success({
+        family: "discussion",
+        args: ["answer", input.discussionId, "--expect", input.expected, ...(input.replyRevision ? ["--reply", input.replyRevision] : ["--clear"])],
+      });
+    case "editReply": {
+      const current = await nativeCollaboration(repo, ["discussion-reply", "show", input.replyId], replyView);
+      if (!current.ok) return current;
+      if (!current.data.value.heads.every(head => head.state.discussion_id === input.discussionId)) {
+        return collaborationError("not_found", "Reply is unavailable in this discussion.");
+      }
+      return success({
+        family: "discussion-reply", args: ["edit", input.replyId, "--expect", input.expected, "--body", input.body],
+      });
+    }
+    case "resolve":
+    case "resolveReply": {
+      if (!input.expected.includes(input.basis) || new Set(input.expected).size !== input.expected.length) {
+        return collaborationError("invalid_input", "Choose one of the distinct revisions being resolved.");
+      }
+      const expectations = input.expected.flatMap(id => ["--expect", id]);
+      if (input.action === "resolveReply") {
+        const basis = await revisionState(repo, "discussion-reply", input.replyId, input.basis, reply);
+        if (!basis.ok) return basis;
+        if (basis.data.discussion_id !== input.discussionId) return collaborationError("not_found", "Reply is unavailable in this discussion.");
+        return success({
+          family: "discussion-reply", args: ["resolve", input.replyId, ...expectations],
+          state: { ...basis.data, body: input.body ?? basis.data.body },
+        });
+      }
+      const basis = await revisionState(repo, "discussion", input.discussionId, input.basis, post);
+      if (!basis.ok) return basis;
+      return success({
+        family: "discussion", args: ["resolve", input.discussionId, ...expectations],
+        state: { ...basis.data, title: input.title ?? basis.data.title, category: input.category ?? basis.data.category,
+          body: input.body ?? basis.data.body },
+      });
+    }
+  }
 }
 
 export async function runDiscussionOperation(projectId: string, raw: unknown, mayWrite = false) {
@@ -83,19 +183,14 @@ export async function runDiscussionOperation(projectId: string, raw: unknown, ma
   }
 
   if (!mayWrite) return collaborationError("permission_denied", "Sign from the local Workbox instance.");
-  const mutation = input.action === "create"
-    ? {
-        family: "discussion" as const, args: ["open"],
-        state: { schema: "hn.discussion/1", title: input.title, category: input.category, body: input.body, status: "open" },
-      }
-    : {
-        family: "discussion-reply" as const, args: ["open"],
-        state: { schema: "hn.discussion-reply/1", discussion_id: input.discussionId, reply_to: input.replyTo, body: input.body },
-      };
-  const result = await signCollaboration(project, { ...mutation, actor: input.actor, operationId: input.operationId });
+  const mutation = await prepareMutation(project.repoPath, input);
+  if (!mutation.ok) return mutation;
+  const result = await signCollaboration(project, { ...mutation.data, actor: input.actor, operationId: input.operationId });
   if (!result.ok) return result;
-  const href = input.action === "create" ? discussionHref(project.id, result.data.id) :
-    `${discussionHref(project.id, input.discussionId)}?${new URLSearchParams({ reply: result.data.id })}#reply-context`;
+  const threadHref = discussionHref(project.id, input.action === "create" ? result.data.id : input.discussionId);
+  const replyId = input.action === "reply" ? result.data.id :
+    input.action === "editReply" || input.action === "resolveReply" ? input.replyId : null;
+  const href = replyId ? `${threadHref}?${new URLSearchParams({ reply: replyId })}#reply-context` : threadHref;
   return { ok: true, data: {
     kind: "mutation", ...result.data, href,
   } } as const;

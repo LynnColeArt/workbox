@@ -70,5 +70,41 @@ test("discussion reads and replies share native state, paging and operation repl
   assert.ok(context.ok && context.data.kind === "detail");
   assert.equal(context.data.contextReply?.id, replyTo);
   assert.match(posted.data.href, /reply=.*#reply-context$/);
+  const update = async (action: string, operationId: string, fields: Record<string, unknown>) => {
+    const request = { action, operationId, discussionId, actor, ...fields };
+    const result = await byMcp("workbox_discussion_action", request);
+    assert.ok(result.ok, JSON.stringify(result));
+    const outcome = result.data as { id: string; eventId: string; indexed: boolean; replayed: boolean };
+    assert.equal(outcome.indexed, true);
+    assert.deepEqual(await runDiscussionOperation("fixture", request, true),
+      { ok: true, data: { ...outcome, replayed: true } });
+    return outcome.eventId;
+  };
+
+  const initialReply = [...firstPage.data.replies, ...secondPage.data.replies].find(reply => reply.id === replyTo);
+  assert.ok(initialReply);
+  const replyRevision = initialReply.heads[0].id;
+  const answer = await update("answer", "mark-answer", { expected: discussionId, replyRevision });
+  await update("editReply", "edit-reply", { expected: replyRevision, replyId: replyTo, body: "Edited reply" });
+  const answered = await runDiscussionOperation("fixture", { action: "detail", discussionId });
+  assert.ok(answered.ok && answered.data.kind === "detail");
+  assert.equal(answered.data.thread.accepted_answer?.id, replyRevision);
+  assert.equal(answered.data.thread.accepted_answer?.state.body, "First reply");
+  assert.equal(answered.data.replies.find(reply => reply.id === replyTo)?.state?.body, "Edited reply");
+
+  const cleared = await update("answer", "clear-answer", { expected: answer, replyRevision: null });
+  const revised = await update("revise", "revise-thread", { expected: cleared, title: "Updated", category: "Help", body: openInput.body });
+  const closed = await update("close", "close-thread", { expected: revised });
+  await update("reopen", "reopen-thread", { expected: closed });
+  const stale = await byMcp("workbox_discussion_action", {
+    action: "close", discussionId, actor, operationId: "stale", expected: cleared,
+  });
+  assert.ok(!stale.ok);
+  assert.equal(stale.error.code, "stale_revision");
+  const fresh = await runDiscussionOperation("fixture", { action: "detail", discussionId });
+  assert.ok(fresh.ok && fresh.data.kind === "detail");
+  assert.equal(fresh.data.thread.state?.category, "Help");
+  assert.equal(fresh.data.thread.state?.status, "open");
+  assert.equal(fresh.data.thread.accepted_answer, undefined);
   assert.equal((await runDiscussionOperation("fixture", { action: "reply", ...contextual })).ok, false);
 });

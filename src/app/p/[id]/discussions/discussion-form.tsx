@@ -33,6 +33,7 @@ export function DiscussionForm({ endpoint, actor, action, fields, replies, submi
   const [pending, setPending] = useState<Record<string, unknown> | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
+  const [stale, setStale] = useState(false);
   const locked = busy || pending !== null;
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -47,6 +48,7 @@ export function DiscussionForm({ endpoint, actor, action, fields, replies, submi
     };
     setBusy(true);
     setMessage("");
+    setStale(false);
     try {
       const response = await fetch(endpoint, {
         method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(request),
@@ -55,6 +57,7 @@ export function DiscussionForm({ endpoint, actor, action, fields, replies, submi
       if (!result.ok) {
         setPending(recoverable.has(result.error.code) ? request : null);
         setMessage(result.error.message);
+        setStale(["stale_revision", "resource_conflict"].includes(result.error.code));
         return;
       }
       if (!result.data.indexed) {
@@ -68,8 +71,10 @@ export function DiscussionForm({ endpoint, actor, action, fields, replies, submi
         setBody("");
         setReplyTo("");
       }
-      if (navigate || action.action === "reply") router.push(result.data.href);
-      else router.refresh();
+      const current = window.location.pathname + window.location.search + window.location.hash;
+      if ((navigate || action.action === "reply" || window.location.search) && result.data.href !== current) {
+        router.push(result.data.href);
+      } else router.refresh();
     } catch {
       setPending(request);
       setMessage("Workbox could not confirm the result. Retry the same submission.");
@@ -102,6 +107,11 @@ export function DiscussionForm({ endpoint, actor, action, fields, replies, submi
         <span className="wb-muted text-xs" title={actor.actor}>Signing as {actor.name || actor.actor.slice(0, 12)}</span>
       </div>
       {message && <p role="status" className="text-sm">{message}</p>}
+      {stale && <button type="button" className="wb-btn" onClick={() => {
+        router.refresh();
+        setStale(false);
+        setMessage("Review the refreshed revisions before submitting again. Your draft is still here.");
+      }}>Refresh discussion</button>}
     </form>
   );
 }

@@ -4,6 +4,7 @@ import { MarkdownContent } from "@/components/markdown-editor";
 import { renderMarkdown } from "@/lib/workbox/markdown";
 import { runDiscussionOperation } from "@/lib/workbox/discussions";
 import { DiscussionForm } from "../discussion-form";
+import { ReplyActions, ThreadActions } from "../discussion-management";
 
 export const instant = false;
 
@@ -47,6 +48,7 @@ export default async function DiscussionPage({ params, searchParams }: {
           <MarkdownContent html={renderMarkdown(head.state.body)} />
         </article>)}
       </section>}
+      {signer.available && <ThreadActions endpoint={endpoint} actor={signer.identity} thread={thread} />}
       {thread.accepted_answer && <section className="wb-panel space-y-2 p-4" aria-label="Accepted answer">
         <h2 className="font-semibold">Accepted answer</h2>
         <p className="wb-muted text-xs">{author(thread.accepted_answer.actor)} · Revision {thread.accepted_answer.id.slice(7, 19)}</p>
@@ -57,6 +59,8 @@ export default async function DiscussionPage({ params, searchParams }: {
         <p className="wb-muted text-xs">{author(contextReply.creator)} · {contextReply.id.slice(7, 19)}</p>
         {contextReply.state ? <MarkdownContent html={renderMarkdown(contextReply.state.body)} /> :
           <p className="wb-muted">This reply has conflicting revisions.</p>}
+        {signer.available && !replies.some(reply => reply.id === contextReply.id) &&
+          <ReplyActions endpoint={endpoint} actor={signer.identity} thread={thread} reply={contextReply} />}
       </section>}
       <section className="space-y-3" aria-label="Replies">
         <h2 className="font-semibold">{thread.reply_count ?? replies.length} replies</h2>
@@ -76,6 +80,7 @@ export default async function DiscussionPage({ params, searchParams }: {
                 </section>)}
               </details>
             )}
+            {signer.available && <ReplyActions endpoint={endpoint} actor={signer.identity} thread={thread} reply={reply} />}
           </article>
         ))}
         {nextCursor && <Link className="wb-link" href={`${href}?${new URLSearchParams({ cursor: nextCursor })}`}>Next replies</Link>}
