@@ -23,6 +23,7 @@
   "purpose_context": "Give maintainers a Settings tab for repository details and workflows with revision-aware reads, side-effect-free draft validation, and governed proposals.",
   "purpose_tldr": "Inspect repository settings and propose validated workflow changes with browser and MCP parity.",
   "slug": "repo-settings-01M78KTG",
+  "status_phase": "1",
   "target_branch": "feat/repo-settings",
   "topology": "single_branch"
 }
