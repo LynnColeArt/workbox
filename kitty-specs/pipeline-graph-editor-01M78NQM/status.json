@@ -108,6 +108,7 @@
     },
     "WP04": {
       "actor": "codex",
+      "agent": "codex",
       "agent_profile": "__resolved_profile_absent__",
       "agent_profile_version": "__resolved_profile_version_absent__",
       "force_count": 0,
@@ -115,6 +116,9 @@
       "last_event_id": "01M78PFN0FN3JM5TAYBYS1ETFS",
       "last_transition_at": "2026-11-12T20:16:45.071386+00:00",
       "model": "__resolved_model_absent__",
+      "notes": [
+        "Browser HTTP and MCP transport implementations available."
+      ],
       "provider": "__resolved_provider_absent__",
       "role": "implementer"
     },
