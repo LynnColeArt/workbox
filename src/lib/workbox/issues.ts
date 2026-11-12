@@ -6,10 +6,11 @@ import {
   type CollaborationResult,
 } from "./collaboration";
 import { openDb } from "./db";
-import { getIssue, type ProjectSummary } from "./queries";
+import type { ProjectSummary } from "./queries";
 
 const title = z.string().max(1024).refine(value => value.trim().length > 0);
 const body = z.string().max(65_536);
+const commentBody = body.refine(text => text.trim().length > 0 && !text.includes("\0"));
 const labels = z.array(z.string().min(1).max(256)).max(64);
 const expected = z.array(eventId).min(1).max(200).refine(ids => new Set(ids).size === ids.length);
 const state = z.object({
@@ -34,6 +35,7 @@ const nativeHistory = z.object({
   parents: z.array(eventId), state: state.optional(), body: z.string().default(""), intent: z.string().optional(),
 });
 const page = <T extends z.ZodType>(item: T) => z.object({ items: z.array(item), total: z.number() });
+const headsPage = page(nativeHead);
 const identifier = z.union([eventId, z.number().int().min(1).max(Number.MAX_SAFE_INTEGER)]);
 
 const listInput = z.strictObject({
@@ -47,7 +49,7 @@ const patchFields = { title: title.optional(), body: body.optional(), labels: la
 const signedIssue = { ...signingFields, issueId: identifier };
 const mutationInput = z.discriminatedUnion("action", [
   z.strictObject({ action: z.literal("create"), ...signingFields, title, body: body.default(""), labels: labels.default([]) }),
-  z.strictObject({ action: z.literal("comment"), ...signedIssue, body: body.refine(text => text.trim().length > 0) }),
+  z.strictObject({ action: z.literal("comment"), ...signedIssue, body: commentBody }),
   z.strictObject({ action: z.literal("revise"), ...signedIssue, expected: expected.refine(ids => ids.length === 1), ...patchFields }),
   z.strictObject({ action: z.literal("close"), ...signedIssue, expected: expected.refine(ids => ids.length === 1) }),
   z.strictObject({ action: z.literal("reopen"), ...signedIssue, expected: expected.refine(ids => ids.length === 1) }),
@@ -82,8 +84,9 @@ function actorNames(project: string) {
 
 function localIssueMetadata(project: string, issueId: string) {
   using db = openDb();
-  const issue = getIssue(db, project, issueId);
-  return { number: issue?.number ?? null, createdAt: issue?.createdAt ?? null };
+  const issue = db.prepare("SELECT number, created_at AS createdAt FROM issues WHERE project_id = ? AND issue_id = ?")
+    .get(project, issueId) as { number: number | null; createdAt: string | null } | undefined;
+  return issue ?? { number: null, createdAt: null };
 }
 
 function nativeArgs(command: string[], limit: number, cursor: string | null | undefined) {
@@ -100,6 +103,7 @@ function decodeListCursor(raw: string | undefined, query: string) {
 }
 
 export async function readIssueList(project: ProjectSummary, input: z.infer<typeof listInput>) {
+  if (!listInput.safeParse(input).success) return collaborationError("invalid_input", "Review the issue filters and page options.");
   const q = input.q?.trim().toLowerCase() ?? "";
   const label = input.label?.trim().toLowerCase() ?? "";
   const numberQuery = /^#?(\d+)$/.exec(q)?.[1];
@@ -146,6 +150,7 @@ async function readIssueHistory(project: ProjectSummary, issueId: string, kind: 
 }
 
 export async function readIssueDetail(project: ProjectSummary, input: z.infer<typeof detailInput>) {
+  if (!detailInput.safeParse(input).success) return collaborationError("invalid_input", "Provide a valid issue ID and page options.");
   const issueId = issueRoot(project.id, input.issueId);
   if (!issueId) return collaborationError("not_found", "Issue not found.");
   const [shown, comments, revisions, signer] = await Promise.all([
@@ -165,8 +170,8 @@ export async function readIssueDetail(project: ProjectSummary, input: z.infer<ty
   if (issue.conflict) {
     let cursor: string | null = null;
     do {
-      const read = await nativeCollaboration(project.repoPath,
-        nativeArgs(["issue", "heads", issueId], nativePageSize, cursor), page(nativeHead));
+      const read: CollaborationResult<{ value: z.infer<typeof headsPage>; cursor: string | null; snapshot: string | null }> =
+        await nativeCollaboration(project.repoPath, nativeArgs(["issue", "heads", issueId], nativePageSize, cursor), headsPage);
       if (!read.ok) return read;
       if (read.data.snapshot !== snapshot) return changed();
       heads.push(...read.data.value.items);
@@ -234,9 +239,11 @@ export async function writeIssue(project: ProjectSummary, input: z.infer<typeof 
   });
   if (!result.ok) return result;
   const id = result.data.id;
-  return { ok: true, data: {
-    ...result.data, issueId: id, number: localIssueMetadata(project.id, id).number, href: issueHref(project.id, id),
-  } } as const;
+  let number: number | null = null;
+  if (result.data.indexed) {
+    try { number = localIssueMetadata(project.id, id).number; } catch { /* The signed result remains available. */ }
+  }
+  return { ok: true, data: { ...result.data, issueId: id, number, href: issueHref(project.id, id) } } as const;
 }
 
 export type IssueList = Extract<Awaited<ReturnType<typeof readIssueList>>, { ok: true }>["data"];
@@ -267,7 +274,7 @@ export async function legacyCreateIssue(projectId: string, raw: unknown) {
 }
 
 export async function legacyCommentIssue(projectId: string, raw: unknown) {
-  const input = z.object({ number: z.number().int().positive(), comment: body.refine(text => text.trim().length > 0) }).safeParse(raw);
+  const input = z.object({ number: z.number().int().positive(), comment: commentBody }).safeParse(raw);
   if (!input.success) return collaborationError("invalid_input", "A valid issue number and comment are required.");
   const project = collaborationProject(projectId);
   if (!project) return collaborationError("not_found", "Project not found.");

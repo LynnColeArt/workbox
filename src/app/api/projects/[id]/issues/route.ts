@@ -12,12 +12,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     return collaborationResponse(collaborationError("invalid_input", "Provide a JSON issue operation."));
   }
   if ("action" in input && (input.action === "list" || input.action === "detail")) {
-    return collaborationResponse(await runIssueOperation(id, input));
+    return collaborationResponse<unknown>(await runIssueOperation(id, input));
   }
   if (!canSignCollaborationRequest(request)) {
     return Response.json(collaborationError("permission_denied", "Issue changes require a local Workbox request."), { status: 403 });
   }
-  if ("action" in input) return collaborationResponse(await runIssueOperation(id, input));
+  if ("action" in input) return collaborationResponse<unknown>(await runIssueOperation(id, input));
 
   const created = await legacyCreateIssue(id, input);
   if (!created.ok) return collaborationResponse(created);
