@@ -1,19 +1,19 @@
 {
-  "event_count": 20,
-  "last_event_id": "01M78PFJ6WBSBMY79YB37TMB7C",
-  "materialized_at": "2026-11-12T20:16:42.204636+00:00",
+  "event_count": 21,
+  "last_event_id": "01M78PFKMMKN3272M4YEA9XN6V",
+  "materialized_at": "2026-11-12T20:16:43.668921+00:00",
   "mission_number": "",
   "mission_slug": "pipeline-graph-editor-01M78NQM",
   "mission_type": "software-dev",
   "summary": {
-    "approved": 2,
+    "approved": 3,
     "blocked": 0,
     "canceled": 0,
     "claimed": 0,
     "done": 0,
     "for_review": 0,
     "in_progress": 0,
-    "in_review": 1,
+    "in_review": 0,
     "planned": 3
   },
   "work_packages": {
@@ -82,9 +82,9 @@
       "agent_profile": "__resolved_profile_absent__",
       "agent_profile_version": "__resolved_profile_version_absent__",
       "force_count": 0,
-      "lane": "in_review",
-      "last_event_id": "01M78PFJ6WBSBMY79YB37TMB7C",
-      "last_transition_at": "2026-11-12T20:16:42.204636+00:00",
+      "lane": "approved",
+      "last_event_id": "01M78PFKMMKN3272M4YEA9XN6V",
+      "last_transition_at": "2026-11-12T20:16:43.668921+00:00",
       "model": "__resolved_model_absent__",
       "notes": [
         "Exact byte review implementation and verification available.",
@@ -92,6 +92,12 @@
         "Independent review of diff bounds, newline fidelity, and receipt reuse."
       ],
       "provider": "__resolved_provider_absent__",
+      "review_result": {
+        "feedback_path": "/tmp/workbox-graph-status-SUCA5f/kitty-specs/pipeline-graph-editor-01M78NQM/tasks/WP03-exact-review/review-cycle-1.md",
+        "reference": "review-cycle://pipeline-graph-editor-01M78NQM/WP03-exact-review/review-cycle-1.md",
+        "reviewer": "draft",
+        "verdict": "approved"
+      },
       "role": "reviewer",
       "subtasks": {
         "T006": "done",
