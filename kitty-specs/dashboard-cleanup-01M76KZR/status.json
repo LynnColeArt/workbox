@@ -63,17 +63,20 @@
         "Independent reviewer checks exclusive claims, native bootstrap and recovery."
       ],
       "provider": "__resolved_provider_absent__",
+      "review": null,
       "review_result": {
         "feedback_path": "/home/lynn/.codex/worktrees/workbox-url-plan/workbox/kitty-specs/dashboard-cleanup-01M76KZR/tasks/WP02-project-creation/review-cycle-1.md",
         "reference": "review-cycle://dashboard-cleanup-01M76KZR/WP02-project-creation/review-cycle-1.md",
         "reviewer": "reviewer-renata",
         "verdict": "changes_requested"
       },
-      "role": "reviewer",
+      "role": "implementer",
+      "shell_pid": null,
+      "shell_pid_created_at": null,
       "subtasks": {
-        "T004": "done",
-        "T005": "done",
-        "T006": "done"
+        "T004": "planned",
+        "T005": "planned",
+        "T006": "planned"
       }
     },
     "WP03": {
