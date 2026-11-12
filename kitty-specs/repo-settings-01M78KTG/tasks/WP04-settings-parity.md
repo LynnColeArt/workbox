@@ -1,11 +1,19 @@
 ---
 work_package_id: WP04
 title: Settings browser and MCP parity
-dependencies: [WP01, WP02]
-requirement_refs: [FR-001, FR-003, FR-004, FR-005, FR-006, FR-007]
+dependencies:
+- WP01
+- WP02
+requirement_refs:
+- FR-001
+- FR-003
+- FR-004
+- FR-005
+- FR-006
+- FR-007
 planning_base_branch: feat/repo-settings
 merge_target_branch: feat/repo-settings
-branch_strategy: Land changes on feat/repo-settings.
+branch_strategy: Planning artifacts for this mission were generated on feat/repo-settings. During /spec-kitty.implement this WP may branch from a dependency-specific base, but completed changes must merge back into feat/repo-settings unless the human explicitly redirects the landing branch.
 subtasks:
 - T007
 - T008
