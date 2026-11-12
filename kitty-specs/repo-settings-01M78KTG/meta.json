@@ -1,4 +1,16 @@
 {
+  "acceptance_history": [
+    {
+      "acceptance_mode": "local",
+      "accepted_at": "2026-11-12T19:56:39.500225+00:00",
+      "accepted_by": "codex",
+      "accepted_from_commit": "93951a1aa3af42e50dcd3129e254ff19a73b17e6"
+    }
+  ],
+  "acceptance_mode": "local",
+  "accepted_at": "2026-11-12T19:56:39.500225+00:00",
+  "accepted_by": "codex",
+  "accepted_from_commit": "93951a1aa3af42e50dcd3129e254ff19a73b17e6",
   "created_at": "2026-11-12T19:30:16.007972+00:00",
   "flattened": false,
   "friendly_name": "Repository Settings and workflow proposals",
