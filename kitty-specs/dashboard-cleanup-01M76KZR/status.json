@@ -115,6 +115,7 @@
     },
     "WP04": {
       "actor": "codex",
+      "agent": "codex",
       "agent_profile": "__resolved_profile_absent__",
       "agent_profile_version": "__resolved_profile_version_absent__",
       "force_count": 0,
@@ -122,6 +123,9 @@
       "last_event_id": "01M78CCXAR0MKVPMBFKQPAR2FX",
       "last_transition_at": "2026-11-12T17:20:29.528820+00:00",
       "model": "__resolved_model_absent__",
+      "notes": [
+        "Implement dashboard and project creation MCP parity and run integrated verification."
+      ],
       "provider": "__resolved_provider_absent__",
       "role": "implementer"
     }
