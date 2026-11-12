@@ -115,7 +115,8 @@
       "last_transition_at": "2026-11-12T19:54:09.140231+00:00",
       "model": "__resolved_model_absent__",
       "notes": [
-        "Browser and MCP reads, edits, preview, stale inputs and unavailable submit path are implemented. Successful submission parity depends on WP03."
+        "Browser and MCP reads, edits, preview, stale inputs and unavailable submit path are implemented. Successful submission parity depends on WP03.",
+        "Independent review and production browser/MCP tests verify exact signing, stable retries, and recovery without duplicate events."
       ],
       "provider": "__resolved_provider_absent__",
       "role": "implementer",
