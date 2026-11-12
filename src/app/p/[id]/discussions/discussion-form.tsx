@@ -68,7 +68,7 @@ export function DiscussionForm({ endpoint, actor, action, fields, replies, submi
         setBody("");
         setReplyTo("");
       }
-      if (navigate) router.push(result.data.href);
+      if (navigate || action.action === "reply") router.push(result.data.href);
       else router.refresh();
     } catch {
       setPending(request);

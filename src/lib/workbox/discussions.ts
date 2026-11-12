@@ -94,8 +94,9 @@ export async function runDiscussionOperation(projectId: string, raw: unknown, ma
       };
   const result = await signCollaboration(project, { ...mutation, actor: input.actor, operationId: input.operationId });
   if (!result.ok) return result;
-  const root = input.action === "create" ? result.data.id : input.discussionId;
+  const href = input.action === "create" ? discussionHref(project.id, result.data.id) :
+    `${discussionHref(project.id, input.discussionId)}?${new URLSearchParams({ reply: result.data.id })}#reply-context`;
   return { ok: true, data: {
-    kind: "mutation", ...result.data, href: discussionHref(project.id, root),
+    kind: "mutation", ...result.data, href,
   } } as const;
 }

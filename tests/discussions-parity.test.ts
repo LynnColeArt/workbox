@@ -45,6 +45,14 @@ test("discussion reads and replies share native state, paging and operation repl
   assert.ok(posted.ok && posted.data.kind === "mutation");
   assert.deepEqual(await byMcp("workbox_reply_discussion", contextual), { ok: true, data: { ...posted.data, replayed: true } });
 
+  const oversized = { schema: "hn.discussion/1", title: "T".repeat(513), category: "S".repeat(129),
+    body: " ".repeat(60_001) + "Markdown", status: "open" };
+  execFileSync(HN_BIN, ["discussion", "open", "--input", "-", "--json"], {
+    cwd: dir, input: JSON.stringify(oversized),
+  });
+  const nativeList = await runDiscussionOperation("fixture", { action: "list" });
+  assert.ok(nativeList.ok && nativeList.data.kind === "list");
+  assert.equal(nativeList.data.items.find(item => item.state?.title === oversized.title)?.state?.body, oversized.body);
   const filters = { category: "questions", status: "open" };
   assert.deepEqual(await byMcp("workbox_list_discussions", filters),
     await runDiscussionOperation("fixture", { action: "list", ...filters }));
@@ -58,5 +66,9 @@ test("discussion reads and replies share native state, paging and operation repl
   assert.deepEqual(await byMcp("workbox_discussion_detail", next), secondPage);
   assert.ok(secondPage.ok && secondPage.data.kind === "detail");
   assert.ok([...firstPage.data.replies, ...secondPage.data.replies].some(reply => reply.state?.reply_to === replyTo));
+  const context = await runDiscussionOperation("fixture", { action: "detail", discussionId, replyId: replyTo, limit: 1 });
+  assert.ok(context.ok && context.data.kind === "detail");
+  assert.equal(context.data.contextReply?.id, replyTo);
+  assert.match(posted.data.href, /reply=.*#reply-context$/);
   assert.equal((await runDiscussionOperation("fixture", { action: "reply", ...contextual })).ok, false);
 });
