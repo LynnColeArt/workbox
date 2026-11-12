@@ -1,7 +1,7 @@
 {
-  "event_count": 26,
-  "last_event_id": "01M78PFTXDQE9P35J9D949PYP0",
-  "materialized_at": "2026-11-12T20:16:51.117513+00:00",
+  "event_count": 27,
+  "last_event_id": "01M78PFW9RGRQM1SQW5PCJ5HMC",
+  "materialized_at": "2026-11-12T20:16:52.536175+00:00",
   "mission_number": "",
   "mission_slug": "pipeline-graph-editor-01M78NQM",
   "mission_type": "software-dev",
@@ -9,12 +9,12 @@
     "approved": 4,
     "blocked": 0,
     "canceled": 0,
-    "claimed": 0,
+    "claimed": 1,
     "done": 0,
     "for_review": 0,
     "in_progress": 0,
     "in_review": 0,
-    "planned": 2
+    "planned": 1
   },
   "work_packages": {
     "WP01": {
@@ -136,11 +136,16 @@
       }
     },
     "WP05": {
-      "actor": "finalize-tasks",
+      "actor": "codex",
+      "agent_profile": "__resolved_profile_absent__",
+      "agent_profile_version": "__resolved_profile_version_absent__",
       "force_count": 0,
-      "lane": "planned",
-      "last_event_id": "01M78P388GNYSCBEH33N13FN9Y",
-      "last_transition_at": "2026-11-12T20:09:58.800133+00:00"
+      "lane": "claimed",
+      "last_event_id": "01M78PFW9RGRQM1SQW5PCJ5HMC",
+      "last_transition_at": "2026-11-12T20:16:52.536175+00:00",
+      "model": "__resolved_model_absent__",
+      "provider": "__resolved_provider_absent__",
+      "role": "implementer"
     },
     "WP06": {
       "actor": "finalize-tasks",
