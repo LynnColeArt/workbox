@@ -15,6 +15,38 @@ const GIT_REDIRECT_ENV = ["GIT_DIR", "GIT_COMMON_DIR", "GIT_WORK_TREE", "GIT_IND
 const RESERVED = new Set(["workbox", "node_modules", "logs", "var"]);
 const GIT_AUTHOR = ["-c", "user.name=Workbox", "-c", "user.email=workbox@localhost"];
 const FOUNDING_TITLE = "Project created by Workbox";
+const GO_STARTER_STEPS = [
+  { id: "go-test", name: "Go test", action: "test", description: "Run Go tests for the selected packages." },
+  { id: "go-build", name: "Go build", action: "build", description: "Compile the selected Go packages." },
+];
+const GO_PACKAGE_PATTERN = "./...";
+const GO_STEP_TIMEOUT = 300;
+
+function starterWorkflowFiles() {
+  const pipeline = {
+    version: "hn.pipeline/0",
+    steps: GO_STARTER_STEPS.map(({ name, action }) => ({
+      name, command: "go", args: [action, GO_PACKAGE_PATTERN], timeoutSeconds: GO_STEP_TIMEOUT,
+    })),
+  };
+  const catalog = {
+    schema: "workbox.pipeline-templates/1",
+    templates: GO_STARTER_STEPS.map(({ id, name, action, description }) => ({
+      id, label: name, description,
+      inputs: [
+        { key: "packages", label: "Package pattern", type: "string", default: GO_PACKAGE_PATTERN },
+        { key: "timeout", label: "Step timeout (seconds)", type: "integer", default: GO_STEP_TIMEOUT },
+      ],
+      step: {
+        name, command: "go", args: [action, { input: "packages" }], timeoutSeconds: { input: "timeout" },
+      },
+    })),
+  };
+  return {
+    ".hn/pipelines/test.json": JSON.stringify(pipeline, null, 2) + "\n",
+    ".hn/pipeline-templates.json": JSON.stringify(catalog, null, 2) + "\n",
+  };
+}
 
 export interface CreateProjectInput {
   id: string;
@@ -141,11 +173,13 @@ function activeClaim(path: string) {
   }
 }
 
-function commitFile(repoPath: string, path: string, content: string, message: string) {
-  const file = join(repoPath, path);
-  mkdirSync(/*turbopackIgnore: true*/ dirname(file), { recursive: true });
-  writeFileSync(/*turbopackIgnore: true*/ file, content, { flag: "wx" });
-  if (!git(repoPath, ["add", "--", path]).ok || !git(repoPath, [...GIT_AUTHOR, "commit", "-m", message]).ok) {
+function commitFiles(repoPath: string, files: Record<string, string>, message: string) {
+  for (const [path, content] of Object.entries(files)) {
+    const file = join(repoPath, path);
+    mkdirSync(/*turbopackIgnore: true*/ dirname(file), { recursive: true });
+    writeFileSync(/*turbopackIgnore: true*/ file, content, { flag: "wx" });
+  }
+  if (!git(repoPath, ["add", "--", ...Object.keys(files)]).ok || !git(repoPath, [...GIT_AUTHOR, "commit", "-m", message]).ok) {
     throw new Error("Git bootstrap commit failed");
   }
 }
@@ -162,7 +196,7 @@ async function bootstrap(dir: string, input: NormalizedInput, owner: DirectoryId
   }
   assertOwnership();
   if (!git(dir, ["init", "-b", "main"]).ok) throw new Error("Git initialization failed");
-  commitFile(dir, "README.md", `# ${input.name}\n\n${input.description || "Created via Workbox."}\n`, "init: repository created via Workbox");
+  commitFiles(dir, { "README.md": `# ${input.name}\n\n${input.description || "Created via Workbox."}\n` }, "init: repository created via Workbox");
 
   const initialized = await runHn(dir, ["init", "--name", input.name]);
   assertOwnership();
@@ -181,7 +215,10 @@ async function bootstrap(dir: string, input: NormalizedInput, owner: DirectoryId
     proposals: { requiredApprovals: 1, requiredAccepts: 1, trustedReviewers: [actor], allowAuthorApproval: false },
     pipelines: { test: { requiredResults: 1, trustedRunners: [actor] } },
   };
-  commitFile(dir, ".hn/policy.json", JSON.stringify(policy, null, 2) + "\n", "governance: instance actor as maintainer and trusted runner");
+  commitFiles(dir, {
+    ".hn/policy.json": JSON.stringify(policy, null, 2) + "\n",
+    ...starterWorkflowFiles(),
+  }, "governance: configure policy and starter workflow");
 
   const opened = await runHn(dir, [
     "issue", "open", "--json", "--body",

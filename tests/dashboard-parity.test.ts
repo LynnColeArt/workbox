@@ -236,6 +236,39 @@ test("dashboard and MCP share snapshot visuals, public data, and project creatio
     assert.match(await getPage(origin, result.foundingIssue.url, t.signal), /Project created by Workbox/);
     const issue = await client.call<{ title: string }>("workbox_issue", { project: result.id, number: result.foundingIssue.number });
     assert.equal(issue.data.title, "Project created by Workbox");
+    assert.match(await getPage(origin, result.url + "/settings", t.signal), /Go test[\s\S]*Go build/);
+    const project = result.id;
+    const { data: opened } = await client.call<import("../src/lib/workbox/pipeline-draft").PipelineDraftResult>(
+      "workbox_open_pipeline_draft", { project, name: "test" },
+    );
+    assert.ok(opened.ok, JSON.stringify(opened));
+    const draft = opened.data;
+    assert.deepEqual(draft.nodes.map(({ step }) => step.args), [["test", "./..."], ["build", "./..."]]);
+    const settings = async <T>(action: string, args: Record<string, unknown>) => {
+      const response = await fetch(origin + "/api/projects/" + project + "/settings", {
+        method: "POST", headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action, ...args }), signal: t.signal,
+      });
+      assert.equal(response.status, 200);
+      return await response.json() as T;
+    };
+    const catalog = await settings<{ data: import("../src/lib/workbox/pipeline-templates").PipelineTemplateCatalog }>("draft_templates", { draft });
+    assert.deepEqual(catalog, (await client.call("workbox_pipeline_templates", { project, draft })).data);
+    assert.deepEqual(catalog.data.templates.map(({ id }) => id), ["go-test", "go-build"]);
+    const edit = {
+      draft, expectedRevision: draft.revision,
+      edit: { kind: "expand_template", templateId: "go-build", inputs: { packages: "./cmd/cli", timeout: 120 } },
+    };
+    const customized = await settings<import("../src/lib/workbox/pipeline-draft").PipelineDraftResult>("draft_edit", edit);
+    const agentEdit = (await client.call<import("../src/lib/workbox/pipeline-draft").PipelineDraftResult>(
+      "workbox_edit_pipeline_draft", { project, ...edit },
+    )).data;
+    assert.ok(agentEdit.ok, JSON.stringify(agentEdit));
+    assert.ok(customized.ok, JSON.stringify(customized));
+    assert.equal(customized.data.definition, agentEdit.data.definition);
+    assert.deepEqual(agentEdit.data.nodes.at(-1)?.step, {
+      name: "Go build", command: "go", args: ["build", "./cmd/cli"], timeoutSeconds: 120,
+    });
   }
   expectError(await createAgent({id:normalized.id}), "conflict");
   const existing = join(busy.root, "already-here");
