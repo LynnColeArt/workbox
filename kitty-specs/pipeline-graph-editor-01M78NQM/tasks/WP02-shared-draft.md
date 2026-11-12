@@ -13,7 +13,7 @@ requirement_refs:
 - FR-009
 planning_base_branch: feat/pipeline-graph-editor
 merge_target_branch: feat/pipeline-graph-editor
-branch_strategy: Land changes on feat/pipeline-graph-editor.
+branch_strategy: Planning artifacts for this mission were generated on feat/pipeline-graph-editor. During /spec-kitty.implement this WP may branch from a dependency-specific base, but completed changes must merge back into feat/pipeline-graph-editor unless the human explicitly redirects the landing branch.
 subtasks:
 - T003
 - T004
