@@ -167,6 +167,7 @@
     },
     "WP06": {
       "actor": "codex",
+      "agent": "codex",
       "agent_profile": "__resolved_profile_absent__",
       "agent_profile_version": "__resolved_profile_version_absent__",
       "force_count": 0,
@@ -174,6 +175,9 @@
       "last_event_id": "01M78PTEWHEN7JTFD8DJT141QG",
       "last_transition_at": "2026-11-12T20:22:39.249985+00:00",
       "model": "__resolved_model_absent__",
+      "notes": [
+        "Integrated parity fixtures and production regression checks completed."
+      ],
       "provider": "__resolved_provider_absent__",
       "role": "implementer"
     }
