@@ -1,6 +1,7 @@
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { setTimeout as delay } from "node:timers/promises";
 import { z } from "zod";
 import { runHn } from "./runner";
 
@@ -28,7 +29,18 @@ export async function nativeCollaboration<T>(
       await writeFile(/*turbopackIgnore: true*/ path, JSON.stringify(input), { mode: 0o600, flag: "wx" });
       flags.push("--input", path);
     }
-    const result = await runHn(repo, [...flags, "--json"], 30_000, { maxOutputBytes: 8 * 1024 * 1024, localRead: true });
+    const execute = () => runHn(repo, [...flags, "--json"], 30_000, { maxOutputBytes: 8 * 1024 * 1024, localRead: true });
+    const busy = (result: Awaited<ReturnType<typeof runHn>>) =>
+      result.exitCode !== 0 && result.stderr.includes("contribution operation busy:");
+    let result = await execute();
+    // Governed reads and writes may contend for Hubnot's native admission lock.
+    // This diagnostic means the command could not acquire the lock.
+    for (const wait of [35, 75, 150, 300]) {
+      if (!busy(result)) break;
+      await delay(wait);
+      result = await execute();
+    }
+    if (busy(result)) return collaborationError("concurrent_update", "Hubnot is processing another contribution. Retry this operation.");
     const { envelope } = result;
     if (result.exitCode !== 0 || !envelope.ok) {
       const code = envelope.error?.code ?? "native_unavailable";
