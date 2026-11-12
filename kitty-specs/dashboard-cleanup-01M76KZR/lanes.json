@@ -1,0 +1,98 @@
+{
+  "version": 1,
+  "mission_slug": "dashboard-cleanup-01M76KZR",
+  "mission_id": "01M76KZRAB2JXHXZSZHSPXFR2C",
+  "mission_branch": "kitty/mission-dashboard-cleanup-01M76KZR",
+  "target_branch": "feat/dashboard-cleanup",
+  "lanes": [
+    {
+      "lane_id": "lane-a",
+      "wp_ids": [
+        "WP01"
+      ],
+      "write_scope": [
+        "src/lib/workbox/activity.ts",
+        "src/lib/workbox/dashboard-chart.ts",
+        "src/lib/workbox/dashboard.ts",
+        "tests/dashboard-read.test.ts"
+      ],
+      "predicted_surfaces": [
+        "api",
+        "artifact-rendering",
+        "dashboard"
+      ],
+      "depends_on_lanes": [],
+      "parallel_group": 0
+    },
+    {
+      "lane_id": "lane-b",
+      "wp_ids": [
+        "WP02"
+      ],
+      "write_scope": [
+        "src/app/api/projects/route.ts",
+        "src/lib/workbox/create.ts",
+        "src/lib/workbox/discover.ts",
+        "tests/dashboard-project-creation.test.ts"
+      ],
+      "predicted_surfaces": [
+        "api",
+        "dashboard",
+        "legacy-cleanup"
+      ],
+      "depends_on_lanes": [],
+      "parallel_group": 0
+    },
+    {
+      "lane_id": "lane-c",
+      "wp_ids": [
+        "WP03"
+      ],
+      "write_scope": [
+        "package-lock.json",
+        "package.json",
+        "src/app/page.tsx",
+        "src/components/new-project-dialog.tsx",
+        "src/components/new-project-form.tsx"
+      ],
+      "predicted_surfaces": [
+        "api",
+        "app-shell",
+        "artifact-rendering",
+        "dashboard",
+        "legacy-cleanup"
+      ],
+      "depends_on_lanes": [
+        "lane-a",
+        "lane-b"
+      ],
+      "parallel_group": 1
+    },
+    {
+      "lane_id": "lane-d",
+      "wp_ids": [
+        "WP04"
+      ],
+      "write_scope": [
+        "mcp/server.ts",
+        "tests/dashboard-parity.test.ts"
+      ],
+      "predicted_surfaces": [
+        "api",
+        "app-shell",
+        "dashboard",
+        "legacy-cleanup"
+      ],
+      "depends_on_lanes": [
+        "lane-a",
+        "lane-b",
+        "lane-c"
+      ],
+      "parallel_group": 2
+    }
+  ],
+  "computed_at": "2026-11-12T13:21:41.874635+00:00",
+  "computed_from": "dependency_graph+ownership",
+  "planning_artifact_wps": [],
+  "planning_commit_sha": "6cf8d5a1957f2c7d1e05a751b2d3a97e5c77e123"
+}
