@@ -87,6 +87,7 @@
       "model": "__resolved_model_absent__",
       "notes": [
         "Checked native signer and retry capability. Current native command cannot safely publish or recover Settings proposals.",
+        "Independent review and production browser/MCP tests verify exact signing, stable retries, and recovery without duplicate events.",
         "Independent review and production browser/MCP tests verify exact signing, stable retries, and recovery without duplicate events."
       ],
       "provider": "__resolved_provider_absent__",
