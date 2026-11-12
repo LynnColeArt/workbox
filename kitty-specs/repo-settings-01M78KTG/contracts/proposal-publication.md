@@ -1,6 +1,6 @@
 # Native proposal publication dependency
 
-The installed Hubnot binary advertises signed workflow reads and exact proposal reads, but its proposal creation command has no operation key or expected signer. The existing implementation signs first and publishes the code ref afterward. A crash or failed ref write can therefore leave a signed opening without a usable proposal.
+The legacy Hubnot proposal command has no operation key or expected signer. The native publication capability provides those guarantees for Workbox Settings.
 
 Workbox needs a native operation with the following behavior before enabling the Settings submit action.
 
@@ -18,3 +18,9 @@ Workbox needs a native operation with the following behavior before enabling the
 The capability must continue to enforce Hubnot's existing candidate checks and contribution policy. Acceptance requires real native fixtures for duplicate, concurrent, actor mismatch, and interruption after the signed event but before the caller receives its result. Workbox must also verify the exact proposal link through its normal read path.
 
 On installed Hubnot versions without this capability, Workbox validates and previews the draft without Git writes, and an explicit submit attempt returns `unsupported` through browser and MCP.
+
+## Native CLI
+
+Discover `native.proposal-publication` version 1 via `hn capabilities --json`.
+The publish command accepts `--base`, `--base-ref`, `--head`, `--actor`, `--operation`, `--title`, and `--body`. The operation lookup accepts `--actor` and `--operation`. Use `--json` on both.
+Workbox checks the returned proposal ID, signer, operation, base ref, exact base and candidate, title, body, and readiness before reporting success.

@@ -41,6 +41,7 @@ export async function runHn(
     const child = spawn(HN_BIN, args, {
       cwd: repoPath,
       timeout: timeoutMs,
+      stdio: ["ignore", "pipe", "pipe"],
       env,
     });
     const stdout: Buffer[] = [];
