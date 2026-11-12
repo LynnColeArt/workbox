@@ -57,7 +57,8 @@
       "last_transition_at": "2026-11-12T20:16:33.716541+00:00",
       "model": "__resolved_model_absent__",
       "notes": [
-        "Shared draft implementation and fixtures available for review."
+        "Shared draft implementation and fixtures available for review.",
+        "Exact JSON and shared draft state verified in focused fixtures."
       ],
       "provider": "__resolved_provider_absent__",
       "role": "implementer",
