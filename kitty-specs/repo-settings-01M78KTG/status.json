@@ -2,7 +2,7 @@
   "event_count": 32,
   "last_event_id": "01M78NGFA8SFF6CE4YG53FXV54",
   "materialized_at": "2026-11-12T19:59:43.432721+00:00",
-  "mission_number": "",
+  "mission_number": "4",
   "mission_slug": "repo-settings-01M78KTG",
   "mission_type": "software-dev",
   "summary": {
