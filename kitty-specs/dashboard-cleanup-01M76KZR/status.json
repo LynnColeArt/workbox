@@ -63,7 +63,8 @@
         "Independent reviewer checks exclusive claims, native bootstrap and recovery.",
         "Fix unfinished discovery through symlink aliases.",
         "Canonical alias visibility fix at 206e0e0; seven native and recovery fixtures pass.",
-        "Independent re-review checks canonical and lexical discovery and recovery."
+        "Independent re-review checks canonical and lexical discovery and recovery.",
+        "Independent re-review approved alias visibility, exclusive claims and verified indexing recovery. Seven native tests passed."
       ],
       "provider": "__resolved_provider_absent__",
       "review": null,
