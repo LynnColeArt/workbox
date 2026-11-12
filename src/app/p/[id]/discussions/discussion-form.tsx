@@ -34,6 +34,9 @@ export function DiscussionForm({ endpoint, actor, action, fields, replies, submi
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [stale, setStale] = useState(false);
+  const [reviewedExpected, setReviewedExpected] = useState(action.expected);
+  const revisionBound = fields?.body !== undefined && action.expected !== undefined;
+  const changed = revisionBound && JSON.stringify(reviewedExpected) !== JSON.stringify(action.expected);
   const locked = busy || pending !== null;
   const draftKey = fields?.body !== undefined && action.discussionId && action.action !== "reply"
     ? `workbox:discussion-draft:${endpoint}:${String(action.replyId ?? action.discussionId)}` : null;
@@ -79,9 +82,10 @@ export function DiscussionForm({ endpoint, actor, action, fields, replies, submi
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (busy) return;
+    if (busy || (changed && !pending)) return;
     const request = pending ?? {
-      ...action, actor: actor.actor, operationId: crypto.randomUUID(),
+      ...action, ...(revisionBound ? { expected: reviewedExpected } : {}),
+      actor: actor.actor, operationId: crypto.randomUUID(),
       ...(fields?.title !== undefined ? { title } : {}),
       ...(fields?.category !== undefined ? { category } : {}),
       ...(fields?.body !== undefined ? { body } : {}),
@@ -109,6 +113,7 @@ export function DiscussionForm({ endpoint, actor, action, fields, replies, submi
       }
       setPending(null);
       setMessage("Change signed.");
+      if (action.action === "revise" || action.action === "editReply") setReviewedExpected(result.data.eventId);
       try {
         if (draftKey) sessionStorage.removeItem(draftKey);
       } catch { /* The signed write already succeeded. */ }
@@ -131,6 +136,12 @@ export function DiscussionForm({ endpoint, actor, action, fields, replies, submi
   return (
     <form onSubmit={submit} className="wb-panel space-y-3 p-4">
       {heading && <h2 className="font-semibold">{heading}</h2>}
+      {changed && !pending && <div className="space-y-2 text-sm">
+        <p role="status">This item has a new revision. Review it above before applying your draft.</p>
+        <button type="button" className="wb-btn" onClick={() => setReviewedExpected(action.expected)}>
+          Use current revision and keep draft
+        </button>
+      </div>}
       {fields?.title !== undefined && <label className="block text-sm">Title
         <input required value={title} onChange={event => setTitle(event.target.value)} disabled={locked} className="wb-btn mt-1 w-full" />
       </label>}
@@ -146,7 +157,7 @@ export function DiscussionForm({ endpoint, actor, action, fields, replies, submi
       {fields?.body !== undefined && <MarkdownEditor label={action.action === "reply" ? "Reply" : "Body"}
         value={body} onChange={setBody} disabled={locked} required={action.action === "reply"} />}
       <div className="flex flex-wrap items-center gap-3">
-        <button className="wb-btn" disabled={busy} type="submit">
+        <button className="wb-btn" disabled={busy || (changed && !pending)} type="submit">
           {busy ? "Signing…" : pending ? "Retry submission" : submitLabel}
         </button>
         <span className="wb-muted text-xs" title={actor.actor}>Signing as {actor.name || actor.actor.slice(0, 12)}</span>
