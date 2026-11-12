@@ -1,7 +1,7 @@
 {
-  "event_count": 14,
-  "last_event_id": "01M78YJJFCCKN398FXYXFS4X03",
-  "materialized_at": "2026-11-12T22:38:09.388636+00:00",
+  "event_count": 16,
+  "last_event_id": "01M78YJRDY7HQV2GPKMZN5Y0BB",
+  "materialized_at": "2026-11-12T22:38:15.486318+00:00",
   "mission_number": "",
   "mission_slug": "issues-and-discussions-01M78WCK",
   "mission_type": "software-dev",
@@ -12,9 +12,9 @@
     "claimed": 0,
     "done": 0,
     "for_review": 0,
-    "in_progress": 1,
+    "in_progress": 2,
     "in_review": 0,
-    "planned": 5
+    "planned": 4
   },
   "work_packages": {
     "WP01": {
@@ -47,11 +47,14 @@
       }
     },
     "WP02": {
-      "actor": "finalize-tasks",
+      "actor": "codex",
+      "agent": "codex",
       "force_count": 0,
-      "lane": "planned",
-      "last_event_id": "01M78X7NNCQ07PET0VG2QEX8DQ",
-      "last_transition_at": "2026-11-12T22:14:43.628301+00:00"
+      "lane": "in_progress",
+      "last_event_id": "01M78YJRDY7HQV2GPKMZN5Y0BB",
+      "last_transition_at": "2026-11-12T22:38:15.486318+00:00",
+      "shell_pid": 113600,
+      "shell_pid_created_at": "1794523080.79"
     },
     "WP03": {
       "actor": "codex",
