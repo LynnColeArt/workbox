@@ -2,7 +2,7 @@
   "event_count": 33,
   "last_event_id": "01M78FWRPH126BTW7PCBDSRP5K",
   "materialized_at": "2026-11-12T18:21:34.801464+00:00",
-  "mission_number": "",
+  "mission_number": "3",
   "mission_slug": "dashboard-cleanup-01M76KZR",
   "mission_type": "software-dev",
   "summary": {
