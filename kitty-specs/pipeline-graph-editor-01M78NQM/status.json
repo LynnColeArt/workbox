@@ -90,7 +90,12 @@
         "Exact byte review implementation and verification available."
       ],
       "provider": "__resolved_provider_absent__",
-      "role": "implementer"
+      "role": "implementer",
+      "subtasks": {
+        "T006": "done",
+        "T007": "done",
+        "T008": "done"
+      }
     },
     "WP04": {
       "actor": "finalize-tasks",
