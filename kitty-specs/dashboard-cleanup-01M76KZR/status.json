@@ -95,7 +95,8 @@
       "model": "__resolved_model_absent__",
       "notes": [
         "Implement the dashboard header dialog and remove the project sidebar.",
-        "Dashboard modal and layout at 3c57bca; scoped lint, TypeScript and focused snapshot tests passed."
+        "Dashboard modal and layout at 3c57bca; scoped lint, TypeScript and focused snapshot tests passed.",
+        "Independent review checks keyboard focus, controlled outcomes and dashboard structure."
       ],
       "provider": "__resolved_provider_absent__",
       "role": "reviewer",
