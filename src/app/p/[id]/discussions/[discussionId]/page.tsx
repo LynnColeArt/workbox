@@ -13,7 +13,8 @@ export default async function DiscussionPage({ params, searchParams }: {
   searchParams: Promise<{ cursor?: string; reply?: string }>;
 }) {
   await connection();
-  const [{ id, discussionId }, { cursor, reply: replyId }] = await Promise.all([params, searchParams]);
+  const [{ id, discussionId: rawId }, { cursor, reply: replyId }] = await Promise.all([params, searchParams]);
+  const discussionId = rawId.replace(/^sha256%3a/i, "sha256:");
   const base = `/p/${encodeURIComponent(id)}/discussions`;
   const endpoint = `/api/projects/${encodeURIComponent(id)}/discussions`;
   const result = await runDiscussionOperation(id, { action: "detail", discussionId, cursor, replyId });

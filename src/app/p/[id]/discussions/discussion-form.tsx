@@ -22,7 +22,7 @@ type Props = {
   navigate?: boolean;
 };
 
-const recoverable = new Set(["native_unavailable", "admission_pending", "concurrent_update", "output_limit"]);
+const recoverable = new Set(["native_unavailable", "admission_pending", "concurrent_update", "output_limit", "invalid_history", "repository_error"]);
 
 export function DiscussionForm({ endpoint, actor, action, fields, replies, submitLabel, heading, navigate }: Props) {
   const router = useRouter();
@@ -96,7 +96,8 @@ export function DiscussionForm({ endpoint, actor, action, fields, replies, submi
       });
       const result = await response.json();
       if (!result.ok) {
-        setPending(recoverable.has(result.error.code) ? request : null);
+        const preflight = ["not_found", "signer_unavailable", "actor_mismatch"].includes(result.error.code);
+        setPending(recoverable.has(result.error.code) || (pending && preflight) ? request : null);
         setMessage(result.error.message);
         setStale(["stale_revision", "resource_conflict"].includes(result.error.code));
         return;
