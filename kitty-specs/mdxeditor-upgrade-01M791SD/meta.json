@@ -10,5 +10,7 @@
   "purpose_tldr": "mdxeditor upgrade",
   "slug": "mdxeditor-upgrade-01M791SD",
   "target_branch": "codex/mdxeditor-upgrade",
-  "topology": "single_branch"
+  "topology": "single_branch",
+  "vcs": "git",
+  "vcs_locked_at": "2026-11-13T02:51:11.691886+00:00"
 }

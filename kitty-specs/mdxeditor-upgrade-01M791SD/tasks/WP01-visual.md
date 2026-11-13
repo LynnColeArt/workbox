@@ -9,6 +9,9 @@ requirement_refs:
 planning_base_branch: codex/mdxeditor-upgrade
 merge_target_branch: codex/mdxeditor-upgrade
 branch_strategy: Planning artifacts for this mission were generated on codex/mdxeditor-upgrade. During /spec-kitty.implement this WP may branch from a dependency-specific base, but completed changes must merge back into codex/mdxeditor-upgrade unless the human explicitly redirects the landing branch.
+base_branch: kitty/mission-mdxeditor-upgrade-01M791SD
+base_commit: 028738c4532d612b0aa0dc6133c62fd17ea159f1
+created_at: '2026-11-13T02:51:11.742907+00:00'
 subtasks:
 - T001
 - T002
