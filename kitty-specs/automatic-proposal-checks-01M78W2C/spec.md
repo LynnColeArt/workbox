@@ -37,16 +37,18 @@ flowchart LR
 2. Given a failed check or interrupted runner, browser and MCP show the same status, reason, exact revision, pipeline, and available run details. An explicit retry, where supported by existing permissions and runner capabilities, creates a distinct attempt on the same revision and is visible in its history.
 3. Given an optional pipeline that fails, the result is visible. Only existing Hubnot policy determines whether that failure blocks merge.
 
-## Requirements
+## Functional Requirements
 
-- **FR-001** Evaluate verified Hubnot proposal opens and revisions that introduce a new code revision. Identify checks by repository, proposal, exact revision, and pipeline, with separate attempt identity for retries. Manual runs remain available.
-- **FR-002** Use the active repository trigger rules and trusted committed pipeline definition for a scheduled check. Record which configuration and definition were used. Execute against the exact proposed code revision. A proposal cannot activate its own triggers or replace the pipeline definition used to check it before governance activates that change.
-- **FR-003** Use a runner explicitly enabled for automatic proposal checks and authorized by repository policy where required. Keep proposal execution isolated from the runner's signing identity, unrelated repositories, and ambient credentials. If the environment cannot provide the required execution boundary, show a blocked check with a reason.
-- **FR-004** Distinguish waiting, queued, running, passed, failed, and canceled states where applicable. Show the exact revision, pipeline, attempt, and available timestamps, result, and run details in proposal detail and MCP. Make skipped or ineligible cases distinguishable from a pending check.
-- **FR-005** Submit results through Hubnot's existing trust model. A queued check, an unsigned or untrusted result, or a result for another revision cannot satisfy a governed pipeline requirement.
-- **FR-006** Expose browser and MCP parity for reading trigger configuration, editing drafts, validating, reviewing exact changes, proposing updates, inspecting revision checks and attempts, and any explicit retry action offered in the browser. Use the same authorization and validation rules.
-- **FR-007** Continue evaluating checks independently of whether anyone has Workbox open. Recover from restarts and duplicate events without losing pending work or silently scheduling duplicate runs. Disabling a trigger affects future scheduling. Already queued or running checks retain the configuration under which they were scheduled.
-- **FR-008** Allow the Go starter's existing `test` pipeline to be selected for either trigger. Repositories choose which pipelines run and when.
+| ID | Requirement |
+| --- | --- |
+| FR-001 | Evaluate verified Hubnot proposal opens and revisions that introduce a new code revision. Identify checks by repository, proposal, exact revision, and pipeline, with separate attempt identity for retries. Manual runs remain available. |
+| FR-002 | Use the active repository trigger rules and trusted committed pipeline definition for a scheduled check. Record which configuration and definition were used. Execute against the exact proposed code revision. A proposal cannot activate its own triggers or replace the pipeline definition used to check it before governance activates that change. |
+| FR-003 | Use a runner explicitly enabled for automatic proposal checks and authorized by repository policy where required. Keep proposal execution isolated from the runner's signing identity, unrelated repositories, and ambient credentials. If the environment cannot provide the required execution boundary, show a blocked check with a reason. |
+| FR-004 | Distinguish waiting, queued, running, passed, failed, and canceled states where applicable. Show the exact revision, pipeline, attempt, and available timestamps, result, and run details in proposal detail and MCP. Make skipped or ineligible cases distinguishable from a pending check. |
+| FR-005 | Submit results through Hubnot's existing trust model. A queued check, an unsigned or untrusted result, or a result for another revision cannot satisfy a governed pipeline requirement. |
+| FR-006 | Expose browser and MCP parity for reading trigger configuration, editing drafts, validating, reviewing exact changes, proposing updates, inspecting revision checks and attempts, and any explicit retry action offered in the browser. Use the same authorization and validation rules. |
+| FR-007 | Continue evaluating checks independently of whether anyone has Workbox open. Recover from restarts and duplicate events without losing pending work or silently scheduling duplicate runs. Disabling a trigger affects future scheduling. Already queued or running checks retain the configuration under which they were scheduled. |
+| FR-008 | Allow the Go starter's existing `test` pipeline to be selected for either trigger. Repositories choose which pipelines run and when. |
 
 ## Scope and planning decisions
 
