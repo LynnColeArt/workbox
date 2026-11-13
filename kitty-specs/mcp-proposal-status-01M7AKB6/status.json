@@ -57,7 +57,8 @@
       "last_transition_at": "2026-11-13T14:10:16.640892+00:00",
       "model": "__resolved_model_absent__",
       "notes": [
-        "TypeScript and strict input regression passed"
+        "TypeScript and strict input regression passed",
+        "Reviewed dispatch, discoverability, strict full IDs, safe errors, and compatibility"
       ],
       "provider": "__resolved_provider_absent__",
       "review_result": {
