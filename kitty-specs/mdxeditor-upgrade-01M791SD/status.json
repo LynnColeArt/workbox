@@ -49,10 +49,15 @@
     "WP02": {
       "actor": "codex",
       "agent": "codex",
+      "agent_profile": "__resolved_profile_absent__",
+      "agent_profile_version": "__resolved_profile_version_absent__",
       "force_count": 0,
       "lane": "in_progress",
       "last_event_id": "01M79D6CGT8DYJ51QXY1Y4XWJS",
       "last_transition_at": "2026-11-13T02:53:38.713967+00:00",
+      "model": "__resolved_model_absent__",
+      "provider": "__resolved_provider_absent__",
+      "role": "implementer",
       "shell_pid": 973128,
       "shell_pid_created_at": "1794538401.03"
     },
