@@ -3,6 +3,7 @@ import { createProposalReader, isFullProposalId } from "../src/lib/hn/proposal-r
 import { openDb } from "../src/lib/workbox/db";
 import { getProject } from "../src/lib/workbox/queries";
 import { proposalDetailHref, resolveProposalDetail } from "../src/lib/workbox/proposal-detail";
+import { readAutomaticProposalChecks } from "../src/lib/workbox/proposal-checks";
 import { projectProposalStatus } from "../src/lib/workbox/proposal-status";
 
 const input = z.strictObject({
@@ -45,8 +46,22 @@ export async function proposalStatusForProject(args: unknown) {
       return { ok: true, data: { kind: detail.kind, requested, incomplete: detail.incomplete,
         choices: detail.candidates.map(({ id, title, head }) => ({ id, title, head, href: href(id) })) } };
     }
-    const status = await projectProposalStatus(detail.candidate, detail.related, detail.incomplete, reader);
-    return { ok: true, data: { kind: detail.kind, requested, ...status, href: href(status.id) } };
+    const [status, checks] = await Promise.all([
+      projectProposalStatus(detail.candidate, detail.related, detail.incomplete, reader),
+      readAutomaticProposalChecks(repo.repoPath, detail.candidate.id),
+    ]);
+    const automaticChecks = checks.ok ? {
+      availability: checks.data.value.availability,
+      checks: checks.data.value.checks.filter(check =>
+        check.candidate === status.id && check.commit === status.head
+      ).map(check => ({
+        ...check,
+        required: status.pipelines === null ? null : status.pipelines.some(
+          requirement => requirement.name === check.pipeline && requirement.required > 0
+        ),
+      })),
+    } : null;
+    return { ok: true, data: { kind: detail.kind, requested, ...status, automaticChecks, href: href(status.id) } };
   } catch {
     return { ok: false, error: { code: "unavailable", message: "Proposal revision unavailable." } };
   }
