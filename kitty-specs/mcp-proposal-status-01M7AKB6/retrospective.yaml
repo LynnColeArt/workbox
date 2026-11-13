@@ -1,0 +1,122 @@
+schema_version: 1
+mission_id: 01M7AKB68WJ984X1W94YGA1H9C
+mission_slug: mcp-proposal-status-01M7AKB6
+mission_number: 9
+friendly_name: mcp proposal status
+mission_type: software-dev
+target_branch: codex/mcp-proposal-status
+created_at: '2026-11-13T14:53:13.101183+00:00'
+created_by:
+  kind: human
+  id: cli
+  display: spec-kitty retrospect
+provenance:
+  kind: explicit_create
+  invoked_at: '2026-11-13T14:53:13.101183+00:00'
+  policy_resolved_from:
+    enabled: <default>
+    timing: <default>
+    failure_policy: <default>
+    write_record: <default>
+    generate_proposals: <default>
+    apply_proposals: <default>
+    permissions.write_record: <default>
+    permissions.inspect_mission_artifacts: <default>
+    permissions.propose_glossary_changes: <default>
+    permissions.propose_drg_changes: <default>
+    permissions.propose_doctrine_changes: <default>
+    permissions.apply_low_risk_changes: <default>
+    permissions.apply_structural_changes: <default>
+    precedence: <default>
+    generator: <default>
+  command: spec-kitty retrospect create
+policy_source:
+  enabled: <default>
+  timing: <default>
+  failure_policy: <default>
+  write_record: <default>
+  generate_proposals: <default>
+  apply_proposals: <default>
+  permissions.write_record: <default>
+  permissions.inspect_mission_artifacts: <default>
+  permissions.propose_glossary_changes: <default>
+  permissions.propose_drg_changes: <default>
+  permissions.propose_doctrine_changes: <default>
+  permissions.apply_low_risk_changes: <default>
+  permissions.apply_structural_changes: <default>
+  precedence: <default>
+  generator: <default>
+findings_status: has_findings
+helped:
+- id: h-001
+  category: implementation
+  summary: WP01 completed without rejection cycles
+  evidence_refs:
+  - e-008
+- id: h-002
+  category: implementation
+  summary: WP02 completed without rejection cycles
+  evidence_refs:
+  - e-008
+- id: h-003
+  category: implementation
+  summary: WP03 completed without rejection cycles
+  evidence_refs:
+  - e-008
+not_helpful:
+- id: n-001
+  category: doc
+  summary: analysis-report.md present with findings
+  evidence_refs:
+  - e-009
+  details: An analysis-report.md artifact is present for this mission. Review its findings to understand documented
+    issues and decisions.
+- id: n-002
+  category: review_loop
+  summary: mission-review-report.md present with findings
+  evidence_refs:
+  - e-010
+  details: A mission-review-report.md artifact is present for this mission. Review its findings to understand documented
+    review outcomes.
+gaps:
+- id: g-001
+  category: doc
+  summary: research.md absent
+  evidence_refs:
+  - e-002
+  details: spec.md is present but research.md is missing. Research artifacts help future maintainers understand design
+    decisions.
+proposals: []
+evidence_refs:
+- id: e-001
+  kind: file
+  path: kitty-specs/mcp-proposal-status-01M7AKB6/meta.json
+- id: e-002
+  kind: file
+  path: kitty-specs/mcp-proposal-status-01M7AKB6/spec.md
+- id: e-003
+  kind: file
+  path: kitty-specs/mcp-proposal-status-01M7AKB6/plan.md
+- id: e-004
+  kind: file
+  path: kitty-specs/mcp-proposal-status-01M7AKB6/tasks.md
+- id: e-005
+  kind: file
+  path: kitty-specs/mcp-proposal-status-01M7AKB6/tasks/WP01-shared-status.md
+- id: e-006
+  kind: file
+  path: kitty-specs/mcp-proposal-status-01M7AKB6/tasks/WP02-mcp-tool.md
+- id: e-007
+  kind: file
+  path: kitty-specs/mcp-proposal-status-01M7AKB6/tasks/WP03-parity.md
+- id: e-008
+  kind: file
+  path: kitty-specs/mcp-proposal-status-01M7AKB6/status.events.jsonl
+- id: e-009
+  kind: file
+  path: kitty-specs/mcp-proposal-status-01M7AKB6/analysis-report.md
+- id: e-010
+  kind: file
+  path: kitty-specs/mcp-proposal-status-01M7AKB6/mission-review-report.md
+generator_version: '1.0'
+provenance_history: []
