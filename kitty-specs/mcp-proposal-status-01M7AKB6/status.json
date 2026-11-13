@@ -1,7 +1,7 @@
 {
-  "event_count": 2,
-  "last_event_id": "01M7AKNTCEYHTMBQ0MBPFZR48Z",
-  "materialized_at": "2026-11-13T14:06:10.318210+00:00",
+  "event_count": 3,
+  "last_event_id": "01M7AKNVT3X7HJDXZ5DNM6DSM4",
+  "materialized_at": "2026-11-13T14:06:11.779062+00:00",
   "mission_number": "",
   "mission_slug": "mcp-proposal-status-01M7AKB6",
   "mission_type": "software-dev",
@@ -14,7 +14,7 @@
     "for_review": 0,
     "in_progress": 0,
     "in_review": 0,
-    "planned": 2
+    "planned": 3
   },
   "work_packages": {
     "WP01": {
@@ -30,6 +30,13 @@
       "lane": "planned",
       "last_event_id": "01M7AKNTCEYHTMBQ0MBPFZR48Z",
       "last_transition_at": "2026-11-13T14:06:10.318210+00:00"
+    },
+    "WP03": {
+      "actor": "finalize-tasks",
+      "force_count": 0,
+      "lane": "planned",
+      "last_event_id": "01M7AKNVT3X7HJDXZ5DNM6DSM4",
+      "last_transition_at": "2026-11-13T14:06:11.779062+00:00"
     }
   }
 }
