@@ -23,6 +23,7 @@
   "purpose_context": "This mission advances automatic proposal checks on codex/automatic-proposal-checks so stakeholders can track the work from mission creation onward.",
   "purpose_tldr": "automatic proposal checks",
   "slug": "automatic-proposal-checks-01M78W2C",
+  "status_phase": "1",
   "target_branch": "codex/automatic-proposal-checks",
   "topology": "single_branch",
   "vcs": "git",
