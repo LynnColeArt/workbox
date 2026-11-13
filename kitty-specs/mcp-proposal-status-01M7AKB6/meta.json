@@ -13,6 +13,7 @@
   "accepted_at": "2026-11-13T14:52:32.963254+00:00",
   "accepted_by": "codex",
   "accepted_from_commit": "741ca2407d13b12428fef97b2df4c6d9a96ef0cd",
+  "baseline_merge_commit": "f8e36ea0a44e63b12cefb7866b2fbae30a42f96a",
   "created_at": "2026-11-13T14:00:22.658883+00:00",
   "flattened": false,
   "friendly_name": "mcp proposal status",
