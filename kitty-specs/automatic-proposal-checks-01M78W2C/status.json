@@ -28,7 +28,8 @@
       "last_transition_at": "2026-11-13T04:48:29.679563+00:00",
       "model": "__resolved_model_absent__",
       "notes": [
-        "Native contract and canonical validation verified against Hubnot 53daea27."
+        "Native contract and canonical validation verified against Hubnot 53daea27.",
+        "Reviewed and exercised native capability, exact bytes and rejection fixtures; scheduling and evidence enforcement belong to WP02 and WP03."
       ],
       "provider": "__resolved_provider_absent__",
       "review_result": {
