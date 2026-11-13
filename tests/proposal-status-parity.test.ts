@@ -232,7 +232,7 @@ test("Workbox and MCP agree on exact failed, restored, and merged revisions", {
       await page.goto(origin + lineageHref);
       await page.waitForURL(origin + followed.href);
       await page.getByText("Merged revision", { exact: true }).waitFor();
-      await page.getByRole("link", { name: "Pull requests", exact: true }).waitFor();
+      await page.getByRole("link", { name: "Proposals", exact: true }).waitFor();
     } finally {
       await chrome.close();
     }

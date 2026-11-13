@@ -32,10 +32,29 @@ import { renderDashboardPng } from "../src/lib/workbox/dashboard-chart";
 import { runSettingsOperation } from "../src/lib/workbox/settings-operations";
 import { createProject } from "../src/lib/workbox/create";
 
+import { readGitHubPullRequests } from "../src/lib/workbox/github-pull-requests";
 import { issueTools } from "./issues";
 import { discussionTools } from "./discussions";
 
-const collaborationTools = [...issueTools, ...discussionTools];
+const collaborationTools = [...issueTools, ...discussionTools, {
+  name: "workbox_github_pull_requests",
+  description: "List public GitHub pull requests from a project's GitHub origin, including merged and closed history.",
+  inputSchema: {
+    type: "object",
+    properties: { project: { type: "string" }, page: { type: "integer", minimum: 1 } },
+    required: ["project"], additionalProperties: false,
+  },
+  async call(args: Record<string, unknown>) {
+    const { project, page = 1 } = args;
+    if (typeof project !== "string" || typeof page !== "number" || !Number.isSafeInteger(page) || page < 1) {
+      return { ok: false, error: { code: "invalid_input", message: "Provide a project ID and a positive page number." } };
+    }
+    using db = openDb();
+    const selected = getProject(db, project);
+    if (!selected) return { ok: false, error: { code: "not_found", message: "Project unavailable." } };
+    return { ok: true, data: await readGitHubPullRequests(selected.repoPath, page) };
+  },
+}];
 const collaborationHandlers = new Map(collaborationTools.map(tool => [tool.name, tool.call]));
 
 const HERE = dirname(fileURLToPath(import.meta.url));
