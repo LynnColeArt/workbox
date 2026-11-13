@@ -1,7 +1,7 @@
 {
-  "event_count": 37,
-  "last_event_id": "01M79MGQV7QNRY3SM2P45KWV3Z",
-  "materialized_at": "2026-11-13T05:01:38.023784+00:00",
+  "event_count": 39,
+  "last_event_id": "01M79MGXX6YV3E59TD7NX7QZ6M",
+  "materialized_at": "2026-11-13T05:01:44.229848+00:00",
   "mission_number": "",
   "mission_slug": "automatic-proposal-checks-01M78W2C",
   "mission_type": "software-dev",
@@ -12,9 +12,9 @@
     "claimed": 0,
     "done": 0,
     "for_review": 0,
-    "in_progress": 0,
+    "in_progress": 1,
     "in_review": 0,
-    "planned": 1
+    "planned": 0
   },
   "work_packages": {
     "WP01": {
@@ -198,11 +198,14 @@
       }
     },
     "WP07": {
-      "actor": "finalize-tasks",
+      "actor": "codex",
+      "agent": "codex",
       "force_count": 0,
-      "lane": "planned",
-      "last_event_id": "01M79KC37P6T6PRKARFP269GVN",
-      "last_transition_at": "2026-11-13T04:41:37.270640+00:00"
+      "lane": "in_progress",
+      "last_event_id": "01M79MGXX6YV3E59TD7NX7QZ6M",
+      "last_transition_at": "2026-11-13T05:01:44.229848+00:00",
+      "shell_pid": 1579578,
+      "shell_pid_created_at": "1794546085.81"
     }
   }
 }
