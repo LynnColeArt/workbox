@@ -13,13 +13,18 @@ const nativeHistory = z.object({
     title: z.string(),
     state: z.enum(["open", "closed", "merged"]),
     author: z.string(),
-    url: z.url().refine(value => new URL(value).protocol === "https:"),
+    url: z.union([z.literal(""), z.url().refine(value => new URL(value).protocol === "https:")]),
     created_at: z.string(),
     updated_at: z.string().optional(),
     body: z.string().optional(),
     base_commit: z.string().optional(),
     head_commit: z.string().optional(),
     merge_commit: z.string().optional(),
+    reviews: z.array(z.object({
+      id: z.string(), kind: z.string(), author: z.string(), body: z.string(),
+      state: z.string().optional(), path: z.string().optional(), line: z.number().optional(),
+      date: z.string().optional(), commit: z.string().optional(),
+    })).optional(),
   })),
 });
 
@@ -37,7 +42,7 @@ async function readImportedPullRequests(repoPath: string) {
 
 type ImportedPullRequest = z.infer<typeof nativeHistory>["pull_requests"][number];
 
-function localPullRequest(project: string, { body: _body, ...record }: ImportedPullRequest) {
+function localPullRequest(project: string, { body: _body, reviews: _reviews, ...record }: ImportedPullRequest) {
   const { provider, instance, project_id, id } = record.source;
   const localId = createHash("sha256").update(JSON.stringify([provider, instance, project_id, id])).digest("hex");
   return { ...record, localId, href: `/p/${encodeURIComponent(project)}/pull-requests/${localId}` };
@@ -55,7 +60,7 @@ export async function readPullRequestDetail(project: string, repoPath: string, l
     const comparison = readProposalComparison(repoPath, { base, head }, file);
     const history = comparison.status === "unavailable" ? null : readComparisonCommits(repoPath, base, head);
     const fileHistory = comparison.selectedPath ? readComparisonCommits(repoPath, base, head, comparison.selectedPath) : null;
-    return { kind: "available", request: { ...local, body: record.body ?? null }, comparison, history, fileHistory } as const;
+    return { kind: "available", request: { ...local, body: record.body ?? null }, comparison, history, fileHistory, reviews: record.reviews ?? [] } as const;
   }
   return { kind: "not_found" } as const;
 }

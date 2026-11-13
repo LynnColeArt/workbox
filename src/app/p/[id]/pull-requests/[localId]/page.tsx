@@ -9,14 +9,14 @@ import { getProject } from "@/lib/workbox/queries";
 
 export default async function PullRequestDetailPage({ params, searchParams }: {
   params: Promise<{ id: string; localId: string }>;
-  searchParams: Promise<{ file?: string | string[] }>;
+  searchParams: Promise<{ file?: string | string[]; view?: string }>;
 }) {
   await connection();
   const { id, localId } = await params;
   using db = openDb();
   const project = getProject(db, id);
   if (!project) notFound();
-  const { file } = await searchParams;
+  const { file, view } = await searchParams;
   const result = await readPullRequestDetail(project.id, project.repoPath, localId, typeof file === "string" ? file : undefined);
   if (result.kind === "not_found") notFound();
   const list = `/p/${encodeURIComponent(id)}/pull-requests`;
@@ -28,7 +28,8 @@ export default async function PullRequestDetailPage({ params, searchParams }: {
     </main>;
   }
 
-  const { request, comparison, history, fileHistory } = result;
+  const { request, comparison, history, fileHistory, reviews } = result;
+  const tab = view === "commits" || view === "files" ? view : "conversation";
   const status = request.state === "open" ? "open" : "closed";
   return <main className="mx-auto max-w-6xl space-y-4 px-4 py-6">
     <Link href={`${list}?status=${status}`} className="wb-link">Pull requests</Link>
@@ -40,9 +41,15 @@ export default async function PullRequestDetailPage({ params, searchParams }: {
         {request.created_at && <time dateTime={request.created_at}>{request.created_at.slice(0, 10)}</time>}
       </div>
     </header>
-    <section aria-labelledby="pr-files" className="wb-panel space-y-3 p-4">
+    <nav aria-label="Pull request views" className="flex flex-wrap gap-4 border-b border-[var(--wb-border)]">
+      {([["conversation", "Conversation", reviews.length], ["commits", "Commits", history?.commits.length], ["files", "Files changed", comparison.status === "unavailable" ? undefined : comparison.files.length]] as const)
+        .map(([key, title, count]) => <Link key={key} href={`${request.href}?view=${key}`}
+          className="px-3 py-2 aria-[current=page]:border-b-2 aria-[current=page]:border-[var(--wb-accent)]"
+          aria-current={tab === key ? "page" : undefined}>{title}{count !== undefined && <> <span className="wb-chip">{count}{key === "commits" && history?.truncated ? "+" : ""}</span></>}</Link>)}
+    </nav>
+    {tab === "files" && <section aria-labelledby="pr-files" className="wb-panel space-y-3 p-4">
       <h2 id="pr-files" className="font-semibold">Files changed</h2>
-      <ProposalFilesChanged comparison={comparison} detailHref={request.href} />
+      <ProposalFilesChanged comparison={comparison} detailHref={`${request.href}?view=files`} />
       {fileHistory && fileHistory.commits.length > 0 && <div>
         <h3 className="font-semibold">Commits touching this path</h3>
         <ul className="mt-1 space-y-1 text-sm">
@@ -53,8 +60,8 @@ export default async function PullRequestDetailPage({ params, searchParams }: {
         </ul>
         {fileHistory.truncated && <p className="wb-muted">Showing the most recent 100 commits for this path.</p>}
       </div>}
-    </section>
-    <section aria-labelledby="pr-commits" className="wb-panel space-y-3 p-4">
+    </section>}
+    {tab === "commits" && <section aria-labelledby="pr-commits" className="wb-panel space-y-3 p-4">
       <h2 id="pr-commits" className="font-semibold">Commits and authors</h2>
       <dl className="grid gap-1 text-sm">
         {([["Base", request.base_commit], ["Head", request.head_commit], ["Merge", request.merge_commit]] as const)
@@ -69,12 +76,19 @@ export default async function PullRequestDetailPage({ params, searchParams }: {
         </li>)}
       </ul> : <p className="wb-muted">Commit history is unavailable from the local Git objects.</p>}
       {history?.truncated && <p className="wb-muted">Showing the most recent 100 commits.</p>}
-    </section>
-    <section aria-labelledby="pr-description" className="wb-panel space-y-2 p-4">
+    </section>}
+    {tab === "conversation" && <section aria-labelledby="pr-description" className="wb-panel space-y-2 p-4">
       <h2 id="pr-description" className="font-semibold">Description</h2>
       {request.body ? <p className="whitespace-pre-wrap break-words">{request.body}</p> :
         <p className="wb-muted">{request.body === null ? "Description unavailable in this Hubnot version." : "No description provided."}</p>}
-    </section>
-    <a href={request.url} className="wb-link text-sm">Original source</a>
+      {reviews.map(review => <article key={review.id} className="space-y-2 border-t border-[var(--wb-border)] py-3">
+        <p className="text-sm font-semibold">{review.author || "Source record"} · {review.state || (review.kind === "inline_comment" ? "Inline comment" : review.kind === "review" ? "Review" : "Comment")}</p>
+        {review.date && <time className="wb-muted text-sm" dateTime={review.date}>{review.date.slice(0, 10)}</time>}
+        {review.path && <p className="wb-muted break-all font-mono text-xs">{review.path}{review.line ? `:${review.line}` : ""}</p>}
+        {review.body && <p className="whitespace-pre-wrap break-words">{review.body}</p>}
+      </article>)}
+      {reviews.length === 0 && <p className="wb-muted">No review or comment records in this import.</p>}
+    </section>}
+    {request.url && <a href={request.url} className="wb-link text-sm">Original source</a>}
   </main>;
 }

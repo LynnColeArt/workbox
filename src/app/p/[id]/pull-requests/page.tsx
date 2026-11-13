@@ -27,7 +27,7 @@ export default async function PullRequestsPage({ params, searchParams }: {
   return (
     <main className="mx-auto max-w-6xl px-4 py-4">
       <h1 className="mb-4 text-lg font-semibold">Pull requests</h1>
-        <section className="wb-panel mb-4 overflow-hidden" aria-label="GitHub pull requests">
+        <section className="wb-panel mb-4 overflow-hidden" aria-label="Imported pull requests">
           {github.kind === "unavailable" ? (
             <p className="wb-muted px-4 pb-4 text-sm">Imported pull request history is unavailable.</p>
           ) : (
@@ -46,7 +46,7 @@ export default async function PullRequestsPage({ params, searchParams }: {
                 ))}
               </ul>
               <div className="px-4 pb-4">
-                <ListPagination page={github.page} pages={github.totalPages} label="GitHub pull request pages" href={githubHref} />
+                <ListPagination page={github.page} pages={github.totalPages} label="Pull request pages" href={githubHref} />
               </div>
             </>
           )}

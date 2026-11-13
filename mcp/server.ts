@@ -41,6 +41,25 @@ import { readGitHubPullRequests, readPullRequestDetail } from "../src/lib/workbo
 import { issueTools } from "./issues";
 import { discussionTools } from "./discussions";
 
+const importedPullRequestsTool = {
+  description: "List locally imported pull requests. Choose open or closed history.",
+  inputSchema: {
+    type: "object",
+    properties: { project: { type: "string" }, page: { type: "integer", minimum: 1 }, status: { enum: ["open", "closed"] } },
+    required: ["project"], additionalProperties: false,
+  },
+  async call(args: Record<string, unknown>) {
+    const { project, page = 1, status = "open" } = args;
+    if (typeof project !== "string" || typeof page !== "number" || !Number.isSafeInteger(page) || page < 1 || (status !== "open" && status !== "closed")) {
+      return { ok: false, error: { code: "invalid_input", message: "Provide a project ID and a positive page number." } };
+    }
+    using db = openDb();
+    const selected = getProject(db, project);
+    if (!selected) return { ok: false, error: { code: "not_found", message: "Project unavailable." } };
+    return { ok: true, data: await readGitHubPullRequests(selected.id, selected.repoPath, page, status) };
+  },
+};
+
 const collaborationTools = [...issueTools, ...discussionTools, {
   name: "workbox_list_proposals",
   description: "Read visible Hubnot proposal lineages with the same continuation as the Proposals tab.",
@@ -107,25 +126,8 @@ const collaborationTools = [...issueTools, ...discussionTools, {
     const { project, ...input } = args;
     return runMigrationOperation(typeof project === "string" ? project : "", input);
   },
-}, {
-  name: "workbox_github_pull_requests",
-  description: "List locally imported GitHub pull requests. Choose open or closed history.",
-  inputSchema: {
-    type: "object",
-    properties: { project: { type: "string" }, page: { type: "integer", minimum: 1 }, status: { enum: ["open", "closed"] } },
-    required: ["project"], additionalProperties: false,
-  },
-  async call(args: Record<string, unknown>) {
-    const { project, page = 1, status = "open" } = args;
-    if (typeof project !== "string" || typeof page !== "number" || !Number.isSafeInteger(page) || page < 1 || (status !== "open" && status !== "closed")) {
-      return { ok: false, error: { code: "invalid_input", message: "Provide a project ID and a positive page number." } };
-    }
-    using db = openDb();
-    const selected = getProject(db, project);
-    if (!selected) return { ok: false, error: { code: "not_found", message: "Project unavailable." } };
-    return { ok: true, data: await readGitHubPullRequests(selected.id, selected.repoPath, page, status) };
-  },
-}, {
+}, { name: "workbox_list_pull_requests", ...importedPullRequestsTool },
+{ name: "workbox_github_pull_requests", ...importedPullRequestsTool }, {
   name: "workbox_pull_request_detail",
   description: "Audit a locally imported pull request: exact commits, authors, changed files, and the patch for a selected file.",
   inputSchema: {
