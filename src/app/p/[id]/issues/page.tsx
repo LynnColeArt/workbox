@@ -1,3 +1,4 @@
+import { StatusTag } from "@/components/status-tag";
 import { workboxPageSize } from "@/lib/workbox/list-settings";
 import Link from "next/link";
 import { connection } from "next/server";
@@ -63,7 +64,7 @@ export default async function IssuesPage({ params, searchParams }: {
                 <Link className="text-sm font-semibold break-words hover:text-[var(--wb-link)] hover:underline" href={issue.href}>{issue.title}</Link>
                 <div className="mt-1 flex flex-wrap items-center gap-2 text-xs wb-muted">
                   {issue.number !== null && <span>#{issue.number}</span>}
-                  <span className="wb-chip" style={{ color: issue.conflict ? "var(--wb-warn)" : issue.status === "closed" ? "var(--wb-closed)" : "var(--wb-open)" }}>{issue.conflict ? "Competing revisions" : issue.status === "closed" ? "Closed" : "Open"}</span>
+                  <StatusTag status={issue.conflict ? "conflict" : issue.status === "closed" ? "closed" : "open"} />
                   <span>{issue.author}</span>
                   {issue.createdAt && <time dateTime={issue.createdAt}>{issue.createdAt.slice(0, 10)}</time>}
                   {issue.labels.map(label => <span key={label} className="wb-chip">{label}</span>)}

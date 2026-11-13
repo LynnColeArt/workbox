@@ -1,3 +1,4 @@
+import { StatusTag } from "@/components/status-tag";
 import Link from "next/link";
 import { connection } from "next/server";
 import { runDiscussionOperation } from "@/lib/workbox/discussions";
@@ -55,8 +56,9 @@ export default async function DiscussionsPage({ params, searchParams }: {
               <li key={item.id} className="space-y-1 p-4">
                 <Link className="wb-link font-semibold" href={item.href}>{item.state?.title ?? item.heads[0]?.state.title ?? "Discussion"}</Link>
                 <p className="wb-muted text-sm">
-                  {item.conflict ? "Conflicting revisions" : [item.state?.category, item.state?.status === "closed" ? "Closed" : "Open",
-                    item.state?.accepted_reply_revision && "Answered"].filter(Boolean).join(" · ")}
+                  <StatusTag status={item.conflict ? "conflict" : item.state?.status === "closed" ? "closed" : "open"} />
+                  {!item.conflict && item.state?.category && ` · ${item.state.category}`}
+                  {!item.conflict && item.state?.accepted_reply_revision && " · Answered"}
                 </p>
               </li>
             ))}

@@ -1,3 +1,4 @@
+import { StatusTag } from "@/components/status-tag";
 import Link from "next/link";
 import { connection } from "next/server";
 import { openDb } from "@/lib/workbox/db";
@@ -39,7 +40,7 @@ export default async function PullRequestsPage({ params, searchParams }: {
                 {github.requests.map(pr => (
                   <li key={JSON.stringify(pr.source)} className="space-y-1 px-4 py-3">
                     <a href={pr.url} className="font-medium hover:underline">{pr.title}</a>
-                    <p className="wb-muted text-sm">#{pr.number} · <span className="wb-chip" style={{ color: pr.state === "open" ? "var(--wb-open)" : pr.state === "merged" ? "var(--wb-closed)" : "var(--wb-warn)" }}>{pr.state === "merged" ? "Merged" : pr.state === "open" ? "Open" : "Closed"}</span>{pr.author && ` · ${pr.author}`}</p>
+                    <p className="wb-muted text-sm">#{pr.number} · <StatusTag status={pr.state} />{pr.author && ` · ${pr.author}`}</p>
                   </li>
                 ))}
               </ul>

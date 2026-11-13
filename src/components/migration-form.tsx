@@ -13,10 +13,28 @@ type Preview = {
   findings: Array<{ id: string; status: string; message: string }>;
 };
 
-export function MigrationForm({ endpoint, sources, foreign, sessions }: {
-  endpoint: string; sources: string[]; foreign: string[]; sessions: string[];
+type Field = { name: string; label: string; required: boolean; choices?: string[] };
+type Adapter = { kind: string; fields: Field[] };
+
+function MigrationInput({ field, name }: { field: Field; name: string }) {
+  if (field.choices?.length) {
+    return <select name={name} className="wb-btn ml-2" required={field.required} defaultValue="">
+      <option value="">Select</option>
+      {field.choices.map(choice => <option key={choice}>{choice}</option>)}
+    </select>;
+  }
+  return <input name={name} className="wb-btn ml-2" required={field.required} />;
+}
+
+export function MigrationForm({ endpoint, sources, destinations, paths, sessions }: {
+  endpoint: string; sources: Adapter[]; destinations: Adapter[];
+  paths: Array<{ source: string; destination: string; operations: string[] }>; sessions: string[];
 }) {
-  const [source, setSource] = useState(sources[0] ?? "");
+  const [source, setSource] = useState(sources[0]?.kind ?? "");
+  const [chosenDestination, setDestination] = useState("local");
+  const choices = destinations.filter(adapter => paths.some(path => path.source === source &&
+    path.destination === adapter.kind && path.operations.includes("plan")));
+  const destination = choices.some(adapter => adapter.kind === chosenDestination) ? chosenDestination : choices[0]?.kind ?? "";
   const [saved, setSaved] = useState(sessions);
   const [preview, setPreview] = useState<Preview | null>(null);
   const [busy, setBusy] = useState(false);
@@ -53,27 +71,33 @@ export function MigrationForm({ endpoint, sources, foreign, sessions }: {
     const data = new FormData(event.currentTarget);
     const values = (key: string) => String(data.get(key) ?? "").trim();
     const list = (key: string) => values(key).split(",").map(value => value.trim()).filter(Boolean);
-    void run({ action: "plan", source, repository: values("repository"), endpoint: values("endpoint") || undefined,
-      version: values("version") || undefined, credentialMode: values("credentialMode") || undefined,
-      kinds: list("kinds"), decisions: list("decisions") });
+    void run({ action: "plan", source, destination, sourceInputs: Object.fromEntries((sources.find(adapter => adapter.kind === source)?.fields ?? [])
+        .map(field => [field.name, values(field.name)]).filter(([, value]) => value)),
+      destinationInputs: Object.fromEntries((choices.find(adapter => adapter.kind === destination)?.fields ?? [])
+        .map(field => [field.name, values("destination-" + field.name)]).filter(([, value]) => value)), refs: list("refs"), snapshots: list("snapshots"), kinds: list("kinds"), decisions: list("decisions") });
   }
 
   return (
     <>
-      <form onSubmit={plan} className="wb-panel grid gap-3 p-4">
+      {sources.length > 0 && <form onSubmit={plan} className="wb-panel grid gap-3 p-4">
         <label>Source <select className="wb-btn ml-2" value={source} onChange={event => setSource(event.target.value)}>
-          {sources.map(value => <option key={value}>{value}</option>)}
+          {sources.map(({ kind }) => <option key={kind}>{kind}</option>)}
         </select></label>
-        <label>Source repository or path <input name="repository" className="wb-btn ml-2" required /></label>
-        {foreign.includes(source) && <>
-          <label>API endpoint <input name="endpoint" type="url" className="wb-btn ml-2" required /></label>
-          <label>API version <input name="version" className="wb-btn ml-2" required /></label>
-          <label>Credential mode <input name="credentialMode" className="wb-btn ml-2" required /></label>
-        </>}
+        {sources.find(adapter => adapter.kind === source)?.fields.map(field => (
+          <label key={field.name}>{field.label} <MigrationInput field={field} name={field.name} /></label>
+        ))}
+        <label>Destination <select className="wb-btn ml-2" value={destination} onChange={event => setDestination(event.target.value)}>
+          {choices.map(({ kind }) => <option key={kind}>{kind}</option>)}
+        </select></label>
+        {choices.find(adapter => adapter.kind === destination)?.fields.map(field => (
+          <label key={field.name}>Destination {field.label.toLowerCase()} <MigrationInput field={field} name={"destination-" + field.name} /></label>
+        ))}
+        {source === "local" && <label>Git refs (comma-separated) <input name="refs" className="wb-btn ml-2" required /></label>}
+        {source === "imported" && <label>Snapshot IDs (comma-separated) <input name="snapshots" className="wb-btn ml-2" required /></label>}
         <label>Record kinds (comma-separated) <input name="kinds" className="wb-btn ml-2" /></label>
         <label>Decisions (finding=action, comma-separated) <input name="decisions" className="wb-btn ml-2" /></label>
-        <button className="wb-btn justify-self-start" disabled={busy || !source}>Preview migration</button>
-      </form>
+        <button className="wb-btn justify-self-start" disabled={busy || !source || !destination}>Preview migration</button>
+      </form>}
       {saved.length > 0 && <section className="wb-panel space-y-2 p-4" aria-label="Saved migrations">
         <h2 className="font-semibold">Saved migrations</h2>
         {saved.map(session => <button key={session} className="wb-btn block" disabled={busy}

@@ -25,9 +25,9 @@ export interface ChainRead {
 }
 
 function parseChainRef(ref: string): { actor: string; protocol: "collab" | "memory"; stream?: string } {
-  const m = /refs\/hn\/memory\/([0-9a-f]{64})\/([0-9a-f]{64})$/.exec(ref);
+  const m = /^refs\/hn\/(?:remotes\/[^/]+\/)?memory\/([0-9a-f]{64})\/([0-9a-f]{64})$/.exec(ref);
   if (m) return { actor: m[1], protocol: "memory", stream: m[2] };
-  const a = /refs\/hn\/actors\/([0-9a-f]{64})$/.exec(ref);
+  const a = /^refs\/hn\/(?:remotes\/[^/]+\/)?actors\/([0-9a-f]{64})$/.exec(ref);
   if (a) return { actor: a[1], protocol: "collab" };
   throw new Error(`unrecognized hn chain ref: ${ref}`);
 }
@@ -40,10 +40,11 @@ export function readChain(
   repoPath: string,
   ref: string,
   knownCommit: (sha: string) => boolean,
+  head = ref,
 ): ChainRead {
   const meta = parseChainRef(ref);
   const payloadFile = meta.protocol === "memory" ? "memory.json" : "event.json";
-  const commits = chainCommits(repoPath, ref); // newest first
+  const commits = chainCommits(repoPath, head); // newest first
   const todo: string[] = [];
   for (const sha of commits) {
     if (knownCommit(sha)) break; // append-only: everything older is indexed

@@ -1,3 +1,5 @@
+import { readCIRuns } from "@/lib/workbox/ci-runs";
+import { ListPagination } from "@/components/list-pagination";
 import Link from "next/link";
 import { connection } from "next/server";
 import { getProject } from "@/lib/workbox/queries";
@@ -6,7 +8,7 @@ import { listPipelines, readPolicy } from "@/lib/workbox/ci";
 
 export const instant = false;
 
-export default async function CIPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function CIPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ page?: string }> }) {
   await connection();
   const { id } = await params;
   const db = openDb();
@@ -15,14 +17,8 @@ export default async function CIPage({ params }: { params: Promise<{ id: string 
 
   const pipelines = listPipelines(p.repoPath);
   const policy = readPolicy(p.repoPath);
-  const runEvents = db.prepare(`
-    SELECT e.event_id, e.kind, e.timestamp, e.actor, e.payload_json, e.verified,
-           COALESCE(a.display_name, substr(e.actor, 1, 12)) AS actorName
-    FROM events e LEFT JOIN actors a ON a.project_id = e.project_id AND a.fingerprint = e.actor
-    WHERE e.project_id = ? AND (e.kind LIKE 'run.%' OR e.kind LIKE 'workflow%')
-    ORDER BY e.timestamp DESC LIMIT 20`).all(id) as unknown as Array<{
-    event_id: string; kind: string; timestamp: string; actorName: string; payload_json: string; verified: number;
-  }>;
+  const runs = readCIRuns(db, id, Number((await searchParams).page));
+  const runEvents = runs.items;
 
   return (
     <main className="mx-auto max-w-6xl px-4 py-4">
@@ -112,6 +108,7 @@ export default async function CIPage({ params }: { params: Promise<{ id: string 
           </div>
         )}
       </section>
+      <ListPagination page={runs.page} pages={runs.totalPages} label="CI run pages" href={page => `?page=${page}`} />
     </main>
   );
 }

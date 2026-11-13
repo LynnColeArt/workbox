@@ -1,4 +1,6 @@
-import { actorRefs, memoryRefs } from "../hn/gitread";
+import { spawnSync } from "node:child_process";
+import { HN_BIN } from "../hn/runner";
+import { actorRefs, git, memoryRefs } from "../hn/gitread";
 import type { IndexOutcome } from "./db";
 import { readChain } from "./read";
 import type { DatabaseSync } from "node:sqlite";
@@ -51,22 +53,88 @@ export function indexProject(
   db: DatabaseSync,
   project: { id: string; name: string; description: string; repoPath: string },
 ): IndexOutcome {
+  db.exec("SAVEPOINT workbox_project_index");
+  try {
+    const outcome = reconcileProject(db, project);
+    db.exec("RELEASE workbox_project_index");
+    return outcome;
+  } catch (error) {
+    db.exec("ROLLBACK TO workbox_project_index");
+    db.exec("RELEASE workbox_project_index");
+    throw error;
+  }
+}
+
+function reconcileProject(
+  db: DatabaseSync,
+  project: { id: string; name: string; description: string; repoPath: string },
+): IndexOutcome {
   const outcome: IndexOutcome = { events: 0, verified: 0, unverified: 0, issues: 0, errors: [] as string[] };
 
-  const refs = new Map([...actorRefs(project.repoPath), ...memoryRefs(project.repoPath)]);
+  const readRefs = () => new Map([...actorRefs(project.repoPath, true), ...memoryRefs(project.repoPath, true)]);
+  const refs = readRefs();
+  const selection = spawnSync(HN_BIN, ["log", "--visible", "--json"], {
+    cwd: project.repoPath, encoding: "utf8", maxBuffer: 64 * 1024 * 1024, timeout: 15_000,
+  });
+  let visible: Set<string> | null = null;
+  if (selection.status === 0) {
+    const output = JSON.parse(selection.stdout);
+    if (output.ok !== true || output.data?.history_scope !== "visible_operative_history" || !Array.isArray(output.data.events)) {
+      throw new Error("Hubnot returned an invalid visibility snapshot.");
+    }
+    visible = new Set(output.data.events.map((event: { id: string }) => event.id));
+  } else {
+    const unsupported = !selection.error &&
+      /invalid_input/.test(selection.stdout ?? "") &&
+      /expected event show or resolve/.test(selection.stdout ?? "");
+    if (!unsupported) throw new Error("Hubnot visibility is unavailable for indexing.");
+  }
+  const aliasRows = db.prepare("SELECT issue_id, number FROM issues WHERE project_id = ?").all(project.id) as Array<{ issue_id: string; number: number | null }>;
+  const aliases = new Map(aliasRows.map(row => [row.issue_id, row.number]));
+  const currentRefs = readRefs();
+  if (refs.size !== currentRefs.size || [...refs].some(([ref, oid]) => currentRefs.get(ref) !== oid)) {
+    throw new Error("Hubnot refs changed during indexing. Retry the refresh.");
+  }
+  let nextNumber = 1;
+  for (const number of aliases.values()) nextNumber = Math.max(nextNumber, (number ?? 0) + 1);
+  // Check the exact sampled refs. A failed walk must leave the prior projection intact.
+  const walk = refs.size ? git(project.repoPath, ["rev-list", ...new Set(refs.values())]) : git(project.repoPath, ["rev-parse", "--git-dir"]);
+  if (!walk.ok) throw new Error("Hubnot history could not be read for indexing.");
+  const retained = new Set(refs.size ? walk.out.trim().split("\n") : []);
+  db.exec(`CREATE TABLE IF NOT EXISTS issue_number_aliases (
+    project_id TEXT NOT NULL, issue_id TEXT NOT NULL, number INTEGER NOT NULL,
+    PRIMARY KEY(project_id, issue_id), UNIQUE(project_id, number))`);
+  const remember = db.prepare("INSERT OR IGNORE INTO issue_number_aliases (project_id, issue_id, number) VALUES (?, ?, ?)");
+  for (const [id, number] of aliases) if (number !== null) remember.run(project.id, id, number);
+  for (const row of db.prepare("SELECT issue_id, number FROM issue_number_aliases WHERE project_id = ?").all(project.id)) {
+    aliases.set(String(row.issue_id), Number(row.number));
+    nextNumber = Math.max(nextNumber, Number(row.number) + 1);
+  }
+  const indexedRows = db.prepare("SELECT commit_sha, event_id, kind FROM events WHERE project_id = ?").all(project.id);
+  const indexedIds = new Set(indexedRows.map(row => String(row.event_id)));
+  const stale = indexedRows.some(row => !retained.has(String(row.commit_sha)) ||
+      (visible && !String(row.kind).startsWith("memory.") && !visible.has(String(row.event_id)))) ||
+    Boolean(visible && [...visible].some(id => !indexedIds.has(id)));
+  if (stale) {
+    for (const table of ["activity", "issue_comments", "memories", "issues", "events", "actors"]) {
+      db.prepare(`DELETE FROM ${table} WHERE project_id = ?`).run(project.id);
+    }
+  }
   const indexedCommits = new Set(
     db.prepare("SELECT commit_sha FROM events WHERE project_id = ?").all(project.id)
       .map((r) => String((r as { commit_sha: string }).commit_sha)),
   );
 
   for (const [ref, headSha] of refs as Map<string, string>) {
-    const actor = ref.split("/")[ref.includes("/memory/") ? 3 : ref.split("/").length - 1];
+    const actor = ref.split("/").at(ref.includes("/memory/") ? -2 : -1)!;
 
     if (indexedCommits.has(headSha)) continue;
 
     // Update actor bookkeeping (may include actors with no new events).
     const knownCommit = (sha: string) => indexedCommits.has(sha);
-    const chain = readChain(project.repoPath, ref, knownCommit);
+    const chain = readChain(project.repoPath, ref, knownCommit, headSha);
+    if (chain.walkErrors.length && stale) throw new Error("Hubnot history changed during index reconciliation.");
+    if (visible) chain.events = chain.events.filter(event => event.protocol === "memory" || visible.has(event.eventId));
     outcome.errors.push(...chain.walkErrors.map((e) => `${project.id}/${actor}: ${e}`));
 
     const tipEventId = chain.events.length > 0
@@ -124,13 +192,17 @@ export function indexProject(
           const existing = db.prepare("SELECT created_at FROM issues WHERE project_id = ? AND issue_id = ?")
             .get(project.id, ev.subject ?? "") as { created_at: string | null } | undefined;
           if (ev.kind === "issue.open" || !existing) {
+            const issueId = ev.subject ?? ev.eventId;
+            const number = aliases.get(issueId) ?? nextNumber++;
+            aliases.set(issueId, number);
+            remember.run(project.id, issueId, number);
             db.prepare(`INSERT INTO issues (project_id, issue_id, title, body, status, creator, created_at, updated_at, conflict, labels_json, assignees_json, number)
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?)
                         ON CONFLICT(project_id, issue_id) DO UPDATE SET
                           title=excluded.title, body=excluded.body, status=excluded.status, updated_at=excluded.updated_at, conflict=0,
                           labels_json=excluded.labels_json, assignees_json=excluded.assignees_json`)
               .run(project.id, ev.subject ?? ev.eventId, st.title, st.body, st.status, ev.actor, createdAt, ev.timestamp,
-                   JSON.stringify(st.labels), JSON.stringify(st.assignees), nextIssueNumber(db, project.id));
+                   JSON.stringify(st.labels), JSON.stringify(st.assignees), number);
             outcome.issues += ev.kind === "issue.open" ? 1 : 0;
           } else {
             db.prepare(`UPDATE issues SET title=?, body=?, status=?, updated_at=?, conflict=0, labels_json=?, assignees_json=?
@@ -231,7 +303,11 @@ export function fullIndex(db: DatabaseSync, projects: Array<{ id: string; name: 
   for (const p of projects) {
     ensureProject(db, p);
     ensureColumn(db, "issues", "number", "INTEGER");
-    out.push(indexProject(db, p));
+    try {
+      out.push(indexProject(db, p));
+    } catch {
+      out.push({ events: 0, verified: 0, unverified: 0, issues: 0, errors: [`${p.id}: local Hubnot history could not be refreshed.`] });
+    }
   }
   return out;
 }
