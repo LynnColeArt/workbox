@@ -9,7 +9,7 @@ export const instant = false;
 const TABS = [
   { key: "code", label: "Code" },
   { key: "issues", label: "Issues" },
-  { key: "proposals", label: "Proposals" },
+  { key: "proposals", label: "Pull requests" },
   { key: "memories", label: "Memory" },
   { key: "ci", label: "CI" },
   { key: "discussions", label: "Discussions" },

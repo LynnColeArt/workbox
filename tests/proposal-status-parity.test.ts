@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { execFileSync, spawn } from "node:child_process";
 import { once } from "node:events";
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { createInterface } from "node:readline";
@@ -216,6 +217,27 @@ test("Workbox and MCP agree on exact failed, restored, and merged revisions", {
   const native = JSON.parse(hn("proposal", "status", restored, "--json")).data;
   assert.deepEqual(merged.merge.events, native.decisions.merge_events);
   assert.match(merged.merge.events[0], /^sha256:[a-f0-9]{64}$/);
+  const followed = (await lookup(original, "lineage")).data.data;
+  assert.equal(followed.id, merged.id);
+  const lineageHref = "/p/repo/proposals/" + encodeURIComponent(original) + "?mode=lineage&view=checks";
+  const lineagePage = await browser(lineageHref);
+  assert.ok(lineagePage.includes(`href="${followed.href}"`));
+  assert.match(lineagePage, /Open selected revision/);
+
+  if (process.env.WORKBOX_PLAYWRIGHT_MODULE) {
+    const { chromium } = createRequire(import.meta.url)(process.env.WORKBOX_PLAYWRIGHT_MODULE);
+    const chrome = await chromium.launch({ executablePath: process.env.WORKBOX_CHROME_BIN, headless: true });
+    try {
+      const page = await chrome.newPage();
+      await page.goto(origin + lineageHref);
+      await page.waitForURL(origin + followed.href);
+      await page.getByText("Merged revision", { exact: true }).waitFor();
+      await page.getByRole("link", { name: "Pull requests", exact: true }).waitFor();
+    } finally {
+      await chrome.close();
+    }
+  }
+
 
   const trunk = git("rev-parse", "HEAD").trim();
   git("switch", "-qc", "fork");

@@ -182,7 +182,7 @@ export type ProposalIdentity = z.infer<typeof publicIdentity>;
 type ReadFailure = "invalid_id" | "unsupported" | "unavailable" | "not_visible" | "invalid_response";
 export type ProposalReadResult<T> = { ok: true; value: T } | { ok: false; reason: ReadFailure };
 
-const nativeTimeoutMs = 5_000;
+const nativeTimeoutMs = 10_000;
 const visibilityFailures = new Set(["not_found", "permission_denied", "admission_pending", "admission_refused"]);
 type Capability = "native.proposal-read" | "native.event-read";
 

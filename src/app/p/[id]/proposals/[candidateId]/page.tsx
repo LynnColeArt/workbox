@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { connection } from "next/server";
 import { AutomaticProposalChecks, ProposalChecks, ProposalStageSummary } from "@/components/proposal-checks";
 import { ProposalConversation } from "@/components/proposal-conversation";
 import { ProposalDetailHeader } from "@/components/proposal-detail-header";
 import { ProposalFilesChanged } from "@/components/proposal-files-changed";
+import { ProposalLineageRedirect } from "@/components/proposal-lineage-redirect";
 import { ProposalNextActions } from "@/components/proposal-next-actions";
 import { createProposalReader, isFullProposalId } from "@/lib/hn/proposal-read";
 import { openDb } from "@/lib/workbox/db";
@@ -83,7 +83,10 @@ export default async function ProposalDetailPage({
   }
 
   const { candidate, related, incomplete } = detail;
-  if (mode === "lineage") redirect(proposalDetailHref(projectId, candidate.id, { view }));
+  if (mode === "lineage") {
+    // The proposal lookup can finish after Next.js has started streaming the page.
+    return <ProposalLineageRedirect href={proposalDetailHref(projectId, candidate.id, { view })} />;
+  }
 
   const checks = getProposalChecks(candidate.status);
   const [identity, conversation, automaticChecks] = await Promise.all([
