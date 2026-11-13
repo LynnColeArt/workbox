@@ -1,7 +1,7 @@
 {
-  "event_count": 2,
-  "last_event_id": "01M79KBVZMPMSQJH6CP7R939TE",
-  "materialized_at": "2026-11-13T04:41:29.844167+00:00",
+  "event_count": 3,
+  "last_event_id": "01M79KBXEK7SP7QT34B1V311T7",
+  "materialized_at": "2026-11-13T04:41:31.347068+00:00",
   "mission_number": "",
   "mission_slug": "automatic-proposal-checks-01M78W2C",
   "mission_type": "software-dev",
@@ -14,7 +14,7 @@
     "for_review": 0,
     "in_progress": 0,
     "in_review": 0,
-    "planned": 2
+    "planned": 3
   },
   "work_packages": {
     "WP01": {
@@ -30,6 +30,13 @@
       "lane": "planned",
       "last_event_id": "01M79KBVZMPMSQJH6CP7R939TE",
       "last_transition_at": "2026-11-13T04:41:29.844167+00:00"
+    },
+    "WP03": {
+      "actor": "finalize-tasks",
+      "force_count": 0,
+      "lane": "planned",
+      "last_event_id": "01M79KBXEK7SP7QT34B1V311T7",
+      "last_transition_at": "2026-11-13T04:41:31.347068+00:00"
     }
   }
 }
