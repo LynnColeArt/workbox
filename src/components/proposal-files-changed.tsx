@@ -1,3 +1,6 @@
+import { Fragment } from "react";
+import { patchLines } from "@/lib/workbox/patch-lines";
+import type { InlineReviewThread } from "@/lib/workbox/inline-review-threads";
 import { ChangedFileFilter } from "./changed-file-filter";
 import Link from "next/link";
 import type { ProposalComparison } from "@/lib/workbox/proposal-comparison";
@@ -13,10 +16,12 @@ export function ProposalFilesChanged({
   comparison,
   detailHref,
   reviewLayout = false,
+  inlineThreads = [],
 }: {
   comparison: ProposalComparison;
   detailHref: string;
   reviewLayout?: boolean;
+  inlineThreads?: InlineReviewThread[];
 }) {
   const { files, patch, selectedPath, status } = comparison;
   if (status === "unavailable") {
@@ -57,7 +62,7 @@ export function ProposalFilesChanged({
         )}
         {!patch && files.length > 0 && <p>Select a file to view its patch.</p>}
         {patch && patch.status !== "available" && <p>{patchMessages[patch.status]}</p>}
-        {patch?.text && (reviewLayout ? <PatchLines text={patch.text} /> : (
+        {patch?.text && (reviewLayout ? <PatchLines text={patch.text} threads={inlineThreads} /> : (
           <pre className="wb-panel mt-2 overflow-auto p-3 text-xs">
             <code>{patch.text}</code>
           </pre>
@@ -67,32 +72,32 @@ export function ProposalFilesChanged({
   );
 }
 
-function PatchLines({ text }: { text: string }) {
-  let before = 0;
-  let after = 0;
-  let inHunk = false;
+export function ReviewThread({ thread }: { thread: InlineReviewThread }) {
+  return <article aria-label="Inline review thread" className="space-y-2 whitespace-normal break-words">
+    {thread.comments.map(comment => <div key={comment.id} className="border-b border-[var(--wb-border)] pb-2 last:border-b-0">
+      <strong>{comment.author || "Imported reviewer"}</strong>
+      {comment.date && <time className="wb-muted ml-2" dateTime={comment.date}>{comment.date.slice(0, 10)}</time>}
+      <p className="whitespace-pre-wrap">{comment.body}</p>
+    </div>)}
+  </article>;
+}
+
+export function PatchLines({ text, threads }: { text: string; threads: InlineReviewThread[] }) {
   return <div tabIndex={0} role="region" aria-label="File diff" className="wb-panel overflow-auto">
     <table className="w-full border-collapse text-left font-mono text-xs">
       <thead className="sr-only"><tr><th>Old line</th><th>New line</th><th>Change</th></tr></thead>
-      <tbody>{text.replace(/\n$/, "").split("\n").map((line, index) => {
-        const hunk = /^@@ -([0-9]+)(?:,[0-9]+)? \+([0-9]+)(?:,[0-9]+)? @@/.exec(line);
-        if (hunk) {
-          before = Number(hunk[1]);
-          after = Number(hunk[2]);
-          inHunk = true;
-        }
-        const marker = inHunk && !hunk ? line[0] : "";
-        const added = marker === "+";
-        const removed = marker === "-";
-        const context = marker === " ";
-        const oldLine = removed || context ? before++ : null;
-        const newLine = added || context ? after++ : null;
-        return <tr key={index} className={added ? "bg-green-950/70" : removed ? "bg-red-950/70" : hunk ? "bg-blue-950/60" : ""}>
-          <td className="wb-muted select-none px-2 text-right tabular-nums">{oldLine}</td>
-          <td className="wb-muted select-none px-2 text-right tabular-nums">{newLine}</td>
-          <td className="w-full whitespace-pre px-3 py-0.5"><code>{line}</code></td>
-        </tr>;
-      })}</tbody>
+      <tbody>{patchLines(text).map(({ line, oldLine, newLine, kind }, index) => (
+        <Fragment key={index}>
+          <tr className={kind === "+" ? "bg-green-950/70" : kind === "-" ? "bg-red-950/70" : kind === "hunk" ? "bg-blue-950/60" : ""}>
+            <td className="wb-muted select-none px-2 text-right tabular-nums">{oldLine}</td>
+            <td className="wb-muted select-none px-2 text-right tabular-nums">{newLine}</td>
+            <td className="w-full whitespace-pre px-3 py-0.5"><code>{line}</code></td>
+          </tr>
+          {threads.filter(thread => thread.rowIndex === index).map(thread => (
+            <tr key={thread.id}><td colSpan={3} className="border-y border-[var(--wb-border)] p-3 font-sans text-sm"><ReviewThread thread={thread} /></td></tr>
+          ))}
+        </Fragment>
+      ))}</tbody>
     </table>
   </div>;
 }

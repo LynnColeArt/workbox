@@ -1,5 +1,5 @@
 import { ListPagination } from "@/components/list-pagination";
-import { ProposalFilesChanged } from "@/components/proposal-files-changed";
+import { PatchLines, ProposalFilesChanged, ReviewThread } from "@/components/proposal-files-changed";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { connection } from "next/server";
@@ -29,7 +29,7 @@ export default async function PullRequestDetailPage({ params, searchParams }: {
     </main>;
   }
 
-  const { request, comparison, history, fileHistory, reviews } = result;
+  const { request, comparison, history, fileHistory, reviews, inlineThreads } = result;
   const tab = view === "commits" || view === "files" ? view : "conversation";
   const status = request.state === "open" ? "open" : "closed";
   return <main className="mx-auto max-w-6xl space-y-4 px-4 py-6">
@@ -54,7 +54,14 @@ export default async function PullRequestDetailPage({ params, searchParams }: {
     </nav>
     {tab === "files" && <section aria-labelledby="pr-files" className="wb-panel space-y-3 p-4">
       <h2 id="pr-files" className="font-semibold">Files changed</h2>
-      <ProposalFilesChanged reviewLayout comparison={comparison} detailHref={`${request.href}?view=files`} />
+      <ProposalFilesChanged reviewLayout inlineThreads={inlineThreads} comparison={comparison} detailHref={`${request.href}?view=files`} />
+      {inlineThreads.filter(thread => thread.rowIndex === null && thread.anchor.path === comparison.selectedPath).map(thread => (
+        <details key={thread.id} className="wb-panel p-3">
+          <summary>Review thread at original revision {thread.anchor.revision?.slice(0, 12) ?? "unavailable"}{thread.anchor.line ? ` · Line ${thread.anchor.line}` : ""}</summary>
+          {thread.originalHunk && <PatchLines text={thread.originalHunk} threads={[{ ...thread, rowIndex: thread.originalRowIndex }]} />}
+          {(!thread.originalHunk || thread.originalRowIndex === null) && <ReviewThread thread={thread} />}
+        </details>
+      ))}
       {fileHistory && fileHistory.commits.length > 0 && <div>
         <h3 className="font-semibold">Commits touching this path ({fileHistory.total})</h3>
         <ul className="mt-1 space-y-1 text-sm">

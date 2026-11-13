@@ -1,3 +1,4 @@
+import { inlineReviewThreads } from "./inline-review-threads";
 import { readComparisonCommits, readProposalComparison } from "./proposal-comparison";
 import { createHash } from "node:crypto";
 import { z } from "zod";
@@ -24,6 +25,8 @@ const nativeHistory = z.object({
       id: z.string(), kind: z.string(), author: z.string(), body: z.string(),
       state: z.string().optional(), path: z.string().optional(), line: z.number().optional(),
       date: z.string().optional(), commit: z.string().optional(),
+      original_commit: z.string().optional(), original_line: z.number().optional(), side: z.string().optional(),
+      diff_hunk: z.string().optional(), reply_to: z.string().optional(),
     })).optional(),
   })),
 });
@@ -65,7 +68,8 @@ export async function readPullRequestDetail(project: string, repoPath: string, l
     }
     const history = comparison.status === "unavailable" ? null : withCommitLinks(readComparisonCommits(repoPath, base, head, undefined, commitPage));
     const fileHistory = comparison.selectedPath ? withCommitLinks(readComparisonCommits(repoPath, base, head, comparison.selectedPath, fileCommitPage)) : null;
-    return { kind: "available", request: { ...local, body: record.body ?? null }, comparison, history, fileHistory, reviews: record.reviews ?? [] } as const;
+    const inlineThreads = inlineReviewThreads(record.reviews ?? [], head, comparison.selectedPath, comparison.patch?.text);
+    return { kind: "available", inlineThreads, request: { ...local, body: record.body ?? null }, comparison, history, fileHistory, reviews: record.reviews ?? [] } as const;
   }
   return { kind: "not_found" } as const;
 }
