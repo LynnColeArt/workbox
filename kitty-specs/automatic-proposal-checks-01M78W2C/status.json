@@ -208,7 +208,8 @@
       "last_transition_at": "2026-11-13T05:07:03.499076+00:00",
       "model": "__resolved_model_absent__",
       "notes": [
-        "Production Chrome and MCP journey, Linux Go test/build, real synchronized clone, native merge activation, and nine focused tests passed."
+        "Production Chrome and MCP journey, Linux Go test/build, real synchronized clone, native merge activation, and nine focused tests passed.",
+        "Verified Hubnot 46332f2d with browser and MCP exact trigger review, configured governance activation, exact-revision signed checks, clone sync and restart. Full OS qualification deferred."
       ],
       "provider": "__resolved_provider_absent__",
       "review_result": {
