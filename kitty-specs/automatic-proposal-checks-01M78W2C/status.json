@@ -58,7 +58,8 @@
       "last_transition_at": "2026-11-13T04:53:10.139826+00:00",
       "model": "__resolved_model_absent__",
       "notes": [
-        "Verified durable baseline and exact revision observation against native Hubnot."
+        "Verified durable baseline and exact revision observation against native Hubnot.",
+        "Reviewed Hubnot 3d0a78d2. Verified native historical baseline, exact revision identity, atomic local observation and process replay. Worker fencing and signed recovery are exercised in WP03."
       ],
       "provider": "__resolved_provider_absent__",
       "review_result": {
