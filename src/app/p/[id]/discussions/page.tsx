@@ -1,3 +1,5 @@
+import { FilterTag } from "@/components/filter-tag";
+import { CursorPagination } from "@/components/list-pagination";
 import { StatusTag } from "@/components/status-tag";
 import Link from "next/link";
 import { connection } from "next/server";
@@ -22,6 +24,12 @@ export default async function DiscussionsPage({ params, searchParams }: {
     action: "list", category: category || undefined, status: status || undefined, cursor: query.cursor,
   });
   const listing = result.ok && result.data.kind === "list" ? result.data : null;
+  function categoryHref(value: string) {
+    const params = new URLSearchParams(filter);
+    if (value) params.set("category", value);
+    else params.delete("category");
+    return `${base}?${params}`;
+  }
   const next = new URLSearchParams(filter);
   if (listing?.nextCursor) next.set("cursor", listing.nextCursor);
 
@@ -31,7 +39,7 @@ export default async function DiscussionsPage({ params, searchParams }: {
         <h1 className="text-2xl font-semibold">Discussions</h1>
         {listing?.signer.available && <a className="wb-btn" href="#new-discussion">New discussion</a>}
       </header>
-      <form action={base} method="get" className="flex flex-wrap items-end gap-3">
+      <form aria-label="Discussion filters" action={base} method="get" className="flex flex-wrap items-end gap-3">
         <label className="text-sm">Category
           <input name="category" defaultValue={category} className="wb-btn ml-2" />
         </label>
@@ -55,17 +63,20 @@ export default async function DiscussionsPage({ params, searchParams }: {
             {listing.items.map(item => (
               <li key={item.id} className="space-y-1 p-4">
                 <Link className="wb-link font-semibold" href={item.href}>{item.state?.title ?? item.heads[0]?.state.title ?? "Discussion"}</Link>
-                <p className="wb-muted text-sm">
+                <div className="wb-muted flex flex-wrap items-center gap-2 text-sm">
                   <StatusTag status={item.conflict ? "conflict" : item.state?.status === "closed" ? "closed" : "open"} />
-                  {!item.conflict && item.state?.category && ` · ${item.state.category}`}
-                  {!item.conflict && item.state?.accepted_reply_revision && " · Answered"}
-                </p>
+                  {!item.conflict && item.state?.category && <FilterTag field="category" value={item.state.category}
+                    selected={item.state.category.trim().toLowerCase() === category.toLowerCase()}
+                    href={categoryHref(item.state.category.trim().toLowerCase() === category.toLowerCase() ? "" : item.state.category)} />}
+                  {!item.conflict && item.state?.accepted_reply_revision && <span className="wb-chip">Answered</span>}
+                </div>
               </li>
             ))}
           </ul>
         </section>
       )}
-      {listing?.nextCursor && <Link className="wb-link block" href={`${base}?${next}`}>Next page</Link>}
+      {listing && <CursorPagination label="Discussion pages" firstHref={query.cursor ? `${base}?${filter}` : undefined}
+        nextHref={listing.nextCursor ? `${base}?${next}` : undefined} />}
       {listing && <section id="new-discussion">
         {listing.signer.available ? <DiscussionForm
           endpoint={`/api/projects/${encodeURIComponent(id)}/discussions`} actor={listing.signer.identity}

@@ -1,3 +1,5 @@
+import { FilterTag } from "@/components/filter-tag";
+import { CursorPagination } from "@/components/list-pagination";
 import { StatusTag } from "@/components/status-tag";
 import { workboxPageSize } from "@/lib/workbox/list-settings";
 import Link from "next/link";
@@ -25,8 +27,8 @@ export default async function IssuesPage({ params, searchParams }: {
   const cursor = typeof query.cursor === "string" ? query.cursor : undefined;
   const result = await readIssueList(project, { action: "list", q, label, status, cursor, limit: workboxPageSize() });
   const base = `/p/${encodeURIComponent(id)}/issues`;
-  function href(value?: string) {
-    const query = new URLSearchParams({ q, label, status });
+  function href(value?: string, selectedLabel = label) {
+    const query = new URLSearchParams({ q, label: selectedLabel, status });
     if (value) query.set("cursor", value);
     return `${base}?${query}`;
   }
@@ -34,7 +36,7 @@ export default async function IssuesPage({ params, searchParams }: {
   return (
     <main className="mx-auto max-w-6xl px-4 py-4">
       {result.ok && <NewIssueForm project={id} signer={result.data.signer} />}
-      <form action={base} className="wb-panel mb-4 flex flex-wrap items-end gap-3 p-4 text-sm">
+      <form aria-label="Issue filters" action={base} className="wb-panel mb-4 flex flex-wrap items-end gap-3 p-4 text-sm">
         <label className="grid gap-1">Search by title or issue number
           <input className="wb-btn" name="q" defaultValue={q} maxLength={1024} type="search" />
         </label>
@@ -67,15 +69,17 @@ export default async function IssuesPage({ params, searchParams }: {
                   <StatusTag status={issue.conflict ? "conflict" : issue.status === "closed" ? "closed" : "open"} />
                   <span>{issue.author}</span>
                   {issue.createdAt && <time dateTime={issue.createdAt}>{issue.createdAt.slice(0, 10)}</time>}
-                  {issue.labels.map(label => <span key={label} className="wb-chip">{label}</span>)}
+                  {[...new Set(issue.labels)].map(value => {
+                    const selected = value.toLowerCase() === label.toLowerCase();
+                    return <FilterTag key={value} field="label" value={value} selected={selected}
+                      href={href(undefined, selected ? "" : value)} />;
+                  })}
                 </div>
               </li>
             ))}
           </ul>
-          <nav aria-label="Issue pages" className="mt-3 flex gap-3 text-sm">
-            {cursor && <Link className="wb-link" href={href()}>First page</Link>}
-            {result.data.nextCursor && <Link className="wb-link" href={href(result.data.nextCursor)}>Next page</Link>}
-          </nav>
+          <CursorPagination label="Issue pages" firstHref={cursor ? href() : undefined}
+            nextHref={result.data.nextCursor ? href(result.data.nextCursor) : undefined} />
         </>
       )}
     </main>

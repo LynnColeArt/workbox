@@ -1,3 +1,4 @@
+import { CursorPagination } from "@/components/list-pagination";
 import Link from "next/link";
 import { connection } from "next/server";
 import { CreateForm } from "@/components/create-form";
@@ -64,11 +65,8 @@ export default async function ProposalsPage({
           </ul>
         )}
       </section>
-      {nextOffset !== null && (
-        <Link href={`/p/${encodeURIComponent(id)}/proposals?${nextQuery}`} className="mt-4 inline-block text-sm hover:underline">
-          More proposals
-        </Link>
-      )}
+      <CursorPagination label="Proposal pages" firstHref={offset || hintOffset ? `/p/${encodeURIComponent(id)}/proposals` : undefined}
+        nextHref={nextOffset !== null ? `/p/${encodeURIComponent(id)}/proposals?${nextQuery}` : undefined} nextText="More proposals" />
     </main>
   );
 }

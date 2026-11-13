@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { z } from "zod";
 import {
   collaborationError, collaborationProject, collaborationSigner, eventId, nativeCollaboration,
@@ -151,20 +152,48 @@ export async function runDiscussionOperation(projectId: string, raw: unknown, ma
   const input = parsed.data;
 
   if (input.action === "list") {
-    let cursor = input.cursor;
-    for (let scanned = 0; scanned < 10; scanned += 1) {
-      const listing = await nativeCollaboration(project.repoPath, ["discussion", "list", ...pageFlags({ ...input, cursor })], page(threadView));
-      if (!listing.ok) return listing;
-      const { items, next_cursor, snapshot } = listing.data.value;
-      const results = items.filter(item => (!input.status || item.state?.status === input.status) &&
-        (!input.category || item.state?.category.trim().toLowerCase() === input.category.trim().toLowerCase()));
-      if (results.length || !next_cursor || scanned === 9) return { ok: true, data: {
-        kind: "list", items: results.map(item => ({ ...item, href: discussionHref(project.id, item.id) })),
-        nextCursor: next_cursor ?? null, snapshot, signer: await collaborationSigner(project),
-      } } as const;
-      cursor = next_cursor;
+    const filters = { category: input.category?.trim().toLowerCase() ?? null, status: input.status ?? null };
+    const query = createHash("sha256").update(JSON.stringify([project.id, filters, input.limit])).digest("hex");
+    const continuation = z.object({
+      query: z.literal(query), cursor: z.string().nullable(), offset: z.number().int().min(0).max(24), snapshot: z.string().nullable(),
+    });
+    let cursor: string | null = null;
+    let offset = 0;
+    let snapshot: string | null = null;
+    if (input.cursor) {
+      try {
+        ({ cursor, offset, snapshot } = continuation.parse(JSON.parse(Buffer.from(input.cursor, "base64url").toString("utf8"))));
+      } catch {
+        return collaborationError("invalid_input", "This discussion cursor does not match the selected filters.");
+      }
     }
-    return collaborationError("native_unavailable", "Discussion listing is unavailable.");
+    const items = [];
+    for (let scanned = 0; scanned < 10; scanned++) {
+      const listing = await nativeCollaboration(project.repoPath, ["discussion", "list",
+        ...pageFlags({ limit: 25, cursor: cursor ?? undefined })], page(threadView));
+      if (!listing.ok) return listing;
+      const nativePage = listing.data.value;
+      if (snapshot && snapshot !== nativePage.snapshot) {
+        return collaborationError("stale_cursor", "Discussions changed. Restart from the first page.");
+      }
+      snapshot = nativePage.snapshot;
+      while (offset < nativePage.items.length && items.length < input.limit) {
+        const item = nativePage.items[offset++];
+        if (filters.status && item.state?.status !== filters.status) continue;
+        if (filters.category && item.state?.category.trim().toLowerCase() !== filters.category) continue;
+        items.push({ ...item, href: discussionHref(project.id, item.id) });
+      }
+      if (offset >= nativePage.items.length) {
+        cursor = nativePage.next_cursor ?? null;
+        offset = 0;
+        if (!cursor) break;
+      }
+      if (items.length === input.limit) break;
+    }
+    const nextCursor = cursor || offset ? Buffer.from(JSON.stringify({ query, cursor, offset, snapshot })).toString("base64url") : null;
+    return { ok: true, data: {
+      kind: "list", items, nextCursor, snapshot, filters, pageSize: input.limit, signer: await collaborationSigner(project),
+    } } as const;
   }
 
   if (input.action === "detail") {

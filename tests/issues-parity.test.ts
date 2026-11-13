@@ -122,7 +122,11 @@ test("signed issue lifecycle, synced conflicts and Markdown match production bro
   const filtered = await http<IssueList>({ ...list, action: "list" });
   assert.deepEqual(filtered, await mcp("workbox_list_issues", { project, ...list }));
   assert.equal(data(filtered).items[0].issueId, opened.issueId);
-  assert.match(await markup(`/p/${project}/issues?q=%231&label=%20bug%20&status=open`), /Issue lifecycle/);
+  const filteredMarkup = await markup(`/p/${project}/issues?q=%231&label=%20bug%20&status=open`);
+  assert.match(filteredMarkup, /Issue lifecycle/);
+  assert.match(filteredMarkup, /aria-label="Clear label filter:  bug "/);
+  assert.match(filteredMarkup, /href="[^"]*q=%231&amp;label=&amp;status=open"/);
+  assert.equal(data(filtered).filters.label, " bug ");
   assert.match(await markup(opened.href), /<strong>Keep this<\/strong>/);
   const detail = data(await show(opened.issueId));
   assert.equal(detail.state?.body, source);

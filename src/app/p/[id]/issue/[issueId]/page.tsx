@@ -1,3 +1,4 @@
+import { CursorPagination } from "@/components/list-pagination";
 import { workboxPageSize } from "@/lib/workbox/list-settings";
 import Link from "next/link";
 import { connection } from "next/server";
@@ -36,11 +37,12 @@ export default async function IssuePage({ params, searchParams }: {
     </main>
   );
   const issue = result.data;
-  function nextPage(field: "cursor" | "revisionCursor", value: string) {
+  function nextPage(field: "cursor" | "revisionCursor", value?: string) {
     const params = new URLSearchParams();
     if (cursor && !paginationReset) params.set("cursor", cursor);
     if (revisionCursor && !paginationReset) params.set("revisionCursor", revisionCursor);
-    params.set(field, value);
+    if (value) params.set(field, value);
+    else params.delete(field);
     return `${issue.href}?${params}#${field === "cursor" ? "comments" : "revisions"}`;
   }
 
@@ -92,7 +94,8 @@ export default async function IssuePage({ params, searchParams }: {
             <MarkdownContent className="px-4 py-3" html={renderMarkdown(comment.body)} />
           </article>
         ))}
-        {issue.nextCursor && <Link className="wb-link text-sm" href={nextPage("cursor", issue.nextCursor)}>Next comments</Link>}
+        <CursorPagination label="Issue comment pages" firstHref={cursor && !paginationReset ? nextPage("cursor") : undefined}
+          nextHref={issue.nextCursor ? nextPage("cursor", issue.nextCursor) : undefined} nextText="Next comments" />
         {cursor && !paginationReset && <Link className="wb-link ml-3 text-sm" href={`${issue.href}#comments`}>First comments</Link>}
       </section>
       <IssueCommentForm project={id} signer={issue.signer} issueId={issue.issueId} />
@@ -132,8 +135,8 @@ export default async function IssuePage({ params, searchParams }: {
             </li>
           ))}
         </ul>
-        {issue.nextRevisionCursor && <Link className="wb-link text-sm" href={nextPage("revisionCursor", issue.nextRevisionCursor)}>Next revisions</Link>}
-        {revisionCursor && !paginationReset && <Link className="wb-link ml-3 text-sm" href={`${issue.href}#revisions`}>First revisions</Link>}
+        <CursorPagination label="Issue revision pages" firstHref={revisionCursor && !paginationReset ? nextPage("revisionCursor") : undefined}
+          nextHref={issue.nextRevisionCursor ? nextPage("revisionCursor", issue.nextRevisionCursor) : undefined} nextText="Next revisions" />
       </section>
     </main>
   );

@@ -1,3 +1,4 @@
+import { CursorPagination } from "@/components/list-pagination";
 import Link from "next/link";
 import { connection } from "next/server";
 import { MarkdownContent } from "@/components/markdown-editor";
@@ -64,7 +65,7 @@ export default async function DiscussionPage({ params, searchParams }: {
           <ReplyActions endpoint={endpoint} actor={signer.identity} thread={thread} reply={contextReply} />}
       </section>}
       <section className="space-y-3" aria-label="Replies">
-        <h2 className="font-semibold">{thread.reply_count ?? replies.length} replies</h2>
+        <h2 id="replies" className="font-semibold">{thread.reply_count ?? replies.length} replies</h2>
         {replies.map(reply => (
           <article className="wb-panel space-y-2 p-4" id={`reply-${reply.id}`} key={reply.id}>
             <p className="wb-muted text-sm">
@@ -84,7 +85,8 @@ export default async function DiscussionPage({ params, searchParams }: {
             {signer.available && <ReplyActions endpoint={endpoint} actor={signer.identity} thread={thread} reply={reply} />}
           </article>
         ))}
-        {nextCursor && <Link className="wb-link" href={`${href}?${new URLSearchParams({ cursor: nextCursor })}`}>Next replies</Link>}
+        <CursorPagination label="Discussion reply pages" firstHref={cursor ? `${href}#replies` : undefined}
+          nextHref={nextCursor ? `${href}?${new URLSearchParams({ cursor: nextCursor })}#replies` : undefined} nextText="Next replies" />
       </section>
       {signer.available ? <DiscussionForm endpoint={endpoint} actor={signer.identity}
         action={{ action: "reply", discussionId }} fields={{ body: "" }} replies={replyOptions}

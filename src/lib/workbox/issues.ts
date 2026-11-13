@@ -142,7 +142,7 @@ export async function readIssueList(project: ProjectSummary, input: z.infer<type
     if (items.length === input.limit) break;
   }
   const nextCursor = cursor || offset ? Buffer.from(JSON.stringify({ query, cursor, offset, snapshot })).toString("base64url") : null;
-  return { ok: true, data: { items, nextCursor, signer } } as const;
+  return { ok: true, data: { items, nextCursor, signer, filters: { q, label, status: input.status }, pageSize: input.limit } } as const;
 }
 
 async function readIssueHistory(project: ProjectSummary, issueId: string, kind: "comments" | "revisions", limit: number, cursor?: string | null) {

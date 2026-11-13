@@ -20,7 +20,7 @@ function tool(name: string, description: string, action: string | null, properti
 }
 
 export const discussionTools = [
-  tool("workbox_list_discussions", "List verified discussions with category and status filters.", "list",
+  tool("workbox_list_discussions", "List verified discussions with effective category and status filters and page size. Continue with nextCursor and the same filters.", "list",
     { ...paging, category: string, status: statuses }, []),
   tool("workbox_discussion_detail", "Read a discussion, its exact accepted answer, and one page of replies.", "detail",
     { ...paging, discussionId: event, replyId: event }, ["discussionId"]),

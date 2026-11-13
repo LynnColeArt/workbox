@@ -1,3 +1,4 @@
+import { ListPagination } from "@/components/list-pagination";
 import Link from "next/link";
 import { connection } from "next/server";
 import { ActivityChart } from "@/components/activity-chart";
@@ -125,22 +126,8 @@ export default async function ExplorePage({
                 ))}
               </ul>
             )}
-            {result.totalPages > 1 && (
-              <nav aria-label="Explore pages" className="flex flex-wrap gap-2 text-sm">
-                {Array.from({ length: result.totalPages }, (_, index) => index + 1).map((page) => (
-                  <Link
-                    key={page}
-                    aria-label={`Page ${page}`}
-                    aria-current={page === selection.page ? "page" : undefined}
-                    className="wb-chip aria-[current=page]:border-[var(--wb-accent)] aria-[current=page]:text-[var(--wb-text)]"
-                    href={exploreHref({ ...selection, page }, snapshot)}
-                    prefetch={false}
-                  >
-                    {page}
-                  </Link>
-                ))}
-              </nav>
-            )}
+            <ListPagination page={selection.page} pages={result.totalPages} label="Explore pages"
+              href={page => exploreHref({ ...selection, page }, snapshot)} />
           </>
         )}
       </section>

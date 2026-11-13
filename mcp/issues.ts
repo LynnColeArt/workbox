@@ -27,7 +27,7 @@ function execute(action: string | undefined, args: Record<string, unknown>) {
 export const issueTools: CollaborationTool[] = [
   {
     name: "workbox_list_issues",
-    description: "Browse verified issues, with status, title or number, and label filters. Continue with nextCursor and the same filters.",
+    description: "Browse verified issues, with status, title or number, and label filters. Returns the effective filters and page size. Continue with nextCursor and the same filters.",
     inputSchema: properties({ project: string, q: string, label: string, status: { enum: ["all", ...status.enum] }, limit, cursor: string }, ["project"]),
     call: args => execute("list", args),
   },

@@ -60,6 +60,26 @@ test("discussion reads and replies share native state, paging and operation repl
     title: oversized.title, category: oversized.category, body: oversized.body,
   });
   assert.ok(importedEdit.ok, JSON.stringify(importedEdit));
+  for (const [index, name] of ["Questions", "Other", "Questions"].entries()) {
+    const created = await runDiscussionOperation("fixture", {
+      action: "create", actor, operationId: `filter-page-${index}`, title: `Filter fixture ${index}`, category: name, body: "",
+    }, true);
+    assert.ok(created.ok);
+  }
+  const firstFiltered = await byMcp("workbox_list_discussions", { category: "questions", limit: 2 });
+  assert.ok(firstFiltered.ok && firstFiltered.data && typeof firstFiltered.data === "object");
+  const firstFilterPage = firstFiltered.data as { items: Array<{ id: string }>; nextCursor: string };
+  assert.equal(firstFilterPage.items.length, 2);
+  assert.ok(firstFilterPage.nextCursor);
+  const second = await runDiscussionOperation("fixture", { action: "list", category: "questions", limit: 2, cursor: firstFilterPage.nextCursor });
+  assert.ok(second.ok && second.data.kind === "list");
+  assert.equal(second.data.items.length, 1);
+  const secondId = second.data.items[0].id;
+  assert.ok(firstFilterPage.items.every(item => item.id !== secondId));
+  assert.equal(second.data.nextCursor, null);
+  const mismatch = await byMcp("workbox_list_discussions", { category: "other", limit: 2, cursor: firstFilterPage.nextCursor });
+  assert.ok(!mismatch.ok && mismatch.error.code === "invalid_input");
+
   const filters = { category: "questions", status: "open" };
   assert.deepEqual(await byMcp("workbox_list_discussions", filters),
     await runDiscussionOperation("fixture", { action: "list", ...filters }));

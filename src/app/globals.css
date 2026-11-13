@@ -62,3 +62,21 @@ body {
 .wb-mono {
   font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
 }
+
+:where(a, button, input, select, textarea, summary):focus-visible {
+  outline: 2px solid var(--wb-link);
+  outline-offset: 2px;
+}
+
+.wb-filter-tag {
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
+.wb-filter-tag:hover { text-decoration: underline; }
+.wb-filter-tag[aria-current="true"],
+.wb-link[aria-current="page"] {
+  color: var(--wb-text);
+  text-decoration: underline;
+  text-underline-offset: 0.22em;
+}
