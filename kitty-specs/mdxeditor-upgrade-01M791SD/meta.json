@@ -23,6 +23,7 @@
   "purpose_context": "This mission advances mdxeditor upgrade on codex/mdxeditor-upgrade so stakeholders can track the work from mission creation onward.",
   "purpose_tldr": "mdxeditor upgrade",
   "slug": "mdxeditor-upgrade-01M791SD",
+  "status_phase": "1",
   "target_branch": "codex/mdxeditor-upgrade",
   "topology": "single_branch",
   "vcs": "git",
