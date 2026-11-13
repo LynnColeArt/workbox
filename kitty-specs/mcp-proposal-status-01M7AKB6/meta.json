@@ -1,4 +1,19 @@
 {
+  "accept_commit": "14a2c216e2452e63f4b25beeeac0d3609f9fa851",
+  "acceptance_history": [
+    {
+      "accept_commit": "14a2c216e2452e63f4b25beeeac0d3609f9fa851",
+      "acceptance_mode": "local",
+      "accepted_at": "2026-11-13T14:52:32.963254+00:00",
+      "accepted_by": "codex",
+      "accepted_from_commit": "741ca2407d13b12428fef97b2df4c6d9a96ef0cd"
+    }
+  ],
+  "acceptance_mode": "local",
+  "accepted_at": "2026-11-13T14:52:32.963254+00:00",
+  "accepted_by": "codex",
+  "accepted_from_commit": "741ca2407d13b12428fef97b2df4c6d9a96ef0cd",
+  "baseline_merge_commit": "f8e36ea0a44e63b12cefb7866b2fbae30a42f96a",
   "created_at": "2026-11-13T14:00:22.658883+00:00",
   "flattened": false,
   "friendly_name": "mcp proposal status",
@@ -9,6 +24,9 @@
   "purpose_context": "This mission advances mcp proposal status on codex/mcp-proposal-status so stakeholders can track the work from mission creation onward.",
   "purpose_tldr": "Expose Workbox proposal revision status directly over MCP",
   "slug": "mcp-proposal-status-01M7AKB6",
+  "status_phase": "1",
   "target_branch": "codex/mcp-proposal-status",
-  "topology": "single_branch"
+  "topology": "single_branch",
+  "vcs": "git",
+  "vcs_locked_at": "2026-11-13T14:07:39.562116+00:00"
 }

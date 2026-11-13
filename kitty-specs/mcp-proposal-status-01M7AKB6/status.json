@@ -1,7 +1,7 @@
 {
-  "event_count": 3,
-  "last_event_id": "01M7AKNVT3X7HJDXZ5DNM6DSM4",
-  "materialized_at": "2026-11-13T14:06:11.779062+00:00",
+  "event_count": 21,
+  "last_event_id": "01M7APAZJY1MGZ5VXAQPM369XG",
+  "materialized_at": "2026-11-13T14:52:40.926565+00:00",
   "mission_number": "",
   "mission_slug": "mcp-proposal-status-01M7AKB6",
   "mission_type": "software-dev",
@@ -10,33 +10,99 @@
     "blocked": 0,
     "canceled": 0,
     "claimed": 0,
-    "done": 0,
+    "done": 3,
     "for_review": 0,
     "in_progress": 0,
     "in_review": 0,
-    "planned": 3
+    "planned": 0
   },
   "work_packages": {
     "WP01": {
-      "actor": "finalize-tasks",
+      "actor": "merge",
+      "agent": "codex-review",
+      "agent_profile": "__resolved_profile_absent__",
+      "agent_profile_version": "__resolved_profile_version_absent__",
       "force_count": 0,
-      "lane": "planned",
-      "last_event_id": "01M7AKNRX721KKP7QJDTXRQ5NP",
-      "last_transition_at": "2026-11-13T14:06:08.807812+00:00"
+      "lane": "done",
+      "last_event_id": "01M7APAWH25E9W7T9TYP28HH2B",
+      "last_transition_at": "2026-11-13T14:52:37.794260+00:00",
+      "model": "__resolved_model_absent__",
+      "notes": [
+        "Shared browser labels and policy model; 22 focused tests passed.",
+        "Reviewed exact merge event binding and shared stage projection."
+      ],
+      "provider": "__resolved_provider_absent__",
+      "review_result": {
+        "feedback_path": "/home/lynn/projects/workbox/kitty-specs/mcp-proposal-status-01M7AKB6/tasks/WP01-shared-status/review-cycle-1.md",
+        "reference": "review-cycle://mcp-proposal-status-01M7AKB6/WP01-shared-status/review-cycle-1.md",
+        "reviewer": "codex-review",
+        "verdict": "approved"
+      },
+      "role": "reviewer",
+      "shell_pid": 3483686,
+      "shell_pid_created_at": "1794578895.02",
+      "subtasks": {
+        "T001": "done",
+        "T002": "done"
+      }
     },
     "WP02": {
-      "actor": "finalize-tasks",
+      "actor": "merge",
+      "agent": "codex",
+      "agent_profile": "__resolved_profile_absent__",
+      "agent_profile_version": "__resolved_profile_version_absent__",
       "force_count": 0,
-      "lane": "planned",
-      "last_event_id": "01M7AKNTCEYHTMBQ0MBPFZR48Z",
-      "last_transition_at": "2026-11-13T14:06:10.318210+00:00"
+      "lane": "done",
+      "last_event_id": "01M7APAY2NG9ZQZB1P9DD7ESE4",
+      "last_transition_at": "2026-11-13T14:52:39.381522+00:00",
+      "model": "__resolved_model_absent__",
+      "notes": [
+        "TypeScript and strict input regression passed",
+        "Reviewed dispatch, discoverability, strict full IDs, safe errors, and compatibility"
+      ],
+      "provider": "__resolved_provider_absent__",
+      "review_result": {
+        "feedback_path": "/home/lynn/projects/workbox/kitty-specs/mcp-proposal-status-01M7AKB6/tasks/WP02-mcp-tool/review-cycle-1.md",
+        "reference": "review-cycle://mcp-proposal-status-01M7AKB6/WP02-mcp-tool/review-cycle-1.md",
+        "reviewer": "user",
+        "verdict": "approved"
+      },
+      "role": "reviewer",
+      "shell_pid": 3498090,
+      "shell_pid_created_at": "1794579004.44",
+      "subtasks": {
+        "T003": "done",
+        "T004": "done"
+      }
     },
     "WP03": {
-      "actor": "finalize-tasks",
+      "actor": "merge",
+      "agent": "codex",
+      "agent_profile": "__resolved_profile_absent__",
+      "agent_profile_version": "__resolved_profile_version_absent__",
       "force_count": 0,
-      "lane": "planned",
-      "last_event_id": "01M7AKNVT3X7HJDXZ5DNM6DSM4",
-      "last_transition_at": "2026-11-13T14:06:11.779062+00:00"
+      "lane": "done",
+      "last_event_id": "01M7APAZJY1MGZ5VXAQPM369XG",
+      "last_transition_at": "2026-11-13T14:52:40.926565+00:00",
+      "model": "__resolved_model_absent__",
+      "notes": [
+        "Production build, TypeScript and 25 focused tests pass; Linux native Hubnot and real MCP stdio exercised",
+        "Verified exact historical and merged revisions, required and optional checks, competing lineage, unavailable reads and read-only behavior; reviewed exact check evidence follow-up in WP02"
+      ],
+      "provider": "__resolved_provider_absent__",
+      "review_result": {
+        "feedback_path": "/home/lynn/projects/workbox/kitty-specs/mcp-proposal-status-01M7AKB6/tasks/WP03-parity/review-cycle-1.md",
+        "reference": "review-cycle://mcp-proposal-status-01M7AKB6/WP03-parity/review-cycle-1.md",
+        "reviewer": "user",
+        "verdict": "approved"
+      },
+      "role": "reviewer",
+      "shell_pid": 3565241,
+      "shell_pid_created_at": "1794579256.11",
+      "subtasks": {
+        "T005": "done",
+        "T006": "done"
+      }
     }
   }
 }

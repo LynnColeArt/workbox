@@ -2,57 +2,57 @@
   "mission_slug": "mcp-proposal-status-01M7AKB6",
   "mission_number": "",
   "mission_type": "software-dev",
-  "overall_verdict": "pending",
+  "overall_verdict": "pass",
   "criteria": [
     {
       "criterion_id": "FR-001",
-      "description": "Verify FR-001 is satisfied",
+      "description": "Real stdio tool discovery, exact default, strict arguments, and full IDs.",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "research/implementation-verification.md",
+      "pass_fail": "pass",
+      "verified_by": "codex",
+      "verified_at": "2026-11-13T14:52:30.968982+00:00",
+      "notes": "Verified with the production build and native Hubnot on Linux."
     },
     {
       "criterion_id": "FR-002",
-      "description": "Verify FR-002 is satisfied",
+      "description": "Historical exact revisions and visible competing lineage choices match Workbox links.",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "research/implementation-verification.md",
+      "pass_fail": "pass",
+      "verified_by": "codex",
+      "verified_at": "2026-11-13T14:52:30.968996+00:00",
+      "notes": "Verified with the production build and native Hubnot on Linux."
     },
     {
       "criterion_id": "FR-003",
-      "description": "Verify FR-003 is satisfied",
+      "description": "Restored revision remains unmerged until native merge, then reports the signed merge event.",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "research/implementation-verification.md",
+      "pass_fail": "pass",
+      "verified_by": "codex",
+      "verified_at": "2026-11-13T14:52:30.969005+00:00",
+      "notes": "Verified with the production build and native Hubnot on Linux."
     },
     {
       "criterion_id": "FR-004",
-      "description": "Verify FR-004 is satisfied",
+      "description": "Required README failure, passing successor, acceptance deficit, and optional failed check agree with Workbox.",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "research/implementation-verification.md",
+      "pass_fail": "pass",
+      "verified_by": "codex",
+      "verified_at": "2026-11-13T14:52:30.969007+00:00",
+      "notes": "Verified with the production build and native Hubnot on Linux."
     },
     {
       "criterion_id": "FR-005",
-      "description": "Verify FR-005 is satisfied",
+      "description": "Unavailable evaluation, unknown project and revision, invalid inputs, and read-only Git snapshots.",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "research/implementation-verification.md",
+      "pass_fail": "pass",
+      "verified_by": "codex",
+      "verified_at": "2026-11-13T14:52:30.969009+00:00",
+      "notes": "Verified with the production build and native Hubnot on Linux."
     }
   ],
   "negative_invariants": []

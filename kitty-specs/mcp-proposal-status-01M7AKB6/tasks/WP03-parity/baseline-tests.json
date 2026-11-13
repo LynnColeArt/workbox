@@ -1,0 +1,13 @@
+{
+  "wp_id": "WP03",
+  "captured_at": "2026-11-13T14:10:26Z",
+  "base_branch": "codex/mcp-proposal-status",
+  "base_commit": "4dc9670c6038faf3a3010e19be5c4f5a2dea1695",
+  "test_runner": "pytest",
+  "total": 0,
+  "passed": 0,
+  "failed": 0,
+  "skipped": 0,
+  "failures": [],
+  "source_identity": "GateCoverageScopeSource/junit_xml"
+}
