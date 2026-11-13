@@ -1,49 +1,40 @@
-import { execFile } from "node:child_process";
-import { promisify } from "node:util";
 import { z } from "zod";
+import { runHn } from "../hn/runner";
+import { workboxPageSize } from "./list-settings";
 
-const git = promisify(execFile);
-const pageSize = 25;
-const pullRequest = z.object({
-  number: z.number().int().positive(),
-  title: z.string(),
-  state: z.enum(["open", "closed"]),
-  merged_at: z.string().nullable(),
-  user: z.object({ login: z.string() }).nullable(),
+const nativeHistory = z.object({
+  schema: z.literal("hn.migration-pull-requests/1"),
+  pull_requests: z.array(z.object({
+    source: z.object({ provider: z.string(), instance: z.string(), project_id: z.string(), id: z.string() }),
+    revision: z.string(),
+    number: z.number().int().positive(),
+    title: z.string(),
+    state: z.enum(["open", "closed", "merged"]),
+    author: z.string(),
+    url: z.url().refine(value => new URL(value).protocol === "https:"),
+    created_at: z.string(),
+  })),
 });
 
-export async function readGitHubPullRequests(repoPath: string, page = 1) {
-  let origin: string;
+export async function readGitHubPullRequests(repoPath: string, page = 1, status: "open" | "closed" = "open") {
   try {
-    const result = await git("git", ["config", "--local", "--get", "remote.origin.url"], {
-      cwd: repoPath, timeout: 3000, maxBuffer: 4096,
+    const result = await runHn(repoPath, ["migrate", "pull-requests", "--repository", repoPath], 30_000, {
+      localRead: true, maxOutputBytes: 16 * 1024 * 1024,
     });
-    origin = result.stdout.trim();
-  } catch {
-    return { kind: "no_source" } as const;
-  }
-  const match = /^(?:https:\/\/github\.com\/|git@github\.com:|ssh:\/\/git@github\.com\/)([\w-]+)\/([\w.-]+?)(?:\.git)?\/?$/i.exec(origin);
-  if (!match || [".", ".."].includes(match[2])) return { kind: "no_source" } as const;
-  const repository = `${match[1]}/${match[2]}`;
-  try {
-    const url = `https://api.github.com/repos/${repository}/pulls?state=all&sort=created&direction=desc&per_page=${pageSize}&page=${page}`;
-    const response = await fetch(url, {
-      headers: { Accept: "application/vnd.github+json" },
-      redirect: "error",
-      signal: AbortSignal.timeout(5000),
-    });
-    if (!response.ok) return { kind: "unavailable" } as const;
-    const requests = z.array(pullRequest).parse(await response.json());
+    const parsed = nativeHistory.safeParse(result.envelope);
+    if (result.exitCode !== 0 || !parsed.success) return { kind: "unavailable" } as const;
+    const records = parsed.data.pull_requests;
+    const open = records.filter(record => record.state === "open").length;
+    const closed = records.length - open;
+    const filtered = records.filter(record => status === "open" ? record.state === "open" : record.state !== "open");
+    const pageSize = workboxPageSize();
+    const totalPages = Math.ceil(filtered.length / pageSize);
+    const currentPage = Math.min(page, Math.max(1, totalPages));
+    const offset = (currentPage - 1) * pageSize;
     return {
-      kind: "available",
-      requests: requests.map(pr => ({
-        number: pr.number,
-        title: pr.title,
-        state: pr.merged_at ? "merged" : pr.state,
-        author: pr.user?.login ?? null,
-        url: `https://github.com/${repository}/pull/${pr.number}`,
-      })),
-      nextPage: /rel="next"/.test(response.headers.get("link") ?? "") ? page + 1 : null,
+      kind: "available", status, page: currentPage, pageSize, totalPages, open, closed,
+      requests: filtered.slice(offset, offset + pageSize),
+      nextPage: currentPage < totalPages ? currentPage + 1 : null,
     } as const;
   } catch {
     return { kind: "unavailable" } as const;

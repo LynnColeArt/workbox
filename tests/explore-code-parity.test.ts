@@ -210,8 +210,8 @@ test("production browser and MCP agree on Explore, Code, and activity drill-down
   const first = readResult<Explore>(explore);
   checkImage(explore);
   assert.equal(first.total, 43);
-  assert.equal(first.totalPages, 3);
-  assert.equal(first.projects.length, 20);
+  assert.equal(first.totalPages, 5);
+  assert.equal(first.projects.length, 10);
   assert.equal(first.chart.buckets.length, 7);
   assert.equal(first.chart.timezone, "UTC");
   assert.equal(first.chart.buckets.at(-1)?.count, 22);
@@ -219,12 +219,12 @@ test("production browser and MCP agree on Explore, Code, and activity drill-down
   const firstPage = await html(first.href);
   checkProjectRows(firstPage, first);
   chartDays(firstPage, first.chart);
-  for (const [page, size] of [[2, 20], [3, 3]]) {
+  for (const [page, size] of [[2, 10], [3, 10], [4, 10], [5, 3]]) {
     const result = readResult<Explore>(await call("workbox_explore", { sort: "alpha", page, snapshot: first.snapshot }));
     assert.equal(result.projects.length, size);
     checkProjectRows(await html(result.href), result);
   }
-  const selected = readResult<Explore>(await call("workbox_explore", { sort: "alpha", day, page: 2, snapshot: first.snapshot }));
+  const selected = readResult<Explore>(await call("workbox_explore", { sort: "alpha", day, page: 3, snapshot: first.snapshot }));
   assert.equal(selected.total, 22);
   assert.equal(selected.projects.length, 2);
   checkProjectRows(await html(selected.href), selected);

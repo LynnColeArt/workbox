@@ -1,3 +1,4 @@
+import { workboxPageSize } from "@/lib/workbox/list-settings";
 import Link from "next/link";
 import { connection } from "next/server";
 import { MarkdownContent } from "@/components/markdown-editor";
@@ -22,10 +23,10 @@ export default async function IssuePage({ params, searchParams }: {
   const issueId = normalizeIssueIdentifier(rawIssueId);
   const cursor = typeof query.cursor === "string" ? query.cursor : undefined;
   const revisionCursor = typeof query.revisionCursor === "string" ? query.revisionCursor : undefined;
-  const requested = await readIssueDetail(project, { action: "detail", issueId, cursor, revisionCursor, limit: 25 });
+  const requested = await readIssueDetail(project, { action: "detail", issueId, cursor, revisionCursor, limit: workboxPageSize() });
   const paginationReset = !requested.ok && requested.error.code === "stale_cursor" && !!(cursor || revisionCursor);
   // Keep the current route mounted when signed changes invalidate its pagination.
-  const result = paginationReset ? await readIssueDetail(project, { action: "detail", issueId, limit: 25 }) : requested;
+  const result = paginationReset ? await readIssueDetail(project, { action: "detail", issueId, limit: workboxPageSize() }) : requested;
   const list = `/p/${encodeURIComponent(id)}/issues`;
   if (!result.ok) return (
     <main className="mx-auto max-w-6xl space-y-3 px-4 py-6">

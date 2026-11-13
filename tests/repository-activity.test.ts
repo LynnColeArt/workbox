@@ -102,12 +102,14 @@ test("metric families reconcile verified day counts with exact paginated records
 
   const issues = read({ metric: "issues", day: selectedDay });
   assert.equal(issues.total, 22);
-  assert.equal(issues.totalPages, 2);
-  assert.equal(issues.records.length, 20);
+  assert.equal(issues.totalPages, 3);
+  assert.equal(issues.records.length, 10);
   assert.match(issues.records[0].contextHref ?? "", /\/issue\//);
   const second = read({ metric: "issues", day: selectedDay, snapshot: issues.snapshot, activityPage: 2 });
-  assert.equal(second.records.length, 2);
-  assert.equal(new Set([...issues.records, ...second.records].map(({ id }) => id)).size, 22);
+  assert.equal(second.records.length, 10);
+  const third = read({ metric: "issues", day: selectedDay, snapshot: issues.snapshot, activityPage: 3 });
+  assert.equal(third.records.length, 2);
+  assert.equal(new Set([...issues.records, ...second.records, ...third.records].map(({ id }) => id)).size, 22);
   assert.equal(issues.chart.buckets.find(({ day }) => day === selectedDay)?.count, 22);
   const recordLink = new URL(second.records[0].href, "http://localhost");
   assert.equal(recordLink.hash, `#${second.records[0].anchor}`);

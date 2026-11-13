@@ -6,8 +6,10 @@ import { getProject, type ProjectSummary } from "./queries";
 
 export { collaborationError, eventId, nativeCollaboration, type CollaborationResult };
 export const signingFields = { actor: actorId, operationId };
+import { workboxPageSize } from "./list-settings";
+
 export const paginationFields = {
-  limit: z.number().int().min(1).max(200).default(25),
+  limit: z.number().int().min(1).max(200).default(workboxPageSize),
   cursor: z.string().min(1).max(4096).optional(),
 };
 

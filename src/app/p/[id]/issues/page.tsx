@@ -1,3 +1,4 @@
+import { workboxPageSize } from "@/lib/workbox/list-settings";
 import Link from "next/link";
 import { connection } from "next/server";
 import { collaborationProject } from "@/lib/workbox/collaboration";
@@ -17,11 +18,11 @@ export default async function IssuesPage({ params, searchParams }: {
   const query = await searchParams;
   const project = collaborationProject(id);
   if (!project) return <main className="p-4"><p>Project not found.</p></main>;
-  const status = query.status === "open" || query.status === "closed" ? query.status : "all";
+  const status = query.status === "closed" || query.status === "all" ? query.status : "open";
   const q = typeof query.q === "string" ? query.q : "";
   const label = typeof query.label === "string" ? query.label : "";
   const cursor = typeof query.cursor === "string" ? query.cursor : undefined;
-  const result = await readIssueList(project, { action: "list", q, label, status, cursor, limit: 25 });
+  const result = await readIssueList(project, { action: "list", q, label, status, cursor, limit: workboxPageSize() });
   const base = `/p/${encodeURIComponent(id)}/issues`;
   function href(value?: string) {
     const query = new URLSearchParams({ q, label, status });
@@ -62,7 +63,7 @@ export default async function IssuesPage({ params, searchParams }: {
                 <Link className="text-sm font-semibold break-words hover:text-[var(--wb-link)] hover:underline" href={issue.href}>{issue.title}</Link>
                 <div className="mt-1 flex flex-wrap items-center gap-2 text-xs wb-muted">
                   {issue.number !== null && <span>#{issue.number}</span>}
-                  <span>{issue.conflict ? "Competing revisions" : issue.status === "closed" ? "Closed" : "Open"}</span>
+                  <span className="wb-chip" style={{ color: issue.conflict ? "var(--wb-warn)" : issue.status === "closed" ? "var(--wb-closed)" : "var(--wb-open)" }}>{issue.conflict ? "Competing revisions" : issue.status === "closed" ? "Closed" : "Open"}</span>
                   <span>{issue.author}</span>
                   {issue.createdAt && <time dateTime={issue.createdAt}>{issue.createdAt.slice(0, 10)}</time>}
                   {issue.labels.map(label => <span key={label} className="wb-chip">{label}</span>)}

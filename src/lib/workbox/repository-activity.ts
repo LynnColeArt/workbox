@@ -1,3 +1,4 @@
+import { workboxPageSize } from "./list-settings";
 import { spawnSync } from "node:child_process";
 import type { DatabaseSync } from "node:sqlite";
 import { isHubnotProjectionVisible, readVisibleHubnotEvent, toIso, type ActivityCoverage } from "./activity";
@@ -67,14 +68,13 @@ export type RepositoryActivityRead =
     records: ActivityRecord[];
     total: number | null;
     totalPages: number;
-    pageSize: 20;
+    pageSize: number;
     metrics: { metric: Metric; label: string; href: string }[];
     clearDayHref: string;
     pages: { page: number; href: string }[];
   };
 
 const dayCount = 365;
-const pageSize = 20;
 const maxRecords = 10_000;
 const maxVisibilityReads = 8;
 const fullEventId = /^sha256:[0-9a-f]{64}$/;
@@ -291,6 +291,7 @@ export function readRepositoryActivity(
   query: RepositoryActivityQuery = {},
   now = new Date(),
 ): RepositoryActivityRead {
+  const pageSize = workboxPageSize();
   const dates = utcDayRange(dayCount, now);
   const startDay = dates[0];
   const endDay = dates[dates.length - 1];

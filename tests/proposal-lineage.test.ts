@@ -174,9 +174,9 @@ test("native failures show partial discovery and continuation stays bounded", as
   }
   const calls: string[] = [];
   const reader = nativeReader({}, {}, calls);
-  assert.deepEqual(await listProposalLineages(db, project, 0, reader), { candidates: [], incomplete: true, nextOffset: 12 });
-  assert.equal(calls.length, 24);
-  assert.deepEqual(await listProposalLineages(db, project, 12, reader), { candidates: [], incomplete: true, nextOffset: null });
+  assert.deepEqual(await listProposalLineages(db, project, 0, reader), { candidates: [], incomplete: true, nextOffset: 10 });
+  assert.equal(calls.length, 20);
+  assert.deepEqual(await listProposalLineages(db, project, 10, reader), { candidates: [], incomplete: true, nextOffset: null });
   assert.equal(calls.length, 26);
 });
 
@@ -196,11 +196,11 @@ test("candidate revisions share a pagination slot and do not repeat on later pag
     [second]: evaluation(second),
   });
   const firstPage = await listProposalLineages(db, project, 0, reader);
-  assert.equal(firstPage.candidates.length, 12);
+  assert.equal(firstPage.candidates.length, 10);
   assert.equal(firstPage.candidates[0].id, second);
-  assert.equal(firstPage.nextOffset, 12);
-  const lastPage = await listProposalLineages(db, project, 12, reader);
-  assert.deepEqual(lastPage.candidates.map(({ id }) => id), [independent[0]]);
+  assert.equal(firstPage.nextOffset, 10);
+  const lastPage = await listProposalLineages(db, project, 10, reader);
+  assert.deepEqual(lastPage.candidates.map(({ id }) => id), independent.slice(0, 3).reverse());
   assert.equal(lastPage.nextOffset, null);
 });
 

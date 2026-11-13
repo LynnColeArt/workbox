@@ -1,3 +1,4 @@
+import { workboxPageSize } from "./list-settings";
 import type { DatabaseSync } from "node:sqlite";
 import {
   createProposalReader,
@@ -37,7 +38,6 @@ export type ProposalDetail =
       incomplete: boolean;
     };
 
-const pageSize = 12;
 const hintsPerLineage = 3;
 const relatedLimit = 12;
 const concurrentReads = 4;
@@ -224,6 +224,7 @@ export async function listProposalLineages(
   reader = createProposalReader(project.repoPath),
   hintOffset = 0,
 ): Promise<ProposalLineagePage> {
+  const pageSize = workboxPageSize();
   // Indexed IDs and predecessor edges schedule native reads only. Memoize
   // ancestry for the whole index so a long lineage occupies one page slot.
   const hints = db.prepare(`

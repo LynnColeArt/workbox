@@ -32,27 +32,46 @@ import { renderDashboardPng } from "../src/lib/workbox/dashboard-chart";
 import { runSettingsOperation } from "../src/lib/workbox/settings-operations";
 import { createProject } from "../src/lib/workbox/create";
 
+import { runMigrationOperation } from "../src/lib/workbox/migrations";
 import { readGitHubPullRequests } from "../src/lib/workbox/github-pull-requests";
 import { issueTools } from "./issues";
 import { discussionTools } from "./discussions";
 
 const collaborationTools = [...issueTools, ...discussionTools, {
-  name: "workbox_github_pull_requests",
-  description: "List public GitHub pull requests from a project's GitHub origin, including merged and closed history.",
+  name: "workbox_migration",
+  description: "Discover migration sources and plan, inspect, apply or resume an import into a local project.",
   inputSchema: {
     type: "object",
-    properties: { project: { type: "string" }, page: { type: "integer", minimum: 1 } },
+    properties: {
+      project: { type: "string" }, action: { enum: ["catalog", "sessions", "plan", "inspect", "apply", "resume"] },
+      session: { type: "string" }, confirmation: { type: "string" }, source: { type: "string" },
+      repository: { type: "string" }, endpoint: { type: "string" }, version: { type: "string" },
+      credentialMode: { type: "string" }, kinds: { type: "array", items: { type: "string" } },
+      decisions: { type: "array", items: { type: "string" } },
+    },
+    required: ["project", "action"], additionalProperties: false,
+  },
+  call(args: Record<string, unknown>) {
+    const { project, ...input } = args;
+    return runMigrationOperation(typeof project === "string" ? project : "", input);
+  },
+}, {
+  name: "workbox_github_pull_requests",
+  description: "List locally imported GitHub pull requests. Choose open or closed history.",
+  inputSchema: {
+    type: "object",
+    properties: { project: { type: "string" }, page: { type: "integer", minimum: 1 }, status: { enum: ["open", "closed"] } },
     required: ["project"], additionalProperties: false,
   },
   async call(args: Record<string, unknown>) {
-    const { project, page = 1 } = args;
-    if (typeof project !== "string" || typeof page !== "number" || !Number.isSafeInteger(page) || page < 1) {
+    const { project, page = 1, status = "open" } = args;
+    if (typeof project !== "string" || typeof page !== "number" || !Number.isSafeInteger(page) || page < 1 || (status !== "open" && status !== "closed")) {
       return { ok: false, error: { code: "invalid_input", message: "Provide a project ID and a positive page number." } };
     }
     using db = openDb();
     const selected = getProject(db, project);
     if (!selected) return { ok: false, error: { code: "not_found", message: "Project unavailable." } };
-    return { ok: true, data: await readGitHubPullRequests(selected.repoPath, page) };
+    return { ok: true, data: await readGitHubPullRequests(selected.repoPath, page, status) };
   },
 }];
 const collaborationHandlers = new Map(collaborationTools.map(tool => [tool.name, tool.call]));

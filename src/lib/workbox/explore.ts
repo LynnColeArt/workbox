@@ -1,3 +1,4 @@
+import { workboxPageSize } from "./list-settings";
 import type { DatabaseSync } from "node:sqlite";
 import {
   collectHubnotActivity, createHubnotActivityBudget, listProjectRuntime,
@@ -43,7 +44,7 @@ interface ExploreResult {
   refreshHref: string;
   coverage: ExploreCoverage;
   chart: ActivityChartModel;
-  pageSize: 20;
+  pageSize: number;
 }
 
 export type ExploreRead = ExploreResult & (
@@ -51,7 +52,6 @@ export type ExploreRead = ExploreResult & (
   | { stale: true; projects: []; total: null; totalPages: null }
 );
 
-const pageSize = 20;
 const sources = ["git", "hubnot"] as const;
 const nameOrder = new Intl.Collator("en", { sensitivity: "base" });
 
@@ -99,6 +99,7 @@ function compareRecords(a: ActivityRecord, b: ActivityRecord) {
 }
 
 export function readExplore(db: DatabaseSync, query: ExploreQuery = {}, now = new Date()): ExploreRead {
+  const pageSize = workboxPageSize();
   const days = utcDayRange(7, now);
   const startDay = days[0];
   const endDay = days[days.length - 1];
