@@ -20,6 +20,9 @@ flowchart LR
 
 ## Technical Context
 
+**Language/Version**: Go for Hubnot and TypeScript, React and Next.js for Workbox, as pinned in their respective repositories.
+**Primary Dependencies**: Existing Hubnot native runner, Git, Linux Bubblewrap and the Workbox Settings and MCP services.
+
 - **Hubnot**: `runner.go` already polls after sync for signed manual requests. `lineage.go` resolves candidate ancestry, `ci.go` validates, executes and signs results, and `policy.go` evaluates pipeline evidence. Manual execution and policy currently resolve definitions at the candidate head. The automatic path must change both execution and evidence evaluation together.
 - **Workbox**: `settings-operations.ts`, `pipeline-draft.ts`, `pipeline-review.ts` and `settings-submit.ts` provide the Settings seams. `proposal-checks.ts` projects native evidence for proposal detail. Extend the same shared services used by the browser and MCP in `mcp/server.ts`.
 - **Baseline**: Workbox main at `f0db4ef`. Hubnot native work ships before Workbox enables the new capability. Feature detection is explicit and older binaries report unavailable. No GitHub service, Workbox page visit, or timer in the web process is required.
