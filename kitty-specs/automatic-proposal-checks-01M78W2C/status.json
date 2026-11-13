@@ -178,7 +178,8 @@
       "last_transition_at": "2026-11-13T05:01:38.023784+00:00",
       "model": "__resolved_model_absent__",
       "notes": [
-        "Production proposal Checks HTML and MCP share exact revision, queued and signed completed attempts."
+        "Production proposal Checks HTML and MCP share exact revision, queued and signed completed attempts.",
+        "Compared real proposal detail with MCP data and signed result; full exact IDs retained and native policy remains authoritative."
       ],
       "provider": "__resolved_provider_absent__",
       "review_result": {
