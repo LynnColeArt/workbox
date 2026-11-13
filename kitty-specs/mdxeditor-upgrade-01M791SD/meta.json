@@ -1,6 +1,8 @@
 {
+  "accept_commit": "1a19d990816f8ab064e2d777dcc5a3e2adaee53e",
   "acceptance_history": [
     {
+      "accept_commit": "1a19d990816f8ab064e2d777dcc5a3e2adaee53e",
       "acceptance_mode": "local",
       "accepted_at": "2026-11-13T03:05:29.338861+00:00",
       "accepted_by": "lynn",
