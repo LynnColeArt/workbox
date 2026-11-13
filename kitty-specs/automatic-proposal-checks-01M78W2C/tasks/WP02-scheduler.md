@@ -12,6 +12,9 @@ requirement_refs:
 planning_base_branch: codex/automatic-proposal-checks
 merge_target_branch: codex/automatic-proposal-checks
 branch_strategy: Planning artifacts for this mission were generated on codex/automatic-proposal-checks. During /spec-kitty.implement this WP may branch from a dependency-specific base, but completed changes must merge back into codex/automatic-proposal-checks unless the human explicitly redirects the landing branch.
+base_branch: kitty/mission-automatic-proposal-checks-01M78W2C
+base_commit: 0eb1ab1508ddd51806a96789f2f3498e18729168
+created_at: '2026-11-13T04:48:35.815084+00:00'
 subtasks:
 - T004
 - T005
