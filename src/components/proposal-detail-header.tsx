@@ -1,3 +1,4 @@
+import { candidateState, countLiveCandidates } from "../lib/workbox/proposal-status";
 import Link from "next/link";
 import {
   proposalDetailHref,
@@ -11,16 +12,6 @@ const views: [ProposalView, string][] = [
   ["files", "Files changed"],
 ];
 
-function candidateState({ status }: ProposalCandidate, incomplete: boolean, liveCount: number) {
-  if (!status) return "Revision state unavailable";
-  if (status.lineage.merge_conflict) return "Conflicting merges";
-  if (status.lineage.merged) return "Merged revision";
-  if (status.lineage.superseded) return "Superseded revision";
-  if (status.lineage.closed) return "Historical revision";
-  if (status.decisions.rejected) return "Rejected revision";
-  return liveCount === 1 && !incomplete ? "Current revision" : "Live revision";
-}
-
 export function ProposalDetailHeader({
   projectId, candidate, related, view, incomplete = false,
 }: {
@@ -30,11 +21,7 @@ export function ProposalDetailHeader({
   view: ProposalView;
   incomplete?: boolean;
 }) {
-  const candidates = [candidate, ...related];
-  const liveCount = candidates.filter(({ status }) => status && !(
-    status.lineage.merge_conflict || status.lineage.merged || status.lineage.superseded ||
-    status.lineage.closed || status.decisions.rejected
-  )).length;
+  const liveCount = countLiveCandidates([candidate, ...related]);
   const lineage = candidate.status?.lineage;
 
   return (
