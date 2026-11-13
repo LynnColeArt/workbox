@@ -1,3 +1,4 @@
+import { ListPagination } from "@/components/list-pagination";
 import { ProposalFilesChanged } from "@/components/proposal-files-changed";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -9,15 +10,15 @@ import { getProject } from "@/lib/workbox/queries";
 
 export default async function PullRequestDetailPage({ params, searchParams }: {
   params: Promise<{ id: string; localId: string }>;
-  searchParams: Promise<{ file?: string | string[]; view?: string }>;
+  searchParams: Promise<{ file?: string | string[]; view?: string; commitPage?: string; fileCommitPage?: string }>;
 }) {
   await connection();
   const { id, localId } = await params;
   using db = openDb();
   const project = getProject(db, id);
   if (!project) notFound();
-  const { file, view } = await searchParams;
-  const result = await readPullRequestDetail(project.id, project.repoPath, localId, typeof file === "string" ? file : undefined);
+  const { file, view, commitPage, fileCommitPage } = await searchParams;
+  const result = await readPullRequestDetail(project.id, project.repoPath, localId, typeof file === "string" ? file : undefined, Number(commitPage), Number(fileCommitPage));
   if (result.kind === "not_found") notFound();
   const list = `/p/${encodeURIComponent(id)}/pull-requests`;
 
@@ -42,23 +43,24 @@ export default async function PullRequestDetailPage({ params, searchParams }: {
       </div>
     </header>
     <nav aria-label="Pull request views" className="flex flex-wrap gap-4 border-b border-[var(--wb-border)]">
-      {([["conversation", "Conversation", reviews.length], ["commits", "Commits", history?.commits.length], ["files", "Files changed", comparison.status === "unavailable" ? undefined : comparison.files.length]] as const)
+      {([["conversation", "Conversation", reviews.length], ["commits", "Commits", history?.total], ["files", "Files changed", comparison.status === "unavailable" ? undefined : comparison.files.length]] as const)
         .map(([key, title, count]) => <Link key={key} href={`${request.href}?view=${key}`}
           className="px-3 py-2 aria-[current=page]:border-b-2 aria-[current=page]:border-[var(--wb-accent)]"
-          aria-current={tab === key ? "page" : undefined}>{title}{count !== undefined && <> <span className="wb-chip">{count}{key === "commits" && history?.truncated ? "+" : ""}</span></>}</Link>)}
+          aria-current={tab === key ? "page" : undefined}>{title}{count !== undefined && <> <span className="wb-chip">{count}</span></>}</Link>)}
     </nav>
     {tab === "files" && <section aria-labelledby="pr-files" className="wb-panel space-y-3 p-4">
       <h2 id="pr-files" className="font-semibold">Files changed</h2>
       <ProposalFilesChanged comparison={comparison} detailHref={`${request.href}?view=files`} />
       {fileHistory && fileHistory.commits.length > 0 && <div>
-        <h3 className="font-semibold">Commits touching this path</h3>
+        <h3 className="font-semibold">Commits touching this path ({fileHistory.total})</h3>
         <ul className="mt-1 space-y-1 text-sm">
           {fileHistory.commits.map(commit => <li key={commit.oid}>
-            <Link className="wb-link" href={`/p/${encodeURIComponent(id)}/code?at=${commit.oid}&commit=${commit.oid}`}>{commit.subject}</Link>
+            <Link className="wb-link" href={commit.href}>{commit.subject}</Link>
             <span className="wb-muted"> · {commit.author}</span>
           </li>)}
         </ul>
-        {fileHistory.truncated && <p className="wb-muted">Showing the most recent 100 commits for this path.</p>}
+        <ListPagination page={fileHistory.page} pages={fileHistory.totalPages} label="File commit pages"
+          href={page => `${request.href}?${new URLSearchParams({ view: "files", file: comparison.selectedPath!, fileCommitPage: String(page) })}`} />
       </div>}
     </section>}
     {tab === "commits" && <section aria-labelledby="pr-commits" className="wb-panel space-y-3 p-4">
@@ -71,11 +73,12 @@ export default async function PullRequestDetailPage({ params, searchParams }: {
       </dl>
       {history ? <ul className="divide-y divide-[var(--wb-border)]">
         {history.commits.map(commit => <li key={commit.oid} className="py-2">
-          <Link className="wb-link break-words" href={`/p/${encodeURIComponent(id)}/code?at=${commit.oid}&commit=${commit.oid}`}>{commit.subject}</Link>
+          <Link className="wb-link break-words" href={commit.href}>{commit.subject}</Link>
           <div className="wb-muted text-sm">{commit.author} · <time dateTime={commit.date}>{commit.date.slice(0, 10)}</time> · <code>{commit.oid.slice(0, 12)}</code></div>
         </li>)}
       </ul> : <p className="wb-muted">Commit history is unavailable from the local Git objects.</p>}
-      {history?.truncated && <p className="wb-muted">Showing the most recent 100 commits.</p>}
+      {history && <ListPagination page={history.page} pages={history.totalPages} label="Pull request commit pages"
+        href={page => `${request.href}?view=commits&commitPage=${page}`} />}
     </section>}
     {tab === "conversation" && <section aria-labelledby="pr-description" className="wb-panel space-y-2 p-4">
       <h2 id="pr-description" className="font-semibold">Description</h2>

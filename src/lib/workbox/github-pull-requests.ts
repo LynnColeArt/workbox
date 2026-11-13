@@ -48,7 +48,7 @@ function localPullRequest(project: string, { body: _body, reviews: _reviews, ...
   return { ...record, localId, href: `/p/${encodeURIComponent(project)}/pull-requests/${localId}` };
 }
 
-export async function readPullRequestDetail(project: string, repoPath: string, localId: string, file?: string) {
+export async function readPullRequestDetail(project: string, repoPath: string, localId: string, file?: string, commitPage = 1, fileCommitPage = 1) {
   if (!/^[a-f0-9]{64}$/.test(localId)) return { kind: "not_found" } as const;
   const records = await readImportedPullRequests(repoPath);
   if (!records) return { kind: "unavailable" } as const;
@@ -58,8 +58,13 @@ export async function readPullRequestDetail(project: string, repoPath: string, l
     const base = record.base_commit ?? "";
     const head = record.head_commit ?? "";
     const comparison = readProposalComparison(repoPath, { base, head }, file);
-    const history = comparison.status === "unavailable" ? null : readComparisonCommits(repoPath, base, head);
-    const fileHistory = comparison.selectedPath ? readComparisonCommits(repoPath, base, head, comparison.selectedPath) : null;
+    function withCommitLinks(history: ReturnType<typeof readComparisonCommits>) {
+      return history && { ...history, commits: history.commits.map(commit => ({
+        ...commit, href: `/p/${encodeURIComponent(project)}/code?at=${commit.oid}&commit=${commit.oid}`,
+      })) };
+    }
+    const history = comparison.status === "unavailable" ? null : withCommitLinks(readComparisonCommits(repoPath, base, head, undefined, commitPage));
+    const fileHistory = comparison.selectedPath ? withCommitLinks(readComparisonCommits(repoPath, base, head, comparison.selectedPath, fileCommitPage)) : null;
     return { kind: "available", request: { ...local, body: record.body ?? null }, comparison, history, fileHistory, reviews: record.reviews ?? [] } as const;
   }
   return { kind: "not_found" } as const;

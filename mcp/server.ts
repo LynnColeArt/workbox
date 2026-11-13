@@ -129,9 +129,9 @@ const collaborationTools = [...issueTools, ...discussionTools, {
 }, { name: "workbox_list_pull_requests", ...importedPullRequestsTool },
 { name: "workbox_github_pull_requests", ...importedPullRequestsTool }, {
   name: "workbox_pull_request_detail",
-  description: "Audit a locally imported pull request: exact commits, authors, changed files, and the patch for a selected file.",
+  description: "Audit a locally imported pull request: exact commits, authors, changed files, and the patch for a selected file. Use commitPage and fileCommitPage to browse the respective histories.",
   inputSchema: {
-    type: "object", properties: { project: { type: "string" }, localId: { type: "string", pattern: "^[a-f0-9]{64}$" }, file: { type: "string", maxLength: 4096 } },
+    type: "object", properties: { project: { type: "string" }, localId: { type: "string", pattern: "^[a-f0-9]{64}$" }, file: { type: "string", maxLength: 4096 }, commitPage: { type: "integer", minimum: 1 }, fileCommitPage: { type: "integer", minimum: 1 } },
     required: ["project", "localId"], additionalProperties: false,
   },
   async call(args: Record<string, unknown>) {
@@ -141,7 +141,9 @@ const collaborationTools = [...issueTools, ...discussionTools, {
     if (typeof args.localId !== "string" || !/^[a-f0-9]{64}$/.test(args.localId)) {
       return { ok: false, error: { code: "invalid_input", message: "Provide the local ID from the pull request list." } };
     }
-    return { ok: true, data: await readPullRequestDetail(project.id, project.repoPath, args.localId, typeof args.file === "string" ? args.file : undefined) };
+    return { ok: true, data: await readPullRequestDetail(project.id, project.repoPath, args.localId, typeof args.file === "string" ? args.file : undefined,
+      typeof args.commitPage === "number" ? args.commitPage : undefined,
+      typeof args.fileCommitPage === "number" ? args.fileCommitPage : undefined) };
   },
 }];
 const collaborationHandlers = new Map(collaborationTools.map(tool => [tool.name, tool.call]));

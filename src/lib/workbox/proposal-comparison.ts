@@ -1,3 +1,4 @@
+import { workboxPageSize } from "./list-settings";
 import { spawnSync } from "node:child_process";
 
 const FILE_LIST_BYTES = 128 * 1024;
@@ -161,10 +162,19 @@ export function readProposalComparison(
   return { ...result, patch: { status: "available", text } };
 }
 
-export function readComparisonCommits(repoPath: string, base: string, head: string, path?: string) {
+export function readComparisonCommits(repoPath: string, base: string, head: string, path?: string, requestedPage = 1) {
   if (!/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(base) || !/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(head)) return null;
+  const range = [`${base}..${head}`, "--", ...(path ? [`:(top,literal)${path}`] : [])];
+  const count = runGit(repoPath, ["rev-list", "--count", ...range], 256);
+  if (!count || count.truncated) return null;
+  const total = Number(count.output.toString().trim());
+  if (!Number.isSafeInteger(total) || total < 0) return null;
+  const pageSize = workboxPageSize();
+  const totalPages = Math.ceil(total / pageSize);
+  const page = Number.isSafeInteger(requestedPage) && requestedPage > 0 ? Math.min(requestedPage, Math.max(1, totalPages)) : 1;
   const output = runGit(repoPath, [
-    "log", "--no-show-signature", "--max-count=101", "--format=%H%x00%aN%x00%aI%x00%s", "-z", `${base}..${head}`, "--", ...(path ? [`:(top,literal)${path}`] : []),
+    "log", "--no-show-signature", `--max-count=${pageSize}`, `--skip=${(page - 1) * pageSize}`,
+    "--format=%H%x00%aN%x00%aI%x00%s", "-z", ...range,
   ], FILE_LIST_BYTES);
   if (!output || output.truncated) return null;
   const fields = output.output.toString("utf8").split("\0");
@@ -173,5 +183,5 @@ export function readComparisonCommits(repoPath: string, base: string, head: stri
     const [oid, author, date, subject] = fields.slice(index, index + 4);
     commits.push({ oid, author, date, subject });
   }
-  return { commits: commits.slice(0, 100), truncated: commits.length > 100 };
+  return { commits, total, page, pageSize, totalPages, truncated: total > commits.length };
 }
