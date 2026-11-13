@@ -1,0 +1,13 @@
+{
+  "wp_id": "WP01",
+  "captured_at": "2026-11-13T02:51:16Z",
+  "base_branch": "codex/mdxeditor-upgrade",
+  "base_commit": "7c71c40bc48209bbf4848e204e290653735aad72",
+  "test_runner": "pytest",
+  "total": 0,
+  "passed": 0,
+  "failed": 0,
+  "skipped": 0,
+  "failures": [],
+  "source_identity": "GateCoverageScopeSource/junit_xml"
+}

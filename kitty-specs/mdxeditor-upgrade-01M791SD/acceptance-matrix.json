@@ -2,67 +2,67 @@
   "mission_slug": "mdxeditor-upgrade-01M791SD",
   "mission_number": "",
   "mission_type": "software-dev",
-  "overall_verdict": "pending",
+  "overall_verdict": "fail",
   "criteria": [
     {
       "criterion_id": "FR-001",
-      "description": "Verify FR-001 is satisfied",
+      "description": "<<<<<<< ours\n\"Verify FR-001 is satisfied\"\n=======\n\"Production Chrome verified Visual default in all five composers, keyboard formatting and focus on mode changes.\"\n>>>>>>> theirs",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "research/implementation-verification.md",
+      "pass_fail": "<<<<<<< ours\n\"pending\"\n=======\n\"pass\"\n>>>>>>> theirs",
+      "verified_by": "codex",
+      "verified_at": "2026-11-13T03:05:27.400368+00:00",
+      "notes": "<<<<<<< ours\n\"TODO: replace with a real acceptance criterion\"\n=======\n\"Focused production checks; full OS qualification deferred.\"\n>>>>>>> theirs"
     },
     {
       "criterion_id": "FR-002",
-      "description": "Verify FR-002 is satisfied",
+      "description": "<<<<<<< ours\n\"Verify FR-002 is satisfied\"\n=======\n\"Visual, Source and Preview cycling preserved exact mixed line endings and did not change Git refs.\"\n>>>>>>> theirs",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "research/implementation-verification.md",
+      "pass_fail": "<<<<<<< ours\n\"pending\"\n=======\n\"pass\"\n>>>>>>> theirs",
+      "verified_by": "codex",
+      "verified_at": "2026-11-13T03:05:27.400381+00:00",
+      "notes": "<<<<<<< ours\n\"TODO: replace with a real acceptance criterion\"\n=======\n\"Focused production checks; full OS qualification deferred.\"\n>>>>>>> theirs"
     },
     {
       "criterion_id": "FR-003",
-      "description": "Verify FR-003 is satisfied",
+      "description": "<<<<<<< ours\n\"Verify FR-003 is satisfied\"\n=======\n\"Unrelated title and label changes preserved the native body; signing stopped pending review of lossy visual serialization.\"\n>>>>>>> theirs",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "research/implementation-verification.md",
+      "pass_fail": "<<<<<<< ours\n\"pending\"\n=======\n\"pass\"\n>>>>>>> theirs",
+      "verified_by": "codex",
+      "verified_at": "2026-11-13T03:05:27.400383+00:00",
+      "notes": "<<<<<<< ours\n\"TODO: replace with a real acceptance criterion\"\n=======\n\"Focused production checks; full OS qualification deferred.\"\n>>>>>>> theirs"
     },
     {
       "criterion_id": "FR-004",
-      "description": "Verify FR-004 is satisfied",
+      "description": "<<<<<<< ours\n\"Verify FR-004 is satisfied\"\n=======\n\"Unsupported HTML and MDX fell back to Source with the original draft intact.\"\n>>>>>>> theirs",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "research/implementation-verification.md",
+      "pass_fail": "<<<<<<< ours\n\"pending\"\n=======\n\"pass\"\n>>>>>>> theirs",
+      "verified_by": "codex",
+      "verified_at": "2026-11-13T03:05:27.400385+00:00",
+      "notes": "<<<<<<< ours\n\"TODO: replace with a real acceptance criterion\"\n=======\n\"Focused production checks; full OS qualification deferred.\"\n>>>>>>> theirs"
     },
     {
       "criterion_id": "FR-005",
-      "description": "Verify FR-005 is satisfied",
+      "description": "<<<<<<< ours\n\"Verify FR-005 is satisfied\"\n=======\n\"Chrome Preview, MCP stdio and the published issue produced identical safe HTML for Unicode, code, tables and inert markup.\"\n>>>>>>> theirs",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "research/implementation-verification.md",
+      "pass_fail": "<<<<<<< ours\n\"pending\"\n=======\n\"pass\"\n>>>>>>> theirs",
+      "verified_by": "codex",
+      "verified_at": "2026-11-13T03:05:27.400386+00:00",
+      "notes": "<<<<<<< ours\n\"TODO: replace with a real acceptance criterion\"\n=======\n\"Focused production checks; full OS qualification deferred.\"\n>>>>>>> theirs"
     },
     {
       "criterion_id": "FR-006",
-      "description": "Verify FR-006 is satisfied",
+      "description": "<<<<<<< ours\n\"Verify FR-006 is satisfied\"\n=======\n\"Stale edits retained the draft. Lost-response replay used the same payload and created one signed event. Native proposal replay retained exact bytes and commits.\"\n>>>>>>> theirs",
       "proof_type": "automated_test",
-      "evidence": null,
-      "pass_fail": "pending",
-      "verified_by": null,
-      "verified_at": null,
-      "notes": "TODO: replace with a real acceptance criterion"
+      "evidence": "research/implementation-verification.md",
+      "pass_fail": "<<<<<<< ours\n\"pending\"\n=======\n\"pass\"\n>>>>>>> theirs",
+      "verified_by": "codex",
+      "verified_at": "2026-11-13T03:05:27.400388+00:00",
+      "notes": "<<<<<<< ours\n\"TODO: replace with a real acceptance criterion\"\n=======\n\"Focused production checks; full OS qualification deferred.\"\n>>>>>>> theirs"
     }
   ],
   "negative_invariants": []
