@@ -1,4 +1,16 @@
 {
+  "acceptance_history": [
+    {
+      "acceptance_mode": "local",
+      "accepted_at": "2026-11-13T14:52:32.963254+00:00",
+      "accepted_by": "codex",
+      "accepted_from_commit": "741ca2407d13b12428fef97b2df4c6d9a96ef0cd"
+    }
+  ],
+  "acceptance_mode": "local",
+  "accepted_at": "2026-11-13T14:52:32.963254+00:00",
+  "accepted_by": "codex",
+  "accepted_from_commit": "741ca2407d13b12428fef97b2df4c6d9a96ef0cd",
   "created_at": "2026-11-13T14:00:22.658883+00:00",
   "flattened": false,
   "friendly_name": "mcp proposal status",
