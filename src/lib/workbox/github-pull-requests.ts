@@ -1,3 +1,4 @@
+import { readComparisonCommits, readProposalComparison } from "./proposal-comparison";
 import { createHash } from "node:crypto";
 import { z } from "zod";
 import { runHn } from "../hn/runner";
@@ -16,6 +17,9 @@ const nativeHistory = z.object({
     created_at: z.string(),
     updated_at: z.string().optional(),
     body: z.string().optional(),
+    base_commit: z.string().optional(),
+    head_commit: z.string().optional(),
+    merge_commit: z.string().optional(),
   })),
 });
 
@@ -39,13 +43,19 @@ function localPullRequest(project: string, { body: _body, ...record }: ImportedP
   return { ...record, localId, href: `/p/${encodeURIComponent(project)}/pull-requests/${localId}` };
 }
 
-export async function readPullRequestDetail(project: string, repoPath: string, localId: string) {
+export async function readPullRequestDetail(project: string, repoPath: string, localId: string, file?: string) {
   if (!/^[a-f0-9]{64}$/.test(localId)) return { kind: "not_found" } as const;
   const records = await readImportedPullRequests(repoPath);
   if (!records) return { kind: "unavailable" } as const;
   for (const record of records) {
     const local = localPullRequest(project, record);
-    if (local.localId === localId) return { kind: "available", request: { ...local, body: record.body ?? null } } as const;
+    if (local.localId !== localId) continue;
+    const base = record.base_commit ?? "";
+    const head = record.head_commit ?? "";
+    const comparison = readProposalComparison(repoPath, { base, head }, file);
+    const history = comparison.status === "unavailable" ? null : readComparisonCommits(repoPath, base, head);
+    const fileHistory = comparison.selectedPath ? readComparisonCommits(repoPath, base, head, comparison.selectedPath) : null;
+    return { kind: "available", request: { ...local, body: record.body ?? null }, comparison, history, fileHistory } as const;
   }
   return { kind: "not_found" } as const;
 }

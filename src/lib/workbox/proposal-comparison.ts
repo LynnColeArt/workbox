@@ -160,3 +160,18 @@ export function readProposalComparison(
   if (/^Binary files /m.test(text)) return { ...result, patch: { status: "binary" } };
   return { ...result, patch: { status: "available", text } };
 }
+
+export function readComparisonCommits(repoPath: string, base: string, head: string, path?: string) {
+  if (!/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(base) || !/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(head)) return null;
+  const output = runGit(repoPath, [
+    "log", "--no-show-signature", "--max-count=101", "--format=%H%x00%aN%x00%aI%x00%s", "-z", `${base}..${head}`, "--", ...(path ? [`:(top,literal)${path}`] : []),
+  ], FILE_LIST_BYTES);
+  if (!output || output.truncated) return null;
+  const fields = output.output.toString("utf8").split("\0");
+  const commits = [];
+  for (let index = 0; index + 3 < fields.length; index += 4) {
+    const [oid, author, date, subject] = fields.slice(index, index + 4);
+    commits.push({ oid, author, date, subject });
+  }
+  return { commits: commits.slice(0, 100), truncated: commits.length > 100 };
+}
