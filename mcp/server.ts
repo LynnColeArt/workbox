@@ -18,10 +18,10 @@ import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { openDb } from "../src/lib/workbox/db";
 import {
-  listProjects, getProject, projectOverview, listIssues, getIssue,
+  listProjects, getProject, projectOverview, listIssues,
   issueComments, recentActivity,
 } from "../src/lib/workbox/queries";
-import { issueResult, legacyCommentIssue, legacyCreateIssue } from "../src/lib/workbox/issues";
+import { issueResult, legacyCommentIssue, legacyCreateIssue, readIssueList, readIssueDetail } from "../src/lib/workbox/issues";
 import { listPipelines, readPolicy } from "../src/lib/workbox/ci";
 import { readExplore } from "../src/lib/workbox/explore";
 import { readCode } from "../src/lib/workbox/code-browser";
@@ -93,31 +93,43 @@ async function toolProjects(): Promise<Json[]> {
 }
 
 async function toolIssues(args: Json): Promise<Json[]> {
-  const db = openDb();
-  const p = requireProject(String(args.project));
-  const q = typeof args.q === "string" ? args.q.toLowerCase() : null;
-  return listIssues(db, p.id)
-    .filter((i) => !q || i.title.toLowerCase().includes(q))
-    .map((i) => ({
-      number: i.number, title: i.title, status: i.status,
-      comments: i.comments, conflict: i.conflict === 1,
-      opened: i.createdAt?.slice(0, 10) ?? null,
+  const project = requireProject(String(args.project));
+  const result: Json[] = [];
+  let cursor: string | undefined;
+  do {
+    const data = issueResult(await readIssueList(project, {
+      action: "list", status: "all", q: typeof args.q === "string" ? args.q : undefined, limit: 50, cursor,
     }));
+    for (const issue of data.items) {
+      const detail = issueResult(await readIssueDetail(project, { action: "detail", issueId: issue.issueId, limit: 1 }));
+      result.push({
+        number: issue.number, title: detail.state?.title ?? issue.title, status: detail.state?.status ?? null,
+        comments: detail.commentCount, conflict: detail.conflict, opened: issue.createdAt?.slice(0, 10) ?? null,
+      });
+    }
+    cursor = data.nextCursor ?? undefined;
+  } while (cursor);
+  return result;
 }
 
 async function toolIssue(args: Json): Promise<Json> {
-  const db = openDb();
-  const p = requireProject(String(args.project));
+  const project = requireProject(String(args.project));
   const number = Number(args.number);
-  const hit = listIssues(db, p.id).find((i) => i.number === number);
-  if (!hit) throw new Error(`issue #${number} not found in ${p.id}. Call workbox_issues.`);
-  const detail = getIssue(db, p.id, hit.issueId)!;
-  const comments = issueComments(db, p.id, hit.issueId);
+  const read = (cursor?: string) => readIssueDetail(project, { action: "detail", issueId: number, cursor, limit: 50 });
+  const detail = issueResult(await read());
+  const comments = [...detail.comments];
+  let cursor = detail.nextCursor;
+  while (cursor) {
+    const page = issueResult(await read(cursor));
+    if (page.snapshot !== detail.snapshot) throw new Error("Issue changed while loading. Retry the lookup.");
+    comments.push(...page.comments);
+    cursor = page.nextCursor;
+  }
   return {
-    project: p.id, number: detail.number, title: detail.title,
-    status: detail.status, body: detail.body, labels: detail.labels,
-    conflict: detail.conflict === 1,
-    comments: comments.map((c) => ({ by: c.actorName, at: c.timestamp, body: c.body })),
+    project: project.id, number: detail.number, title: detail.state?.title ?? null,
+    status: detail.state?.status ?? null, body: detail.state?.body ?? null, labels: detail.state?.labels ?? [],
+    conflict: detail.conflict,
+    comments: comments.map(comment => ({ by: comment.actorName, at: comment.timestamp, body: comment.body })),
   };
 }
 

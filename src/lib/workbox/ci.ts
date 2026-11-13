@@ -1,12 +1,5 @@
-import { readFileSync, readdirSync, existsSync } from "node:fs";
-import { join } from "node:path";
+import { readPinnedBlob, readPinnedTree, resolveCodeRevision } from "./repo";
 
-/**
- * CI surface: pipelines are canonical .hn/pipelines/<name>.json files in
- * the worktree; policy is .hn/policy.json. Run requests/execution are
- * signed-event families (projected when they occur); this module surfaces
- * the governing definitions and trust config.
- */
 export interface PipelineDef {
   name: string;
   description: string;
@@ -16,24 +9,15 @@ export interface PipelineDef {
   error?: string;
 }
 
-export function listPipelines(repoPath: string): PipelineDef[] {
-  const dir = join(repoPath, ".hn", "pipelines");
-  if (!existsSync(dir)) return [];
-  let files: string[];
-  try {
-    files = readdirSync(/*turbopackIgnore: true*/ dir);
-  } catch {
-    return [];
-  }
+export function listPipelines(repoPath: string, revision = resolveCodeRevision(repoPath)?.commit): PipelineDef[] {
+  if (!revision) return [];
+  const files = readPinnedTree(repoPath, revision, ".hn/pipelines")?.entries ?? [];
   const out: PipelineDef[] = [];
-  for (const f of files.filter((x) => x.endsWith(".json")).sort()) {
-    const full = join(dir, f);
-    let text = "{}";
-    try {
-      text = readFileSync(/*turbopackIgnore: true*/ full, "utf8");
-    } catch {
-      continue; // unreadable → skip, never fabricate
-    }
+  for (const entry of files) {
+    if (entry.type !== "blob" || entry.mode === "120000" || !entry.name.endsWith(".json")) continue;
+    const f = entry.name;
+    const { content: text } = readPinnedBlob(repoPath, entry.sha, entry.size, 1024 * 1024);
+    if (text === null) continue;
     try {
       const parsed = JSON.parse(text) as {
         name?: string; description?: string; backend?: string;
@@ -64,15 +48,12 @@ export interface PolicyView {
   exists: boolean;
 }
 
-export function readPolicy(repoPath: string): PolicyView | null {
-  const p = join(repoPath, ".hn", "policy.json");
-  if (!existsSync(p)) return null;
-  let text = "";
-  try {
-    text = readFileSync(/*turbopackIgnore: true*/ p, "utf8");
-  } catch {
-    return null;
-  }
+export function readPolicy(repoPath: string, revision = resolveCodeRevision(repoPath)?.commit): PolicyView | null {
+  if (!revision) return null;
+  const file = readPinnedTree(repoPath, revision, ".hn")?.entries.find(entry => entry.name === "policy.json");
+  if (!file || file.type !== "blob" || file.mode === "120000") return null;
+  const { content: text } = readPinnedBlob(repoPath, file.sha, file.size, 1024 * 1024);
+  if (text === null) return null;
   try {
     const parsed = JSON.parse(text) as {
       version?: string; maintainers?: string[]; proposals?: unknown; pipelines?: Record<string, unknown>;

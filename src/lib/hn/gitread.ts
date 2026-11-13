@@ -26,13 +26,15 @@ export function catFile(repoPath: string, rev: string, path: string): string | n
  * never initialized. Key = "refs/hn/actors/<actor>".
  */
 export function actorRefs(repoPath: string): Map<string, string> {
-  const r = git(repoPath, ["for-each-ref", "refs/hn/actors/", "--format=%(refname) %(objectname)"]);
+  const r = git(repoPath, ["for-each-ref", "--format=%(refname) %(objectname)", "refs/hn/actors/", "refs/hn/remotes/"]);
   const out = new Map<string, string>();
   for (const line of r.out.split("\n")) {
     const trimmed = line.trim();
     if (!trimmed) continue;
     const sp = trimmed.lastIndexOf(" ");
-    out.set(trimmed.slice(0, sp), trimmed.slice(sp + 1));
+    const ref = trimmed.slice(0, sp);
+    if (!/^refs\/hn\/(?:remotes\/[a-zA-Z0-9_][a-zA-Z0-9_.-]{0,127}\/)?actors\/[a-f0-9]{64}$/.test(ref)) continue;
+    out.set(ref, trimmed.slice(sp + 1));
   }
   return out;
 }

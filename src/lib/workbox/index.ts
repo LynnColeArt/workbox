@@ -60,7 +60,9 @@ export function indexProject(
   );
 
   for (const [ref, headSha] of refs as Map<string, string>) {
-    const actor = ref.slice("refs/hn/actors/".length);
+    const actor = ref.split("/")[ref.includes("/memory/") ? 3 : ref.split("/").length - 1];
+
+    if (indexedCommits.has(headSha)) continue;
 
     // Update actor bookkeeping (may include actors with no new events).
     const knownCommit = (sha: string) => indexedCommits.has(sha);
@@ -110,6 +112,9 @@ export function indexProject(
 
       if (ev.verified) outcome.verified += 1; else outcome.unverified += 1;
       outcome.events += 1;
+      indexedCommits.add(ev.commitSha);
+
+      if (!ev.verified) continue;
 
       // Issue projection: open/revise/comment mutate issue state in chain order.
       if (ev.kind === "issue.open" || ev.kind === "issue.revise") {
@@ -181,7 +186,7 @@ export function indexProject(
   // with two parents is a merge of prior states and creates no head.)
   db.exec("UPDATE issues SET conflict = 0 WHERE project_id = " + quote(project.id));
   const stateRows = db.prepare(
-    "SELECT event_id, subject, parents_json FROM events WHERE project_id = ? AND kind IN ('issue.open','issue.revise') AND subject IS NOT NULL",
+    "SELECT event_id, subject, parents_json FROM events WHERE project_id = ? AND verified = 1 AND kind IN ('issue.open','issue.revise') AND subject IS NOT NULL",
   ).all(project.id) as Array<{ event_id: string; subject: string; parents_json: string }>;
   const byNode = new Map<string, { subject: string; parents: string[] }>();
   for (const row of stateRows) {

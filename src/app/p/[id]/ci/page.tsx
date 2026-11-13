@@ -3,7 +3,6 @@ import { connection } from "next/server";
 import { getProject } from "@/lib/workbox/queries";
 import { openDb } from "@/lib/workbox/db";
 import { listPipelines, readPolicy } from "@/lib/workbox/ci";
-import { CreateForm } from "@/components/create-form";
 
 export const instant = false;
 
@@ -30,23 +29,12 @@ export default async function CIPage({ params }: { params: Promise<{ id: string 
       <p className="mb-3 text-sm">
         <Link className="wb-link" href={`/p/${encodeURIComponent(id)}/settings#pipeline-draft`}>Prepare a pipeline change in Settings</Link>
       </p>
-      <CreateForm
-        label="New pipeline"
-        endpoint={`/api/projects/${id}/pipelines`}
-        cta="Commit pipeline"
-        fields={[
-          { key: "name", placeholder: "Pipeline name (lowercase, e.g. integration-tests)", required: true },
-          { key: "stepName", placeholder: "First step name (e.g. build)" },
-          { key: "command", placeholder: "Command (e.g. npm test)", required: true },
-          { key: "args", placeholder: "Args (space-separated)" },
-        ]}
-      />
       <section className="mb-8">
         <div className="flex items-center gap-2 mb-3">
           <h2 className="text-sm font-semibold">Pipelines</h2>
           <span className="wb-chip tabular-nums">{pipelines.length.toLocaleString("en-US")}</span>
         </div>
-        {pipelines.length === 0 && <p className="wb-muted text-sm">No .hn/pipelines/ definitions in the worktree.</p>}
+        {pipelines.length === 0 && <p className="wb-muted text-sm">No .hn/pipelines/ definitions at the default revision.</p>}
         <div className="space-y-3">
           {pipelines.map((pl) => (
             <div key={pl.name} className="wb-panel overflow-hidden">

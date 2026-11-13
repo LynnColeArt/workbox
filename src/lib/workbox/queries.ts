@@ -167,7 +167,8 @@ export function recentActivity(db: DatabaseSync, limit = 20, projectFilter?: str
   const base = `
     SELECT a.event_id AS eventId, a.project_id AS projectId, p.name AS projectName,
            a.kind, a.actor_name AS actorName, a.summary, a.timestamp
-    FROM activity a JOIN projects p ON p.id = a.project_id`;
+    FROM activity a JOIN projects p ON p.id = a.project_id
+    JOIN events e ON e.project_id = a.project_id AND e.event_id = a.event_id AND e.verified = 1`;
   const rows = projectFilter
     ? db.prepare(`${base} WHERE a.project_id = ? ORDER BY a.timestamp DESC LIMIT ?`).all(projectFilter, limit)
     : db.prepare(`${base} ORDER BY a.timestamp DESC LIMIT ?`).all(limit);
@@ -176,7 +177,7 @@ export function recentActivity(db: DatabaseSync, limit = 20, projectFilter?: str
     kind: string; actorName: string; summary: string; timestamp: string | null;
   }>).map((r) => ({
     ...r,
-    verified: true, // activity rows are only written from verified events
+    verified: true,
   }));
 }
 
