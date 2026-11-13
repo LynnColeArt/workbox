@@ -1,0 +1,32 @@
+{
+  "accept_commit": "61bbd0c6cdde842617b324bdb4cd412fafefb97e",
+  "acceptance_history": [
+    {
+      "accept_commit": "61bbd0c6cdde842617b324bdb4cd412fafefb97e",
+      "acceptance_mode": "local",
+      "accepted_at": "2026-11-12T23:27:56.785347+00:00",
+      "accepted_by": "codex",
+      "accepted_from_commit": "7c86511a4348970bf9a902616832bfe33b49fd66"
+    }
+  ],
+  "acceptance_mode": "local",
+  "accepted_at": "2026-11-12T23:27:56.785347+00:00",
+  "accepted_by": "codex",
+  "accepted_from_commit": "7c86511a4348970bf9a902616832bfe33b49fd66",
+  "baseline_merge_commit": "2ba4f4edfdb9e78fa781375b2e4e4939959739de",
+  "created_at": "2026-11-12T21:59:57.161074+00:00",
+  "flattened": false,
+  "friendly_name": "issues and discussions",
+  "mission_id": "01M78WCKC4QR9S1X0XG1FNZM4R",
+  "mission_number": 6,
+  "mission_slug": "issues-and-discussions-01M78WCK",
+  "mission_type": "software-dev",
+  "purpose_context": "This mission advances issues and discussions on codex/issues-and-discussions so stakeholders can track the work from mission creation onward.",
+  "purpose_tldr": "issues and discussions",
+  "slug": "issues-and-discussions-01M78WCK",
+  "status_phase": "1",
+  "target_branch": "codex/issues-and-discussions",
+  "topology": "single_branch",
+  "vcs": "git",
+  "vcs_locked_at": "2026-11-12T22:33:13.537211+00:00"
+}

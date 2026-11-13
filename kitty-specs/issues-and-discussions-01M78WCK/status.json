@@ -1,0 +1,229 @@
+{
+  "event_count": 49,
+  "last_event_id": "01M791ET582KJ4Q6G46HGHH9KQ",
+  "materialized_at": "2026-11-12T23:28:31.912274+00:00",
+  "mission_number": "6",
+  "mission_slug": "issues-and-discussions-01M78WCK",
+  "mission_type": "software-dev",
+  "summary": {
+    "approved": 0,
+    "blocked": 0,
+    "canceled": 0,
+    "claimed": 0,
+    "done": 7,
+    "for_review": 0,
+    "in_progress": 0,
+    "in_review": 0,
+    "planned": 0
+  },
+  "work_packages": {
+    "WP01": {
+      "actor": "merge",
+      "agent": "codex-review",
+      "agent_profile": "__resolved_profile_absent__",
+      "agent_profile_version": "__resolved_profile_version_absent__",
+      "force_count": 0,
+      "lane": "done",
+      "last_event_id": "01M791EHBKD007SCBKHYDP2334",
+      "last_transition_at": "2026-11-12T23:28:22.899846+00:00",
+      "model": "__resolved_model_absent__",
+      "notes": [
+        "Native fixtures and focused Hubnot tests passed",
+        "Reviewed and independently reran all three native CLI fixtures"
+      ],
+      "provider": "__resolved_provider_absent__",
+      "review_result": {
+        "feedback_path": "/home/lynn/projects/workbox/kitty-specs/issues-and-discussions-01M78WCK/tasks/WP01-native-contract/review-cycle-1.md",
+        "reference": "review-cycle://issues-and-discussions-01M78WCK/WP01-native-contract/review-cycle-1.md",
+        "reviewer": "codex-review",
+        "verdict": "approved"
+      },
+      "role": "reviewer",
+      "shell_pid": 113600,
+      "shell_pid_created_at": "1794523080.79",
+      "subtasks": {
+        "T001": "done",
+        "T002": "done"
+      }
+    },
+    "WP02": {
+      "actor": "merge",
+      "agent": "codex-review",
+      "agent_profile": "__resolved_profile_absent__",
+      "agent_profile_version": "__resolved_profile_version_absent__",
+      "force_count": 0,
+      "lane": "done",
+      "last_event_id": "01M791EM90D2T4Q86NXQJKASZ6",
+      "last_transition_at": "2026-11-12T23:28:25.888419+00:00",
+      "model": "__resolved_model_absent__",
+      "notes": [
+        "Shared native signing and recovery fixtures passed",
+        "Independent review passed after distinguishing signed hidden outcomes. Native replay, signer pinning and index recovery fixtures passed."
+      ],
+      "provider": "__resolved_provider_absent__",
+      "review_result": {
+        "feedback_path": "/home/lynn/projects/workbox/kitty-specs/issues-and-discussions-01M78WCK/tasks/WP02-shared-service/review-cycle-1.md",
+        "reference": "review-cycle://issues-and-discussions-01M78WCK/WP02-shared-service/review-cycle-1.md",
+        "reviewer": "codex-review",
+        "verdict": "approved"
+      },
+      "role": "reviewer",
+      "shell_pid": 125740,
+      "shell_pid_created_at": "1794523260.98",
+      "subtasks": {
+        "T003": "done",
+        "T004": "done",
+        "T005": "done"
+      }
+    },
+    "WP03": {
+      "actor": "merge",
+      "agent": "codex-review",
+      "agent_profile": "__resolved_profile_absent__",
+      "agent_profile_version": "__resolved_profile_version_absent__",
+      "force_count": 0,
+      "lane": "done",
+      "last_event_id": "01M791EJVESJKP1K19NFN5W514",
+      "last_transition_at": "2026-11-12T23:28:24.430260+00:00",
+      "model": "__resolved_model_absent__",
+      "notes": [
+        "Markdown fixtures and browser keyboard checks passed",
+        "Reviewed source preservation and render safety, reran five focused tests"
+      ],
+      "provider": "__resolved_provider_absent__",
+      "review_result": {
+        "feedback_path": "/home/lynn/projects/workbox/kitty-specs/issues-and-discussions-01M78WCK/tasks/WP03-markdown/review-cycle-1.md",
+        "reference": "review-cycle://issues-and-discussions-01M78WCK/WP03-markdown/review-cycle-1.md",
+        "reviewer": "codex-review",
+        "verdict": "approved"
+      },
+      "role": "reviewer",
+      "shell_pid": 117507,
+      "shell_pid_created_at": "1794523124.9",
+      "subtasks": {
+        "T006": "done",
+        "T007": "done",
+        "T008": "done"
+      }
+    },
+    "WP04": {
+      "actor": "merge",
+      "agent": "codex-review",
+      "agent_profile": "__resolved_profile_absent__",
+      "agent_profile_version": "__resolved_profile_version_absent__",
+      "force_count": 0,
+      "lane": "done",
+      "last_event_id": "01M791ENQW5H8ZFMNZMTARXG08",
+      "last_transition_at": "2026-11-12T23:28:27.388595+00:00",
+      "model": "__resolved_model_absent__",
+      "notes": [
+        "Production build and issue HTTP/MCP lifecycle tests pass",
+        "Independent review findings addressed. Production HTTP/MCP parity and Chrome issue lifecycle, lost response and stale cursor draft recovery passed."
+      ],
+      "provider": "__resolved_provider_absent__",
+      "review_result": {
+        "feedback_path": "/home/lynn/projects/workbox/kitty-specs/issues-and-discussions-01M78WCK/tasks/WP04-issues/review-cycle-1.md",
+        "reference": "review-cycle://issues-and-discussions-01M78WCK/WP04-issues/review-cycle-1.md",
+        "reviewer": "codex-review",
+        "verdict": "approved"
+      },
+      "role": "reviewer",
+      "shell_pid": 180963,
+      "shell_pid_created_at": "1794524068.13",
+      "subtasks": {
+        "T009": "done",
+        "T010": "done",
+        "T011": "done"
+      }
+    },
+    "WP05": {
+      "actor": "merge",
+      "agent": "codex-review",
+      "agent_profile": "__resolved_profile_absent__",
+      "agent_profile_version": "__resolved_profile_version_absent__",
+      "force_count": 0,
+      "lane": "done",
+      "last_event_id": "01M791EQ7D8S762ZC12JM6YXZA",
+      "last_transition_at": "2026-11-12T23:28:28.909333+00:00",
+      "model": "__resolved_model_absent__",
+      "notes": [
+        "Native read and contextual reply parity fixtures pass",
+        "Independent review findings addressed and retested. Valid native content is preserved, filters advance past empty pages, reply context works across pages, and post lands on a fresh snapshot."
+      ],
+      "provider": "__resolved_provider_absent__",
+      "review_result": {
+        "feedback_path": "/home/lynn/projects/workbox/kitty-specs/issues-and-discussions-01M78WCK/tasks/WP05-discussion-threads/review-cycle-1.md",
+        "reference": "review-cycle://issues-and-discussions-01M78WCK/WP05-discussion-threads/review-cycle-1.md",
+        "reviewer": "codex-review",
+        "verdict": "approved"
+      },
+      "role": "reviewer",
+      "shell_pid": 148611,
+      "shell_pid_created_at": "1794523663.18",
+      "subtasks": {
+        "T012": "done",
+        "T013": "done",
+        "T014": "done"
+      }
+    },
+    "WP06": {
+      "actor": "merge",
+      "agent": "codex-review",
+      "agent_profile": "__resolved_profile_absent__",
+      "agent_profile_version": "__resolved_profile_version_absent__",
+      "force_count": 0,
+      "lane": "done",
+      "last_event_id": "01M791ERQ0XZHGGFNQ19JZ395Z",
+      "last_transition_at": "2026-11-12T23:28:30.432924+00:00",
+      "model": "__resolved_model_absent__",
+      "notes": [
+        "Discussion moderation, exact answers, conflict resolution and permission checks verified",
+        "Independent native checks passed. Fixed draft recovery across cursor and conflict refresh, and tested native-sized posts."
+      ],
+      "provider": "__resolved_provider_absent__",
+      "review_result": {
+        "feedback_path": "/home/lynn/projects/workbox/kitty-specs/issues-and-discussions-01M78WCK/tasks/WP06-discussion-management/review-cycle-1.md",
+        "reference": "review-cycle://issues-and-discussions-01M78WCK/WP06-discussion-management/review-cycle-1.md",
+        "reviewer": "codex-review",
+        "verdict": "approved"
+      },
+      "role": "reviewer",
+      "shell_pid": 177932,
+      "shell_pid_created_at": "1794524016.38",
+      "subtasks": {
+        "T015": "done",
+        "T016": "done"
+      }
+    },
+    "WP07": {
+      "actor": "merge",
+      "agent": "codex-review",
+      "agent_profile": "__resolved_profile_absent__",
+      "agent_profile_version": "__resolved_profile_version_absent__",
+      "force_count": 0,
+      "lane": "done",
+      "last_event_id": "01M791ET582KJ4Q6G46HGHH9KQ",
+      "last_transition_at": "2026-11-12T23:28:31.912274+00:00",
+      "model": "__resolved_model_absent__",
+      "notes": [
+        "Production build, changed-file lint, all 107 tests and both Chrome journeys passed",
+        "Independent review completed after governed lock and revision-bound draft fixes. Production build, 107 tests, lint and Chrome journeys passed."
+      ],
+      "provider": "__resolved_provider_absent__",
+      "review_result": {
+        "feedback_path": "/home/lynn/projects/workbox/kitty-specs/issues-and-discussions-01M78WCK/tasks/WP07-acceptance/review-cycle-1.md",
+        "reference": "review-cycle://issues-and-discussions-01M78WCK/WP07-acceptance/review-cycle-1.md",
+        "reviewer": "codex-review",
+        "verdict": "approved"
+      },
+      "role": "reviewer",
+      "shell_pid": 277515,
+      "shell_pid_created_at": "1794524686.72",
+      "subtasks": {
+        "T017": "done",
+        "T018": "done",
+        "T019": "done"
+      }
+    }
+  }
+}

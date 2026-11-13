@@ -1,0 +1,140 @@
+{
+  "event_count": 28,
+  "last_event_id": "01M79DWPHHRCS75KESS9JY0VMK",
+  "materialized_at": "2026-11-13T03:05:49.873612+00:00",
+  "mission_number": "",
+  "mission_slug": "mdxeditor-upgrade-01M791SD",
+  "mission_type": "software-dev",
+  "summary": {
+    "approved": 0,
+    "blocked": 0,
+    "canceled": 0,
+    "claimed": 0,
+    "done": 4,
+    "for_review": 0,
+    "in_progress": 0,
+    "in_review": 0,
+    "planned": 0
+  },
+  "work_packages": {
+    "WP01": {
+      "actor": "merge",
+      "agent": "codex-review",
+      "agent_profile": "__resolved_profile_absent__",
+      "agent_profile_version": "__resolved_profile_version_absent__",
+      "force_count": 0,
+      "lane": "done",
+      "last_event_id": "01M79DWHYJ7AHBAMJXC3VAK0QM",
+      "last_transition_at": "2026-11-13T03:05:45.170187+00:00",
+      "model": "__resolved_model_absent__",
+      "notes": [
+        "Visual adapter and safety fixtures reviewed",
+        "Typed adapter and focused safety tests passed"
+      ],
+      "provider": "__resolved_provider_absent__",
+      "review_result": {
+        "feedback_path": "/home/lynn/projects/workbox/kitty-specs/mdxeditor-upgrade-01M791SD/tasks/WP01-visual/review-cycle-1.md",
+        "reference": "review-cycle://mdxeditor-upgrade-01M791SD/WP01-visual/review-cycle-1.md",
+        "reviewer": "codex-review",
+        "verdict": "approved"
+      },
+      "role": "reviewer",
+      "shell_pid": 973128,
+      "shell_pid_created_at": "1794538401.03",
+      "subtasks": {
+        "T001": "done",
+        "T002": "done"
+      }
+    },
+    "WP02": {
+      "actor": "merge",
+      "agent": "codex-review",
+      "agent_profile": "__resolved_profile_absent__",
+      "agent_profile_version": "__resolved_profile_version_absent__",
+      "force_count": 0,
+      "lane": "done",
+      "last_event_id": "01M79DWKEM013NGS246DPVN8JC",
+      "last_transition_at": "2026-11-13T03:05:46.708630+00:00",
+      "model": "__resolved_model_absent__",
+      "notes": [
+        "Production build and exact-source fixtures passed",
+        "Reviewed controlled draft, normalization gate and preview freshness"
+      ],
+      "provider": "__resolved_provider_absent__",
+      "review_result": {
+        "feedback_path": "/home/lynn/projects/workbox/kitty-specs/mdxeditor-upgrade-01M791SD/tasks/WP02-modes/review-cycle-1.md",
+        "reference": "review-cycle://mdxeditor-upgrade-01M791SD/WP02-modes/review-cycle-1.md",
+        "reviewer": "codex-review",
+        "verdict": "approved"
+      },
+      "role": "reviewer",
+      "shell_pid": 978717,
+      "shell_pid_created_at": "1794538509.41",
+      "subtasks": {
+        "T003": "done",
+        "T004": "done",
+        "T005": "done"
+      }
+    },
+    "WP03": {
+      "actor": "merge",
+      "agent": "codex-review",
+      "agent_profile": "__resolved_profile_absent__",
+      "agent_profile_version": "__resolved_profile_version_absent__",
+      "force_count": 0,
+      "lane": "done",
+      "last_event_id": "01M79DWMXZ55B7VRD6922Z6XMZ",
+      "last_transition_at": "2026-11-13T03:05:48.223066+00:00",
+      "model": "__resolved_model_absent__",
+      "notes": [
+        "Visual integration and native exact proposal bytes and operation replay verified with production HTTP fixture.",
+        "Reviewed editor call sites and native policy enforcement. Verified exact bytes, no writes during prepare, stable replay after ref movement, and changed-payload rejection."
+      ],
+      "provider": "__resolved_provider_absent__",
+      "review_result": {
+        "feedback_path": "/home/lynn/projects/workbox/kitty-specs/mdxeditor-upgrade-01M791SD/tasks/WP03-forms/review-cycle-1.md",
+        "reference": "review-cycle://mdxeditor-upgrade-01M791SD/WP03-forms/review-cycle-1.md",
+        "reviewer": "codex-review",
+        "verdict": "approved"
+      },
+      "role": "reviewer",
+      "shell_pid": 993783,
+      "shell_pid_created_at": "1794538787.54",
+      "subtasks": {
+        "T006": "done",
+        "T007": "done",
+        "T008": "done"
+      }
+    },
+    "WP04": {
+      "actor": "merge",
+      "agent": "codex-review",
+      "agent_profile": "__resolved_profile_absent__",
+      "agent_profile_version": "__resolved_profile_version_absent__",
+      "force_count": 0,
+      "lane": "done",
+      "last_event_id": "01M79DWPHHRCS75KESS9JY0VMK",
+      "last_transition_at": "2026-11-13T03:05:49.873612+00:00",
+      "model": "__resolved_model_absent__",
+      "notes": [
+        "Production Chrome, MCP stdio, native signing and 12 focused tests pass. Exact source, rendered HTML, fallback, focus, stale draft and retry verified.",
+        "Reviewed production acceptance assertions and results. Twelve tests passed, including browser mode cycling and all five composer defaults, browser/MCP/published HTML equality, native exact bytes and no duplicate signed events. Full OS matrix deferred to release."
+      ],
+      "provider": "__resolved_provider_absent__",
+      "review_result": {
+        "feedback_path": "/home/lynn/projects/workbox/kitty-specs/mdxeditor-upgrade-01M791SD/tasks/WP04-parity/review-cycle-1.md",
+        "reference": "review-cycle://mdxeditor-upgrade-01M791SD/WP04-parity/review-cycle-1.md",
+        "reviewer": "codex-review",
+        "verdict": "approved"
+      },
+      "role": "reviewer",
+      "shell_pid": 1020790,
+      "shell_pid_created_at": "1794538993.36",
+      "subtasks": {
+        "T009": "done",
+        "T010": "done",
+        "T011": "done"
+      }
+    }
+  }
+}

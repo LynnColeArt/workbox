@@ -18,8 +18,7 @@ import {
   listProjects, getProject, projectOverview, listIssues, getIssue,
   issueComments, recentActivity,
 } from "../src/lib/workbox/queries";
-import { runHn, envelopeData } from "../src/lib/hn/runner";
-import { indexProject } from "../src/lib/workbox/index";
+import { issueResult, legacyCommentIssue, legacyCreateIssue } from "../src/lib/workbox/issues";
 import { listPipelines, readPolicy } from "../src/lib/workbox/ci";
 import { readExplore } from "../src/lib/workbox/explore";
 import { readCode } from "../src/lib/workbox/code-browser";
@@ -29,6 +28,12 @@ import { readDashboard } from "../src/lib/workbox/dashboard";
 import { renderDashboardPng } from "../src/lib/workbox/dashboard-chart";
 import { runSettingsOperation } from "../src/lib/workbox/settings-operations";
 import { createProject } from "../src/lib/workbox/create";
+
+import { issueTools } from "./issues";
+import { discussionTools } from "./discussions";
+
+const collaborationTools = [...issueTools, ...discussionTools];
+const collaborationHandlers = new Map(collaborationTools.map(tool => [tool.name, tool.call]));
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 process.chdir(resolve(HERE, "..")); // DB and env resolve from the project root
@@ -96,40 +101,18 @@ async function toolIssue(args: Json): Promise<Json> {
 
 async function toolCreateIssue(args: Json): Promise<Json> {
   const title = String(args.title ?? "").trim();
-  const body = String(args.body ?? "").trim();
-  if (!title) throw new Error("title is required");
-  const db = openDb();
-  const p = requireProject(String(args.project));
-
-  // hn law: flags before free text.
-  const res = await runHn(p.repoPath, ["issue", "open", "--json", "--body", body, title]);
-  if (!res.envelope.ok || res.exitCode !== 0) {
-    throw new Error(`issue open failed: ${JSON.stringify(res.envelope.error ?? res.stderr.slice(0, 200))}`);
-  }
-  const data = envelopeData<{ issue_id?: string; event_id?: string }>(res.envelope);
-  const issueId = data?.issue_id ?? data?.event_id ?? "";
-
-  indexProject(db, p); // projection refresh assigns the stable number
-  const created = listIssues(db, p.id).find((i) => i.issueId === issueId);
-  return { created: true, project: p.id, number: created?.number ?? null, title };
+  const project = String(args.project);
+  const created = issueResult(await legacyCreateIssue(project, { title, body: String(args.body ?? "") }));
+  return { created: true, project, number: created.number, title };
 }
 
 async function toolCommentIssue(args: Json): Promise<Json> {
-  const comment = String(args.comment ?? "").trim();
-  if (!comment) throw new Error("comment is required");
-  const db = openDb();
-  const p = requireProject(String(args.project));
+  const project = String(args.project);
   const number = Number(args.number);
-  const hit = listIssues(db, p.id).find((i) => i.number === number);
-  if (!hit) throw new Error(`issue #${number} not found in ${p.id}.`);
-
-  const res = await runHn(p.repoPath, ["issue", "comment", hit.issueId, "--json", "--body", comment]);
-  if (!res.envelope.ok || res.exitCode !== 0) {
-    throw new Error(`comment failed: ${JSON.stringify(res.envelope.error ?? res.stderr.slice(0, 200))}`);
-  }
-  indexProject(db, p);
-  const comments = issueComments(db, p.id, hit.issueId);
-  return { commented: true, project: p.id, number, commentCount: comments.length };
+  const written = issueResult(await legacyCommentIssue(project, { number, comment: String(args.comment ?? "") }));
+  using db = openDb();
+  const commentCount = issueComments(db, project, written.issueId).length;
+  return { commented: true, project, number, commentCount };
 }
 
 async function toolMemories(args: Json): Promise<Json[]> {
@@ -224,6 +207,7 @@ const draftEditInput = {
 };
 
 const TOOLS = [
+  ...collaborationTools.map(({ name, description, inputSchema }) => ({ name, description, inputSchema })),
   {
     name: "workbox_projects",
     description: "List all hubnot projects in this Workbox instance with issue/event counts.",
@@ -586,6 +570,19 @@ async function handle(msg: Json): Promise<void> {
         content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
         isError: !result.ok,
       });
+      return;
+    }
+    const collaborationHandler = collaborationHandlers.get(name);
+    if (collaborationHandler) {
+      try {
+        const result = await collaborationHandler(params.arguments ?? {});
+        rpcResult(id, { content: [{ type: "text", text: JSON.stringify(result, null, 2) }], isError: !result.ok });
+      } catch {
+        rpcResult(id, {
+          content: [{ type: "text", text: JSON.stringify({ ok: false, error: { code: "unavailable", message: "Workbox could not complete this operation." } }) }],
+          isError: true,
+        });
+      }
       return;
     }
     const settingsAction = SETTINGS_ACTIONS.get(name);
