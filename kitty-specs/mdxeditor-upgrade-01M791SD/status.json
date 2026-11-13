@@ -57,7 +57,8 @@
       "last_transition_at": "2026-11-13T02:55:20.933158+00:00",
       "model": "__resolved_model_absent__",
       "notes": [
-        "Production build and exact-source fixtures passed"
+        "Production build and exact-source fixtures passed",
+        "Reviewed controlled draft, normalization gate and preview freshness"
       ],
       "provider": "__resolved_provider_absent__",
       "review_result": {
