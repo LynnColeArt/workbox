@@ -12,6 +12,9 @@ requirement_refs:
 planning_base_branch: codex/mcp-proposal-status
 merge_target_branch: codex/mcp-proposal-status
 branch_strategy: Planning artifacts for this mission were generated on codex/mcp-proposal-status. During /spec-kitty.implement this WP may branch from a dependency-specific base, but completed changes must merge back into codex/mcp-proposal-status unless the human explicitly redirects the landing branch.
+base_branch: kitty/mission-mcp-proposal-status-01M7AKB6
+base_commit: 47ef48ca9c7363581714753178547add5a753483
+created_at: '2026-11-13T14:08:32.900413+00:00'
 subtasks:
 - T003
 - T004
