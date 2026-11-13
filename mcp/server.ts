@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { triggerTools } from "./pipeline-triggers";
 /**
  * Workbox MCP server — stdio JSON-RPC 2.0, zero runtime deps.
  *
@@ -207,6 +208,7 @@ const draftEditInput = {
 };
 
 const TOOLS = [
+  ...triggerTools,
   ...collaborationTools.map(({ name, description, inputSchema }) => ({ name, description, inputSchema })),
   {
     name: "workbox_projects",
@@ -404,6 +406,9 @@ const TOOLS = [
 ] as const;
 
 const SETTINGS_ACTIONS = new Map([
+  ["workbox_proposal_triggers", "triggers_read"],
+  ["workbox_review_proposal_triggers", "triggers_preview"],
+  ["workbox_submit_proposal_triggers", "triggers_submit"],
   ["workbox_repo_settings", "read"],
   ["workbox_update_repo_details", "update"],
   ["workbox_preview_pipeline", "preview"],
