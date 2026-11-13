@@ -1,0 +1,88 @@
+{
+  "version": 1,
+  "mission_slug": "mdxeditor-upgrade-01M791SD",
+  "mission_id": "01M791SDMMGRAMD5BVYVAH1ABB",
+  "mission_branch": "kitty/mission-mdxeditor-upgrade-01M791SD",
+  "target_branch": "codex/mdxeditor-upgrade",
+  "lanes": [
+    {
+      "lane_id": "lane-a",
+      "wp_ids": [
+        "WP01"
+      ],
+      "write_scope": [
+        "package-lock.json",
+        "package.json",
+        "src/components/markdown-visual-editor.tsx",
+        "tests/markdown-visual.test.ts"
+      ],
+      "predicted_surfaces": [
+        "api"
+      ],
+      "depends_on_lanes": [],
+      "parallel_group": 0
+    },
+    {
+      "lane_id": "lane-b",
+      "wp_ids": [
+        "WP02"
+      ],
+      "write_scope": [
+        "src/components/markdown-editor.tsx",
+        "src/lib/workbox/markdown-draft.ts",
+        "tests/markdown-draft.test.ts",
+        "tests/markdown.test.ts"
+      ],
+      "predicted_surfaces": [
+        "api"
+      ],
+      "depends_on_lanes": [
+        "lane-a"
+      ],
+      "parallel_group": 1
+    },
+    {
+      "lane_id": "lane-c",
+      "wp_ids": [
+        "WP03"
+      ],
+      "write_scope": [
+        "src/app/api/projects/*/proposals/route.ts",
+        "src/app/p/*/discussions/discussion-form.tsx",
+        "src/app/p/*/issues/issue-forms.tsx",
+        "src/app/p/*/proposals/page.tsx",
+        "src/components/create-form.tsx",
+        "tests/markdown-submission.test.ts"
+      ],
+      "predicted_surfaces": [
+        "api",
+        "legacy-cleanup"
+      ],
+      "depends_on_lanes": [
+        "lane-b"
+      ],
+      "parallel_group": 2
+    },
+    {
+      "lane_id": "lane-d",
+      "wp_ids": [
+        "WP04"
+      ],
+      "write_scope": [
+        "tests/markdown-editor-parity.test.ts"
+      ],
+      "predicted_surfaces": [
+        "api",
+        "artifact-rendering"
+      ],
+      "depends_on_lanes": [
+        "lane-c"
+      ],
+      "parallel_group": 3
+    }
+  ],
+  "computed_at": "2026-11-13T02:43:06.606278+00:00",
+  "computed_from": "dependency_graph+ownership",
+  "planning_artifact_wps": [],
+  "planning_commit_sha": "c35cb23e77b259681316fd943f626e655974c149"
+}
