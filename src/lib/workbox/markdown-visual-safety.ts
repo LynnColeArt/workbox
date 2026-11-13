@@ -14,7 +14,7 @@ export function supportsVisualMarkdown(source: string) {
   const tokens = parser.parse(source, {});
   const supported = (token: (typeof tokens)[number]): boolean => {
     if (token.type === "html_inline" || token.type === "html_block" || token.type === "image") return false;
-    if (token.type === "link_open" && !isVisualLinkAllowed(token.attrGet("href") ?? "")) return false;
+    if (token.type === "link_open" && !isVisualLinkAllowed(String(token.attrGet("href") ?? ""))) return false;
     return token.children?.every(supported) ?? true;
   };
   return tokens.every(supported);
