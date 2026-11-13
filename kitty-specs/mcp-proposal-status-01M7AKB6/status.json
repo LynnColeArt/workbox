@@ -28,7 +28,8 @@
       "last_transition_at": "2026-11-13T14:08:26.984809+00:00",
       "model": "__resolved_model_absent__",
       "notes": [
-        "Shared browser labels and policy model; 22 focused tests passed."
+        "Shared browser labels and policy model; 22 focused tests passed.",
+        "Reviewed exact merge event binding and shared stage projection."
       ],
       "provider": "__resolved_provider_absent__",
       "review_result": {
