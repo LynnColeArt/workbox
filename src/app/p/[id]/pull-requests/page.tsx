@@ -1,3 +1,4 @@
+import { ListPagination } from "@/components/list-pagination";
 import { StatusTag } from "@/components/status-tag";
 import Link from "next/link";
 import { connection } from "next/server";
@@ -44,13 +45,9 @@ export default async function PullRequestsPage({ params, searchParams }: {
                   </li>
                 ))}
               </ul>
-              {(github.page > 1 || github.nextPage) && (
-                <nav className="flex gap-4 p-4 text-sm" aria-label="GitHub pull request pages">
-                  {github.page > 1 && <Link href={githubHref(github.page - 1)}>Previous</Link>}
-                  <span>Page {github.page} of {github.totalPages}</span>
-                  {github.nextPage && <Link href={githubHref(github.nextPage)}>Next</Link>}
-                </nav>
-              )}
+              <div className="px-4 pb-4">
+                <ListPagination page={github.page} pages={github.totalPages} label="GitHub pull request pages" href={githubHref} />
+              </div>
             </>
           )}
         </section>

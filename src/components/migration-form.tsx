@@ -74,7 +74,8 @@ export function MigrationForm({ endpoint, sources, destinations, paths, sessions
     void run({ action: "plan", source, destination, sourceInputs: Object.fromEntries((sources.find(adapter => adapter.kind === source)?.fields ?? [])
         .map(field => [field.name, values(field.name)]).filter(([, value]) => value)),
       destinationInputs: Object.fromEntries((choices.find(adapter => adapter.kind === destination)?.fields ?? [])
-        .map(field => [field.name, values("destination-" + field.name)]).filter(([, value]) => value)), refs: list("refs"), snapshots: list("snapshots"), kinds: list("kinds"), decisions: list("decisions") });
+        .map(field => [field.name, values("destination-" + field.name)]).filter(([, value]) => value)), sourceGit: values("sourceGit") || undefined, gitRemote: values("gitRemote") || undefined,
+      gitOrigin: values("gitOrigin") || undefined, mappings: list("mappings"), refs: list("refs"), snapshots: list("snapshots"), kinds: list("kinds"), decisions: list("decisions") });
   }
 
   return (
@@ -92,9 +93,18 @@ export function MigrationForm({ endpoint, sources, destinations, paths, sessions
         {choices.find(adapter => adapter.kind === destination)?.fields.map(field => (
           <label key={field.name}>Destination {field.label.toLowerCase()} <MigrationInput field={field} name={"destination-" + field.name} /></label>
         ))}
-        {source === "local" && <label>Git refs (comma-separated) <input name="refs" className="wb-btn ml-2" required /></label>}
+        {(source === "local" || !["archive", "saved"].includes(source)) && <label>Git refs (comma-separated) <input name="refs" className="wb-btn ml-2" required={source === "local"} /></label>}
         {source === "imported" && <label>Snapshot IDs (comma-separated) <input name="snapshots" className="wb-btn ml-2" required /></label>}
         <label>Record kinds (comma-separated) <input name="kinds" className="wb-btn ml-2" /></label>
+        <details className="space-y-2">
+          <summary>Git transport and mappings</summary>
+          {source !== "local" && !["archive", "saved"].includes(source) && <label className="block">Source Git repository <input name="sourceGit" className="wb-btn ml-2" /></label>}
+          {!["local", "archive"].includes(destination) && <>
+            <label className="block">Destination Git remote <input name="gitRemote" className="wb-btn ml-2" /></label>
+            <label className="block">Destination HTTPS origin <input name="gitOrigin" className="wb-btn ml-2" /></label>
+          </>}
+          <label className="block">Mappings (key=value, comma-separated) <input name="mappings" className="wb-btn ml-2" /></label>
+        </details>
         <label>Decisions (finding=action, comma-separated) <input name="decisions" className="wb-btn ml-2" /></label>
         <button className="wb-btn justify-self-start" disabled={busy || !source || !destination}>Preview migration</button>
       </form>}

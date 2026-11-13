@@ -82,6 +82,8 @@ const collaborationTools = [...issueTools, ...discussionTools, {
       destination: { type: "string" }, destinationInputs: { type: "object", additionalProperties: { type: "string" } },
       repository: { type: "string" }, endpoint: { type: "string" }, version: { type: "string" },
       credentialMode: { type: "string" }, organization: { type: "string" }, projectSelector: { type: "string" }, kinds: { type: "array", items: { type: "string" } },
+      sourceGit: { type: "string" }, gitRemote: { type: "string" }, gitOrigin: { type: "string" },
+      mappings: { type: "array", items: { type: "string" } },
       refs: { type: "array", items: { type: "string" } }, snapshots: { type: "array", items: { type: "string" } },
       decisions: { type: "array", items: { type: "string" } },
     },

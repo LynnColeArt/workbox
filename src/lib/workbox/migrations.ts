@@ -17,6 +17,8 @@ const inputSchema = z.discriminatedUnion("action", [
     destination: fields.default("local"), destinationInputs: z.record(z.string().regex(/^[a-zA-Z][a-zA-Z0-9_-]{0,63}$/), fields).default({}),
     endpoint: fields.optional(), version: fields.optional(), credentialMode: fields.optional(),
     organization: fields.optional(), projectSelector: fields.optional(),
+    sourceGit: fields.optional(), gitRemote: fields.optional(), gitOrigin: fields.optional(),
+    mappings: z.array(z.string().regex(/^[^=\r\n]+=[^\r\n]*$/).max(2048)).max(100).default([]),
     refs: z.array(z.string().regex(/^refs\/[^\s]+$/)).max(100).default([]),
     snapshots: z.array(z.string().regex(/^sha256:[a-f0-9]{64}$/)).max(100).default([]),
     kinds: z.array(z.string().regex(/^[a-z_]+$/)).max(50).default([]),
@@ -127,6 +129,10 @@ export async function runMigrationOperation(project: string, args: unknown) {
           }
         }
       }
+      for (const [flag, value] of [["source-git", input.sourceGit], ["git-remote", input.gitRemote], ["git-origin", input.gitOrigin]] as const) {
+        if (value !== undefined) argv.push(`--${flag}=${value}`);
+      }
+      for (const mapping of input.mappings) argv.push(`--map=${mapping}`);
       for (const ref of input.refs) argv.push("--ref", ref);
       for (const snapshot of input.snapshots) argv.push("--snapshot", snapshot);
       for (const kind of input.kinds) argv.push("--kind", kind);

@@ -40,7 +40,7 @@ const identifier = z.union([eventId, z.number().int().min(1).max(Number.MAX_SAFE
 
 const listInput = z.strictObject({
   action: z.literal("list"), q: z.string().max(1024).optional(), label: z.string().max(256).optional(),
-  status: z.enum(["all", "open", "closed"]).default("all"), ...paginationFields,
+  status: z.enum(["all", "open", "closed"]).default("open"), ...paginationFields,
 });
 const detailInput = z.strictObject({
   action: z.literal("detail"), issueId: identifier, revisionCursor: paginationFields.cursor, ...paginationFields,
