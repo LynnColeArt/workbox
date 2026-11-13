@@ -39,9 +39,10 @@ export default async function ProposalsPage({
         label="New proposal"
         endpoint={`/api/projects/${encodeURIComponent(id)}/proposals`}
         cta="Sign & open proposal"
+        signedRetry
         fields={[
           { key: "title", placeholder: "Proposal title", required: true },
-          { key: "body", placeholder: "What does this proposal change, and why?", textarea: true },
+          { key: "body", placeholder: "Proposal description", markdown: true },
           { key: "head", placeholder: "Head branch (descending from main)", required: true },
         ]}
       />
