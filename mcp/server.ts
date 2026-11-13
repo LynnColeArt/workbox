@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { proposalStatusForProject, proposalStatusTool } from "./proposal-status";
 import { automaticCheckTool, automaticChecksForProject } from "./proposal-checks";
 import { triggerTools } from "./pipeline-triggers";
 /**
@@ -211,6 +212,7 @@ const draftEditInput = {
 const TOOLS = [
   ...triggerTools,
   automaticCheckTool,
+  proposalStatusTool,
   ...collaborationTools.map(({ name, description, inputSchema }) => ({ name, description, inputSchema })),
   {
     name: "workbox_projects",
@@ -590,6 +592,11 @@ async function handle(msg: Json): Promise<void> {
           isError: true,
         });
       }
+      return;
+    }
+    if (name === proposalStatusTool.name) {
+      const result = await proposalStatusForProject(params.arguments ?? {});
+      rpcResult(id, { content: [{ type: "text", text: JSON.stringify(result) }], isError: !result.ok });
       return;
     }
     if (name === automaticCheckTool.name) {
