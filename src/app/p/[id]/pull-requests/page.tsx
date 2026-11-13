@@ -21,7 +21,7 @@ export default async function PullRequestsPage({ params, searchParams }: {
   const project = getProject(db, id);
   if (!project) return <main className="mx-auto max-w-6xl px-4 py-4">Project not indexed.</main>;
   const status = requestedStatus === "closed" ? "closed" : "open";
-  const github = await readGitHubPullRequests(project.repoPath, githubPage, status);
+  const github = await readGitHubPullRequests(id, project.repoPath, githubPage, status);
   const githubHref = (page: number) => `?status=${status}&page=${page}`;
 
   return (
@@ -40,7 +40,7 @@ export default async function PullRequestsPage({ params, searchParams }: {
               <ul className="divide-y divide-[var(--wb-border)]">
                 {github.requests.map(pr => (
                   <li key={JSON.stringify(pr.source)} className="space-y-1 px-4 py-3">
-                    <a href={pr.url} className="font-medium hover:underline">{pr.title}</a>
+                    <Link href={pr.href} className="font-medium hover:underline" prefetch={false}>{pr.title}</Link>
                     <p className="wb-muted text-sm">#{pr.number} · <StatusTag status={pr.state} />{pr.author && ` · ${pr.author}`}</p>
                   </li>
                 ))}

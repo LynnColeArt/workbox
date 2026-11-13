@@ -37,7 +37,7 @@ import { readMemories } from "../src/lib/workbox/memories";
 import { readCIRuns } from "../src/lib/workbox/ci-runs";
 import { workboxPageSize } from "../src/lib/workbox/list-settings";
 import { runMigrationOperation } from "../src/lib/workbox/migrations";
-import { readGitHubPullRequests } from "../src/lib/workbox/github-pull-requests";
+import { readGitHubPullRequests, readPullRequestDetail } from "../src/lib/workbox/github-pull-requests";
 import { issueTools } from "./issues";
 import { discussionTools } from "./discussions";
 
@@ -123,7 +123,23 @@ const collaborationTools = [...issueTools, ...discussionTools, {
     using db = openDb();
     const selected = getProject(db, project);
     if (!selected) return { ok: false, error: { code: "not_found", message: "Project unavailable." } };
-    return { ok: true, data: await readGitHubPullRequests(selected.repoPath, page, status) };
+    return { ok: true, data: await readGitHubPullRequests(selected.id, selected.repoPath, page, status) };
+  },
+}, {
+  name: "workbox_pull_request_detail",
+  description: "Read a locally imported pull request using the localId from the pull request list.",
+  inputSchema: {
+    type: "object", properties: { project: { type: "string" }, localId: { type: "string", pattern: "^[a-f0-9]{64}$" } },
+    required: ["project", "localId"], additionalProperties: false,
+  },
+  async call(args: Record<string, unknown>) {
+    using db = openDb();
+    const project = typeof args.project === "string" ? getProject(db, args.project) : null;
+    if (!project) return { ok: false, error: { code: "not_found", message: "Project unavailable." } };
+    if (typeof args.localId !== "string" || !/^[a-f0-9]{64}$/.test(args.localId)) {
+      return { ok: false, error: { code: "invalid_input", message: "Provide the local ID from the pull request list." } };
+    }
+    return { ok: true, data: await readPullRequestDetail(project.id, project.repoPath, args.localId) };
   },
 }];
 const collaborationHandlers = new Map(collaborationTools.map(tool => [tool.name, tool.call]));
