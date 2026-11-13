@@ -61,3 +61,47 @@ export function ProposalChecks({ checks }: { checks: ProposalChecksModel }) {
     </section>
   );
 }
+
+export function AutomaticProposalChecks({ result }: {
+  result: Awaited<ReturnType<typeof import("@/lib/workbox/proposal-checks").readAutomaticProposalChecks>>;
+}) {
+  return (
+    <section aria-label="Automatic proposal checks" className="wb-panel space-y-3 p-4">
+      <h2 className="font-semibold">Automatic proposal checks</h2>
+      {!result.ok ? <p className="wb-muted text-sm">Automatic check status is unavailable.</p> : (
+        <>
+          {result.data.value.availability === "no_authority" && <p className="wb-muted text-sm">Runner status is unavailable in this clone. Synced results are shown below.</p>}
+          {result.data.value.checks.length === 0 && <p className="wb-muted text-sm">{
+            result.data.value.decision === "historical" ? "This revision predates automatic checks." :
+              result.data.value.decision === "ineligible" || result.data.value.decision === "unchanged"
+                ? "No automatic checks were triggered for this revision." : "No automatic checks have been observed for this revision."
+          }</p>}
+          {result.data.value.checks.map(check => (
+            <article key={check.id} className="space-y-2 border-t border-[var(--wb-border)] pt-3 text-sm">
+              <h3 className="font-semibold">{check.pipeline} <span className="wb-chip">{check.status}</span></h3>
+              {check.reason && <p>{check.reason}</p>}
+              <dl className="wb-muted break-all">
+                <dt>Candidate commit</dt><dd><code>{check.commit}</code></dd>
+                <dt>Configuration commit</dt><dd><code>{check.source}</code></dd>
+                <dt>Configuration digest</dt><dd><code>{check.configuration}</code></dd>
+                <dt>Pipeline definition</dt><dd><code>{check.definition}</code></dd>
+                <dt>Queued</dt><dd><time dateTime={check.created}>{check.created}</time></dd>
+              </dl>
+              {check.attempts.length > 0 && <ol aria-label="Check attempts" className="space-y-2">
+                {check.attempts.map(attempt => (
+                  <li key={attempt.id} className="break-all">
+                    <p>{attempt.status} · <time dateTime={attempt.started}>{attempt.started}</time></p>
+                    {attempt.finished && <p>Finished <time dateTime={attempt.finished}>{attempt.finished}</time></p>}
+                    <p>Attempt <code>{attempt.id}</code></p>
+                    {attempt.request && <p>Signed request <code>{attempt.request}</code></p>}
+                    {attempt.result && <p>Signed result <code>{attempt.result}</code></p>}
+                  </li>
+                ))}
+              </ol>}
+            </article>
+          ))}
+        </>
+      )}
+    </section>
+  );
+}

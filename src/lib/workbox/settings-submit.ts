@@ -9,6 +9,7 @@ import { proposalDetailHref } from "./proposal-detail";
 import { getProject } from "./queries";
 import { isGitObjectId, resolveCodeRevision } from "./repo";
 import { prepareSettingsCandidate } from "./settings-candidate";
+import { readProposalTriggers, readTriggerSource, triggerPath, validateProposalTriggers } from "./proposal-trigger-settings";
 import { isPipelineName, previewPipeline, validatePipelineDefinition } from "./settings-preview";
 
 const unavailable = {
@@ -83,6 +84,36 @@ export async function previewSettingsPipeline(db: DatabaseSync, projectId: strin
   return { ok: true, data: { ...preview.data, digest: bindSigner(preview.data.digest, actor), actor, proposalSubmission } } as const;
 }
 
+export async function previewTriggerSettings(db: DatabaseSync, projectId: string, input: Record<string, unknown>) {
+  const repoPath = repositoryPath(db, projectId);
+  if (!repoPath) return failure("not_found", "Repository not found.");
+  const base = resolveCodeRevision(repoPath);
+  if (!base?.branch) return failure("unavailable", "The default branch is unavailable.");
+  const active = await readProposalTriggers(repoPath, base.commit);
+  if (!active.ok) return active;
+  const edit = input.name === undefined && input.definition === undefined ? undefined
+    : typeof input.name === "string" && isPipelineName(input.name) && typeof input.definition === "string" && validatePipelineDefinition(input.definition).ok
+      ? { name: input.name, definition: input.definition } : null;
+  if (edit === null) return failure("invalid_input", "The pipeline definition needs changes.");
+  const validated = validateProposalTriggers(repoPath, base.commit, input.configuration, edit);
+  if (!validated.ok) return validated;
+  const proposalSubmission = await settingsProposalAccess(repoPath);
+  const triggerBefore = readTriggerSource(repoPath, base.commit);
+  const changes = [{ path: triggerPath, before: triggerBefore, after: validated.data.canonical }];
+  if (edit) {
+    const pipeline = previewPipeline(db, projectId, edit);
+    if (pipeline.ok) {
+      changes.unshift({ path: pipeline.data.path, before: pipeline.data.before, after: edit.definition });
+    } else if (pipeline.error.code !== "unchanged") return pipeline;
+  }
+  const files = changes.filter(file => file.before !== file.after);
+  if (!files.length) return failure("unchanged", "The trigger draft matches the committed configuration.");
+  const actor = proposalSubmission.actor;
+  const reviewed = { branch: base.branch, commit: base.commit };
+  const digest = hash([projectId, reviewed, actor, input.configuration, edit, files]);
+  return { ok: true, data: { base: reviewed, actor, digest, files, proposalSubmission } } as const;
+}
+
 function publicationFailure(code: string | undefined) {
   if (code === "denied" || code === "actor_mismatch") return failure("denied", "Hubnot refused the selected signer or proposal.");
   if (code === "stale_base") return failure("stale_preview", "Refresh the preview before submitting.");
@@ -95,8 +126,9 @@ function publicationFailure(code: string | undefined) {
 
 export async function submitSettingsProposal(db: DatabaseSync, projectId: string, input: Record<string, unknown>) {
   const { operationId, digest, name, definition } = input;
+  const triggerDraft = input.configuration !== undefined;
   if (input.confirmed !== true || typeof operationId !== "string" || !/^[A-Za-z0-9_-]{16,128}$/.test(operationId) ||
-      typeof digest !== "string" || !/^[a-f0-9]{64}$/.test(digest) || !isPipelineName(name) || typeof definition !== "string") {
+      typeof digest !== "string" || !/^[a-f0-9]{64}$/.test(digest) || (!triggerDraft && (!isPipelineName(name) || typeof definition !== "string"))) {
     return failure("invalid_input", "Confirm the exact preview and include an operation ID.");
   }
   const repoPath = repositoryPath(db, projectId);
@@ -115,13 +147,12 @@ export async function submitSettingsProposal(db: DatabaseSync, projectId: string
   if (input.actor !== actor) return failure("denied", "The current Hubnot signer differs from the confirmed preview.");
   const base = baseSchema.safeParse(input.base);
   if (!base.success) return failure("invalid_input", "Include the base branch and commit from the confirmed preview.");
-  const validation = validatePipelineDefinition(definition);
-  if (!validation.ok) return failure("invalid_input", "The pipeline definition needs changes.");
+  if (!triggerDraft && (typeof definition !== "string" || !validatePipelineDefinition(definition).ok)) return failure("invalid_input", "The pipeline definition needs changes.");
 
   const { branch, commit } = base.data;
   const baseRef = `refs/heads/${branch}`;
-  const title = `Update pipeline ${name}`;
-  const body = `Workbox Settings preview ${hash([projectId, actor, branch, commit, digest, name, definition])}`;
+  const title = triggerDraft ? "Update automatic proposal checks" : `Update pipeline ${name}`;
+  const body = `Workbox Settings preview ${hash([projectId, actor, branch, commit, digest, name, definition, ...(triggerDraft ? [input.configuration] : [])])}`;
   const lookupArgs = ["proposal", "operation", "--actor", actor, "--operation", operationId, "--json"];
   let head: string | null = null;
   let priorId: string | undefined;
@@ -145,6 +176,17 @@ export async function submitSettingsProposal(db: DatabaseSync, projectId: string
 
     const revision = resolveCodeRevision(repoPath);
     if (revision?.branch !== branch || revision.commit !== commit) continue;
+    if (triggerDraft) {
+      const preview = await previewTriggerSettings(db, projectId, input);
+      if (!preview.ok) return preview;
+      if (preview.data.base.branch !== branch || preview.data.base.commit !== commit || preview.data.digest !== digest) continue;
+      const [file, triggers] = preview.data.files;
+      head = prepareSettingsCandidate(repoPath, {
+        base: commit, path: file.path, definition: file.after, operationId, triggerDefinition: triggers?.after,
+      });
+      if (!head) return failure("unavailable", "Workbox could not prepare the exact candidate.");
+      break;
+    }
     const preview = previewPipeline(db, projectId, input);
     if (!preview.ok) {
       if (preview.error.code === "unchanged") continue;
@@ -152,7 +194,7 @@ export async function submitSettingsProposal(db: DatabaseSync, projectId: string
     }
     if (preview.data.base.branch !== branch || preview.data.base.commit !== commit ||
         bindSigner(preview.data.digest, actor) !== digest) continue;
-    head = prepareSettingsCandidate(repoPath, { base: commit, path: preview.data.path, definition, operationId });
+    head = prepareSettingsCandidate(repoPath, { base: commit, path: preview.data.path, definition: definition as string, operationId });
     if (!head) return failure("unavailable", "Workbox could not prepare the exact candidate.");
     const current = resolveCodeRevision(repoPath);
     if (current?.branch === branch && current.commit === commit) break;

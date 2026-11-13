@@ -1,0 +1,151 @@
+{
+  "version": 1,
+  "mission_slug": "automatic-proposal-checks-01M78W2C",
+  "mission_id": "01M78W2CW8Y0668PMFTEMMH5Q1",
+  "mission_branch": "kitty/mission-automatic-proposal-checks-01M78W2C",
+  "target_branch": "codex/automatic-proposal-checks",
+  "lanes": [
+    {
+      "lane_id": "lane-a",
+      "wp_ids": [
+        "WP01"
+      ],
+      "write_scope": [
+        "docs/automatic-proposal-checks-contract.md",
+        "tests/automatic-checks-contract.test.ts"
+      ],
+      "predicted_surfaces": [
+        "api",
+        "legacy-cleanup"
+      ],
+      "depends_on_lanes": [],
+      "parallel_group": 0
+    },
+    {
+      "lane_id": "lane-b",
+      "wp_ids": [
+        "WP02"
+      ],
+      "write_scope": [
+        "tests/automatic-checks-scheduling.test.ts"
+      ],
+      "predicted_surfaces": [
+        "api",
+        "tracker-integration"
+      ],
+      "depends_on_lanes": [
+        "lane-a"
+      ],
+      "parallel_group": 1
+    },
+    {
+      "lane_id": "lane-d",
+      "wp_ids": [
+        "WP04"
+      ],
+      "write_scope": [
+        "src/lib/workbox/pipeline-draft.ts",
+        "src/lib/workbox/pipeline-review.ts",
+        "src/lib/workbox/proposal-trigger-settings.ts",
+        "src/lib/workbox/settings-candidate.ts",
+        "src/lib/workbox/settings-operations.ts",
+        "src/lib/workbox/settings-read.ts",
+        "src/lib/workbox/settings-submit.ts",
+        "tests/proposal-trigger-settings.test.ts"
+      ],
+      "predicted_surfaces": [
+        "api"
+      ],
+      "depends_on_lanes": [
+        "lane-a"
+      ],
+      "parallel_group": 1
+    },
+    {
+      "lane_id": "lane-c",
+      "wp_ids": [
+        "WP03"
+      ],
+      "write_scope": [
+        "tests/automatic-checks-evidence.test.ts"
+      ],
+      "predicted_surfaces": [
+        "api",
+        "workspace"
+      ],
+      "depends_on_lanes": [
+        "lane-b"
+      ],
+      "parallel_group": 2
+    },
+    {
+      "lane_id": "lane-e",
+      "wp_ids": [
+        "WP05",
+        "WP06"
+      ],
+      "write_scope": [
+        "mcp/pipeline-triggers.ts",
+        "mcp/proposal-checks.ts",
+        "mcp/server.ts",
+        "src/app/api/projects/*/settings/route.ts",
+        "src/app/p/*/proposals/*/**",
+        "src/app/p/*/settings/**",
+        "src/components/*pipeline*",
+        "src/components/proposal-checks.tsx",
+        "src/components/repo-settings.tsx",
+        "src/lib/workbox/proposal-checks.ts",
+        "src/lib/workbox/proposal-detail.ts",
+        "tests/proposal-checks-parity.test.ts",
+        "tests/proposal-trigger-settings-parity.test.ts"
+      ],
+      "predicted_surfaces": [
+        "api",
+        "artifact-rendering"
+      ],
+      "depends_on_lanes": [
+        "lane-c",
+        "lane-d"
+      ],
+      "parallel_group": 3
+    },
+    {
+      "lane_id": "lane-f",
+      "wp_ids": [
+        "WP07"
+      ],
+      "write_scope": [
+        "docs/automatic-proposal-checks.md",
+        "tests/automatic-proposal-checks-journey.test.ts"
+      ],
+      "predicted_surfaces": [
+        "api",
+        "tracker-integration"
+      ],
+      "depends_on_lanes": [
+        "lane-c",
+        "lane-e"
+      ],
+      "parallel_group": 4
+    }
+  ],
+  "computed_at": "2026-11-13T04:42:17.711238+00:00",
+  "computed_from": "dependency_graph+ownership",
+  "planning_artifact_wps": [],
+  "planning_commit_sha": "0e2ed23fa659f9d31301f5d045c82eec119fa85d",
+  "collapse_report": {
+    "events": [
+      {
+        "wp_a": "WP05",
+        "wp_b": "WP06",
+        "rule": "write_scope_overlap",
+        "evidence": "overlapping globs: 'mcp/server.ts' vs 'mcp/server.ts'; WP06 depends on WP05"
+      }
+    ],
+    "total_merges": 1,
+    "independent_wps_collapsed": 0,
+    "by_rule": {
+      "write_scope_overlap": 1
+    }
+  }
+}
