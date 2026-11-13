@@ -1,4 +1,19 @@
 {
+  "accept_commit": "6ec511bc862065d5e9d4c366893a8f1652118feb",
+  "acceptance_history": [
+    {
+      "accept_commit": "6ec511bc862065d5e9d4c366893a8f1652118feb",
+      "acceptance_mode": "local",
+      "accepted_at": "2026-11-13T13:11:20.774621+00:00",
+      "accepted_by": "lynn",
+      "accepted_from_commit": "68183993d8fabdb03b6a7280fb4742b3b836e343"
+    }
+  ],
+  "acceptance_mode": "local",
+  "accepted_at": "2026-11-13T13:11:20.774621+00:00",
+  "accepted_by": "lynn",
+  "accepted_from_commit": "68183993d8fabdb03b6a7280fb4742b3b836e343",
+  "baseline_merge_commit": "f0db4ef1597743d2721b7497152a1955267081eb",
   "created_at": "2026-11-12T21:54:22.845564+00:00",
   "flattened": false,
   "friendly_name": "automatic proposal checks",
@@ -9,6 +24,9 @@
   "purpose_context": "This mission advances automatic proposal checks on codex/automatic-proposal-checks so stakeholders can track the work from mission creation onward.",
   "purpose_tldr": "automatic proposal checks",
   "slug": "automatic-proposal-checks-01M78W2C",
+  "status_phase": "1",
   "target_branch": "codex/automatic-proposal-checks",
-  "topology": "single_branch"
+  "topology": "single_branch",
+  "vcs": "git",
+  "vcs_locked_at": "2026-11-13T04:46:19.900179+00:00"
 }

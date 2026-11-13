@@ -1,0 +1,13 @@
+{
+  "wp_id": "WP02",
+  "captured_at": "2026-11-13T04:48:40Z",
+  "base_branch": "codex/automatic-proposal-checks",
+  "base_commit": "f626f24e451115e27ee518b03f6baafb2d84e9c8",
+  "test_runner": "pytest",
+  "total": 0,
+  "passed": 0,
+  "failed": 0,
+  "skipped": 0,
+  "failures": [],
+  "source_identity": "GateCoverageScopeSource/junit_xml"
+}

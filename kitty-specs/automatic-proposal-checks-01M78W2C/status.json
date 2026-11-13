@@ -1,7 +1,7 @@
 {
-  "event_count": 7,
-  "last_event_id": "01M79KC37P6T6PRKARFP269GVN",
-  "materialized_at": "2026-11-13T04:41:37.270640+00:00",
+  "event_count": 49,
+  "last_event_id": "01M7AGHX2HD42T3G6Z3E0RESRX",
+  "materialized_at": "2026-11-13T13:11:36.273614+00:00",
   "mission_number": "",
   "mission_slug": "automatic-proposal-checks-01M78W2C",
   "mission_type": "software-dev",
@@ -10,61 +10,222 @@
     "blocked": 0,
     "canceled": 0,
     "claimed": 0,
-    "done": 0,
+    "done": 7,
     "for_review": 0,
     "in_progress": 0,
     "in_review": 0,
-    "planned": 7
+    "planned": 0
   },
   "work_packages": {
     "WP01": {
-      "actor": "finalize-tasks",
+      "actor": "merge",
+      "agent": "codex-review",
+      "agent_profile": "__resolved_profile_absent__",
+      "agent_profile_version": "__resolved_profile_version_absent__",
       "force_count": 0,
-      "lane": "planned",
-      "last_event_id": "01M79KBTD6YVG3GJ7TDWG6H5ST",
-      "last_transition_at": "2026-11-13T04:41:28.230167+00:00"
+      "lane": "done",
+      "last_event_id": "01M7AGHM3W4V9TTMXWA4Q7MQDA",
+      "last_transition_at": "2026-11-13T13:11:27.100499+00:00",
+      "model": "__resolved_model_absent__",
+      "notes": [
+        "Native contract and canonical validation verified against Hubnot 53daea27.",
+        "Reviewed and exercised native capability, exact bytes and rejection fixtures; scheduling and evidence enforcement belong to WP02 and WP03."
+      ],
+      "provider": "__resolved_provider_absent__",
+      "review_result": {
+        "feedback_path": "/home/lynn/projects/workbox/kitty-specs/automatic-proposal-checks-01M78W2C/tasks/WP01-native-contract/review-cycle-1.md",
+        "reference": "review-cycle://automatic-proposal-checks-01M78W2C/WP01-native-contract/review-cycle-1.md",
+        "reviewer": "codex-review",
+        "verdict": "approved"
+      },
+      "role": "reviewer",
+      "shell_pid": 1348491,
+      "shell_pid_created_at": "1794545297.14",
+      "subtasks": {
+        "T001": "done",
+        "T002": "done",
+        "T003": "done"
+      }
     },
     "WP02": {
-      "actor": "finalize-tasks",
+      "actor": "merge",
+      "agent": "codex-review",
+      "agent_profile": "__resolved_profile_absent__",
+      "agent_profile_version": "__resolved_profile_version_absent__",
       "force_count": 0,
-      "lane": "planned",
-      "last_event_id": "01M79KBVZMPMSQJH6CP7R939TE",
-      "last_transition_at": "2026-11-13T04:41:29.844167+00:00"
+      "lane": "done",
+      "last_event_id": "01M7AGHNM3JRQPKPK36FHME8JT",
+      "last_transition_at": "2026-11-13T13:11:28.643622+00:00",
+      "model": "__resolved_model_absent__",
+      "notes": [
+        "Verified durable baseline and exact revision observation against native Hubnot.",
+        "Reviewed Hubnot 3d0a78d2. Verified native historical baseline, exact revision identity, atomic local observation and process replay. Worker fencing and signed recovery are exercised in WP03."
+      ],
+      "provider": "__resolved_provider_absent__",
+      "review_result": {
+        "feedback_path": "/home/lynn/projects/workbox/kitty-specs/automatic-proposal-checks-01M78W2C/tasks/WP02-scheduler/review-cycle-1.md",
+        "reference": "review-cycle://automatic-proposal-checks-01M78W2C/WP02-scheduler/review-cycle-1.md",
+        "reviewer": "codex-review",
+        "verdict": "approved"
+      },
+      "role": "reviewer",
+      "shell_pid": 1430508,
+      "shell_pid_created_at": "1794545547.57",
+      "subtasks": {
+        "T004": "done",
+        "T005": "done",
+        "T006": "done"
+      }
     },
     "WP03": {
-      "actor": "finalize-tasks",
+      "actor": "merge",
+      "agent": "codex-review",
+      "agent_profile": "__resolved_profile_absent__",
+      "agent_profile_version": "__resolved_profile_version_absent__",
       "force_count": 0,
-      "lane": "planned",
-      "last_event_id": "01M79KBXEK7SP7QT34B1V311T7",
-      "last_transition_at": "2026-11-13T04:41:31.347068+00:00"
+      "lane": "done",
+      "last_event_id": "01M7AGHRMHVXT50FEWER9B223F",
+      "last_transition_at": "2026-11-13T13:11:31.729472+00:00",
+      "model": "__resolved_model_absent__",
+      "notes": [
+        "Focused native and Workbox fixtures passed.",
+        "Reviewed exact candidate and definition binding, native evidence and read-only review; focused fixtures passed."
+      ],
+      "provider": "__resolved_provider_absent__",
+      "review_result": {
+        "feedback_path": "/home/lynn/projects/workbox/kitty-specs/automatic-proposal-checks-01M78W2C/tasks/WP03-execution/review-cycle-1.md",
+        "reference": "review-cycle://automatic-proposal-checks-01M78W2C/WP03-execution/review-cycle-1.md",
+        "reviewer": "codex-review",
+        "verdict": "approved"
+      },
+      "role": "reviewer",
+      "shell_pid": 1507350,
+      "shell_pid_created_at": "1794545768.66",
+      "subtasks": {
+        "T007": "done",
+        "T008": "done",
+        "T009": "done"
+      }
     },
     "WP04": {
-      "actor": "finalize-tasks",
+      "actor": "merge",
+      "agent": "codex-review",
+      "agent_profile": "__resolved_profile_absent__",
+      "agent_profile_version": "__resolved_profile_version_absent__",
       "force_count": 0,
-      "lane": "planned",
-      "last_event_id": "01M79KBYVZCM8MA3QR7GD1PVT2",
-      "last_transition_at": "2026-11-13T04:41:32.799987+00:00"
+      "lane": "done",
+      "last_event_id": "01M7AGHQ33VWRNSPAKFFR97C9T",
+      "last_transition_at": "2026-11-13T13:11:30.147985+00:00",
+      "model": "__resolved_model_absent__",
+      "notes": [
+        "Focused native and Workbox fixtures passed.",
+        "Reviewed exact candidate and definition binding, native evidence and read-only review; focused fixtures passed."
+      ],
+      "provider": "__resolved_provider_absent__",
+      "review_result": {
+        "feedback_path": "/home/lynn/projects/workbox/kitty-specs/automatic-proposal-checks-01M78W2C/tasks/WP04-settings-service/review-cycle-1.md",
+        "reference": "review-cycle://automatic-proposal-checks-01M78W2C/WP04-settings-service/review-cycle-1.md",
+        "reviewer": "codex-review",
+        "verdict": "approved"
+      },
+      "role": "reviewer",
+      "shell_pid": 1507350,
+      "shell_pid_created_at": "1794545768.66",
+      "subtasks": {
+        "T010": "done",
+        "T011": "done",
+        "T012": "done"
+      }
     },
     "WP05": {
-      "actor": "finalize-tasks",
+      "actor": "merge",
+      "agent": "codex-review",
+      "agent_profile": "__resolved_profile_absent__",
+      "agent_profile_version": "__resolved_profile_version_absent__",
       "force_count": 0,
-      "lane": "planned",
-      "last_event_id": "01M79KC0C5BBDD8KGNBNRDNDYZ",
-      "last_transition_at": "2026-11-13T04:41:34.341365+00:00"
+      "lane": "done",
+      "last_event_id": "01M7AGHT4ZARKGETBC5FSY3VEW",
+      "last_transition_at": "2026-11-13T13:11:33.279630+00:00",
+      "model": "__resolved_model_absent__",
+      "notes": [
+        "Production Settings HTTP and MCP exact review and keyed signing parity passed.",
+        "Verified shared trigger validation, exact combined bytes, denied external origin and signed operation replay across transports."
+      ],
+      "provider": "__resolved_provider_absent__",
+      "review_result": {
+        "feedback_path": "/home/lynn/projects/workbox/kitty-specs/automatic-proposal-checks-01M78W2C/tasks/WP05-settings-parity/review-cycle-1.md",
+        "reference": "review-cycle://automatic-proposal-checks-01M78W2C/WP05-settings-parity/review-cycle-1.md",
+        "reviewer": "codex-review",
+        "verdict": "approved"
+      },
+      "role": "reviewer",
+      "shell_pid": 1570264,
+      "shell_pid_created_at": "1794545934.41",
+      "subtasks": {
+        "T013": "done",
+        "T014": "done",
+        "T015": "done"
+      }
     },
     "WP06": {
-      "actor": "finalize-tasks",
+      "actor": "merge",
+      "agent": "codex-review",
+      "agent_profile": "__resolved_profile_absent__",
+      "agent_profile_version": "__resolved_profile_version_absent__",
       "force_count": 0,
-      "lane": "planned",
-      "last_event_id": "01M79KC1TRNBQ654N0WKZZJ3Z1",
-      "last_transition_at": "2026-11-13T04:41:35.832281+00:00"
+      "lane": "done",
+      "last_event_id": "01M7AGHVKDFYCJEN62ZBQFHHXV",
+      "last_transition_at": "2026-11-13T13:11:34.765503+00:00",
+      "model": "__resolved_model_absent__",
+      "notes": [
+        "Production proposal Checks HTML and MCP share exact revision, queued and signed completed attempts.",
+        "Compared real proposal detail with MCP data and signed result; full exact IDs retained and native policy remains authoritative."
+      ],
+      "provider": "__resolved_provider_absent__",
+      "review_result": {
+        "feedback_path": "/home/lynn/projects/workbox/kitty-specs/automatic-proposal-checks-01M78W2C/tasks/WP06-proposal-parity/review-cycle-1.md",
+        "reference": "review-cycle://automatic-proposal-checks-01M78W2C/WP06-proposal-parity/review-cycle-1.md",
+        "reviewer": "codex-review",
+        "verdict": "approved"
+      },
+      "role": "reviewer",
+      "shell_pid": 1579578,
+      "shell_pid_created_at": "1794546085.81",
+      "subtasks": {
+        "T016": "done",
+        "T017": "done",
+        "T018": "done"
+      }
     },
     "WP07": {
-      "actor": "finalize-tasks",
+      "actor": "merge",
+      "agent": "codex-review",
+      "agent_profile": "__resolved_profile_absent__",
+      "agent_profile_version": "__resolved_profile_version_absent__",
       "force_count": 0,
-      "lane": "planned",
-      "last_event_id": "01M79KC37P6T6PRKARFP269GVN",
-      "last_transition_at": "2026-11-13T04:41:37.270640+00:00"
+      "lane": "done",
+      "last_event_id": "01M7AGHX2HD42T3G6Z3E0RESRX",
+      "last_transition_at": "2026-11-13T13:11:36.273614+00:00",
+      "model": "__resolved_model_absent__",
+      "notes": [
+        "Production Chrome and MCP journey, Linux Go test/build, real synchronized clone, native merge activation, and nine focused tests passed.",
+        "Verified Hubnot 46332f2d with browser and MCP exact trigger review, configured governance activation, exact-revision signed checks, clone sync and restart. Full OS qualification deferred."
+      ],
+      "provider": "__resolved_provider_absent__",
+      "review_result": {
+        "feedback_path": "/home/lynn/projects/workbox/kitty-specs/automatic-proposal-checks-01M78W2C/tasks/WP07-acceptance/review-cycle-1.md",
+        "reference": "review-cycle://automatic-proposal-checks-01M78W2C/WP07-acceptance/review-cycle-1.md",
+        "reviewer": "codex-review",
+        "verdict": "approved"
+      },
+      "role": "reviewer",
+      "shell_pid": 1692064,
+      "shell_pid_created_at": "1794546411.08",
+      "subtasks": {
+        "T019": "done",
+        "T020": "done",
+        "T021": "done"
+      }
     }
   }
 }
