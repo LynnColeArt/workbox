@@ -1,7 +1,7 @@
 {
-  "event_count": 6,
-  "last_event_id": "01M79D1X8VP3414SEQX0EF82PY",
-  "materialized_at": "2026-11-13T02:51:12.027427+00:00",
+  "event_count": 7,
+  "last_event_id": "01M79D5YZ65ZH24XYSMT90W8AP",
+  "materialized_at": "2026-11-13T02:53:24.838529+00:00",
   "mission_number": "",
   "mission_slug": "mdxeditor-upgrade-01M791SD",
   "mission_type": "software-dev",
@@ -11,8 +11,8 @@
     "canceled": 0,
     "claimed": 0,
     "done": 0,
-    "for_review": 0,
-    "in_progress": 1,
+    "for_review": 1,
+    "in_progress": 0,
     "in_review": 0,
     "planned": 3
   },
@@ -23,14 +23,18 @@
       "agent_profile": "__resolved_profile_absent__",
       "agent_profile_version": "__resolved_profile_version_absent__",
       "force_count": 0,
-      "lane": "in_progress",
-      "last_event_id": "01M79D1X8VP3414SEQX0EF82PY",
-      "last_transition_at": "2026-11-13T02:51:12.027427+00:00",
+      "lane": "for_review",
+      "last_event_id": "01M79D5YZ65ZH24XYSMT90W8AP",
+      "last_transition_at": "2026-11-13T02:53:24.838529+00:00",
       "model": "__resolved_model_absent__",
       "provider": "__resolved_provider_absent__",
       "role": "implementer",
       "shell_pid": 965982,
-      "shell_pid_created_at": "1794538245.79"
+      "shell_pid_created_at": "1794538245.79",
+      "subtasks": {
+        "T001": "done",
+        "T002": "done"
+      }
     },
     "WP02": {
       "actor": "finalize-tasks",
