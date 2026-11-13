@@ -1,5 +1,14 @@
 "use client";
 
+import dynamic from "next/dynamic";
+import { requiresSourceReview } from "@/lib/workbox/markdown-draft";
+import { supportsVisualMarkdown } from "@/lib/workbox/markdown-visual-safety";
+
+const VisualEditor = dynamic(() => import("./markdown-visual-editor"), {
+  ssr: false,
+  loading: () => <p role="status">Loading visual editor…</p>,
+});
+
 import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
 
@@ -119,14 +128,76 @@ export function MarkdownEditor({ value, onChange, label, disabled, required, nam
   const editorId = useId();
   const textarea = useRef<HTMLTextAreaElement>(null);
   const selection = useRef<{ start: number; end: number } | null>(null);
-  const [mode, setMode] = useState<"write" | "preview">("write");
+  const [mode, setMode] = useState<"visual" | "source" | "preview">("visual");
+  const [session, setSession] = useState(() => ({ source: value, accepted: value, generation: 0 }));
+  const [failed, setFailed] = useState(false);
+  const [candidate, setCandidate] = useState<string | null>(null);
+  const baseline = useRef<string | undefined>(undefined);
+  const editor = useRef<HTMLDivElement>(null);
+  const sourceButton = useRef<HTMLButtonElement>(null);
+  const [submissionBlocked, setSubmissionBlocked] = useState(false);
+  if (session.accepted !== value) {
+    setSession({ source: value, accepted: value, generation: session.generation + 1 });
+    setCandidate(null);
+    setFailed(false);
+  }
+  const visualUnavailable = failed || !supportsVisualMarkdown(session.source);
+  const activeMode = mode === "visual" && visualUnavailable ? "source" : mode;
+  const shownSource = candidate ?? value;
+
+  useEffect(() => {
+    const form = editor.current?.closest("form");
+    if (!form) return;
+    const guard = (event: Event) => {
+      if (candidate === null && (!required || value.trim() || disabled)) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      setSubmissionBlocked(true);
+      setMode("source");
+      sourceButton.current?.focus();
+    };
+    form.addEventListener("submit", guard, true);
+    return () => form.removeEventListener("submit", guard, true);
+  }, [candidate, disabled, required, value]);
+
+  function changeMode(next: typeof mode) {
+    if (next === "visual" && activeMode !== "visual") {
+      baseline.current = undefined;
+      setSession({ source: shownSource, accepted: value, generation: session.generation + 1 });
+      setFailed(false);
+    }
+    setMode(next);
+  }
+
+  function acceptSource(source: string) {
+    setCandidate(null);
+    setSubmissionBlocked(false);
+    setSession(previous => ({ ...previous, accepted: source }));
+    onChange(source);
+  }
+
+  function visualChange(source: string, initializing: boolean) {
+    if (initializing) {
+      baseline.current = source;
+      return;
+    }
+    if (!supportsVisualMarkdown(source)) {
+      setCandidate(source);
+      setFailed(true);
+      return;
+    }
+    if (disabled) return;
+    if (candidate !== null || requiresSourceReview(session.source, baseline.current)) {
+      setCandidate(source);
+    } else acceptSource(source);
+  }
   const [preview, setPreview] = useState<Preview | null>(null);
-  const currentPreview = preview?.source === value ? preview : null;
+  const currentPreview = preview?.source === shownSource ? preview : null;
   const previewId = `${editorId}-preview`;
   const sourceId = `${editorId}-source`;
 
   useEffect(() => {
-    if (mode !== "preview") return;
+    if (activeMode !== "preview") return;
     const controller = new AbortController();
 
     async function load() {
@@ -134,41 +205,42 @@ export function MarkdownEditor({ value, onChange, label, disabled, required, nam
         const response = await fetch("/api/markdown", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ source: value }),
+          body: JSON.stringify({ source: shownSource }),
           signal: controller.signal,
         });
         const result = await response.json();
         if (controller.signal.aborted) return;
-        if (response.ok && result.ok && result.data.source === value && typeof result.data.html === "string") {
-          setPreview({ source: value, status: "ready", html: result.data.html });
+        if (response.ok && result.ok && result.data.source === shownSource && typeof result.data.html === "string") {
+          setPreview({ source: shownSource, status: "ready", html: result.data.html });
         } else {
-          setPreview({ source: value, status: "error", message: result.error?.message ?? "Could not load the preview." });
+          setPreview({ source: shownSource, status: "error", message: result.error?.message ?? "Could not load the preview." });
         }
       } catch {
         if (!controller.signal.aborted) {
-          setPreview({ source: value, status: "error", message: "Could not load the preview." });
+          setPreview({ source: shownSource, status: "error", message: "Could not load the preview." });
         }
       }
     }
 
     void load();
     return () => controller.abort();
-  }, [mode, value]);
+  }, [activeMode, shownSource]);
 
   useLayoutEffect(() => {
-    if (mode !== "write" || !selection.current || !textarea.current) return;
+    if (activeMode !== "source" || !selection.current || !textarea.current) return;
     const { start, end } = selection.current;
     selection.current = null;
     textarea.current.focus();
     textarea.current.setSelectionRange(start, end);
-  }, [mode, value]);
+  }, [activeMode, shownSource]);
 
   function apply(format: Format) {
     const field = textarea.current;
     if (!field || disabled) return;
-    const edit = formatMarkdown(value, field.selectionStart, field.selectionEnd, format);
+    const edit = formatMarkdown(shownSource, field.selectionStart, field.selectionEnd, format);
     selection.current = { start: edit.start, end: edit.end };
-    onChange(edit.source);
+    if (candidate !== null) setCandidate(edit.source);
+    else acceptSource(edit.source);
   }
 
   function onShortcut(event: KeyboardEvent<HTMLTextAreaElement>) {
@@ -181,13 +253,28 @@ export function MarkdownEditor({ value, onChange, label, disabled, required, nam
   }
 
   return (
-    <div className="space-y-2">
+    <div ref={editor} className="space-y-2">
       <label htmlFor={editorId} className="block text-sm font-medium">{label}</label>
       <div role="group" aria-label={`${label} view`} className="flex gap-2">
-        <button type="button" className="wb-btn aria-pressed:border-[var(--wb-accent)]" aria-pressed={mode === "write"} aria-controls={sourceId} onClick={() => setMode("write")}>Write</button>
-        <button type="button" className="wb-btn aria-pressed:border-[var(--wb-accent)]" aria-pressed={mode === "preview"} aria-controls={previewId} onClick={() => setMode("preview")}>Preview</button>
+        <button type="button" className="wb-btn" aria-pressed={activeMode === "visual"} onClick={() => changeMode("visual")}>Visual</button>
+        <button ref={sourceButton} type="button" className="wb-btn" aria-pressed={activeMode === "source"} aria-controls={sourceId} onClick={() => changeMode("source")}>Source</button>
+        <button type="button" className="wb-btn" aria-pressed={activeMode === "preview"} aria-controls={previewId} onClick={() => changeMode("preview")}>Preview</button>
       </div>
-      <div id={sourceId} hidden={mode !== "write"} className="space-y-2">
+      {activeMode === "visual" && <VisualEditor key={session.generation} source={session.source} label={label}
+        disabled={disabled} onChange={visualChange} onError={() => setFailed(true)} />}
+      {activeMode === "source" && mode === "visual" && <p role="status">Visual can’t represent this Markdown. You can edit the source directly.</p>}
+      {candidate !== null && <div className="space-y-2">
+        <p role="status">Visual editing may have reformatted the Markdown. Review the source before using these changes.</p>
+        {activeMode === "source" ? <button type="button" disabled={disabled} className="wb-btn" onClick={() => acceptSource(candidate)}>Use this Markdown</button>
+          : <button type="button" className="wb-btn" onClick={() => changeMode("source")}>Review source</button>}
+        <button type="button" className="wb-btn ml-2" onClick={() => {
+          setCandidate(null);
+          setSession({ source: value, accepted: value, generation: session.generation + 1 });
+          setFailed(false);
+        }}>Discard visual changes</button>
+      </div>}
+      {submissionBlocked && candidate === null && required && !value.trim() && <p role="alert">Enter {label.toLowerCase()}.</p>}
+      <div id={sourceId} hidden={activeMode !== "source"} className="space-y-2">
         <div role="group" aria-label="Markdown formatting" className="flex flex-wrap gap-1">
           {formats.map((format) => (
             <button
@@ -206,20 +293,18 @@ export function MarkdownEditor({ value, onChange, label, disabled, required, nam
           ref={textarea}
           rows={6}
           disabled={disabled}
-          required={required}
-          value={value}
-          onChange={(event) => onChange(updateMarkdownSource(value, event.currentTarget.value))}
-          onKeyDown={onShortcut}
-          onInvalid={(event) => {
-            if (mode === "preview") {
-              selection.current = { start: event.currentTarget.selectionStart, end: event.currentTarget.selectionEnd };
-              setMode("write");
-            }
+          aria-required={required}
+          value={shownSource}
+          onChange={(event) => {
+            const updated = updateMarkdownSource(shownSource, event.currentTarget.value);
+            if (candidate !== null) setCandidate(updated);
+            else acceptSource(updated);
           }}
+          onKeyDown={onShortcut}
           className="w-full rounded border border-[var(--wb-border)] bg-[var(--wb-bg)] px-3 py-2 text-sm"
         />
       </div>
-      <div id={previewId} hidden={mode !== "preview"} className="wb-panel min-h-20 px-3 py-2" aria-label={`${label} preview`}>
+      <div id={previewId} hidden={activeMode !== "preview"} className="wb-panel min-h-20 px-3 py-2" aria-label={`${label} preview`}>
         {!currentPreview && <p role="status" className="wb-muted text-sm">Loading preview…</p>}
         {currentPreview?.status === "error" && <p role="alert" className="text-sm">{currentPreview.message}</p>}
         {currentPreview?.status === "ready" && (currentPreview.html

@@ -1,0 +1,49 @@
+{
+  "event_count": 4,
+  "last_event_id": "01M79CK212G7YCJ709542MFTHF",
+  "materialized_at": "2026-11-13T02:43:05.378658+00:00",
+  "mission_number": "",
+  "mission_slug": "mdxeditor-upgrade-01M791SD",
+  "mission_type": "software-dev",
+  "summary": {
+    "approved": 0,
+    "blocked": 0,
+    "canceled": 0,
+    "claimed": 0,
+    "done": 0,
+    "for_review": 0,
+    "in_progress": 0,
+    "in_review": 0,
+    "planned": 4
+  },
+  "work_packages": {
+    "WP01": {
+      "actor": "finalize-tasks",
+      "force_count": 0,
+      "lane": "planned",
+      "last_event_id": "01M79CJXM9V2A656Y0G1WG5254",
+      "last_transition_at": "2026-11-13T02:43:00.873518+00:00"
+    },
+    "WP02": {
+      "actor": "finalize-tasks",
+      "force_count": 0,
+      "lane": "planned",
+      "last_event_id": "01M79CJZ3DF2V3TWF8P99N97YN",
+      "last_transition_at": "2026-11-13T02:43:02.381091+00:00"
+    },
+    "WP03": {
+      "actor": "finalize-tasks",
+      "force_count": 0,
+      "lane": "planned",
+      "last_event_id": "01M79CK0HMFTBYSWJF6E5A5B12",
+      "last_transition_at": "2026-11-13T02:43:03.860402+00:00"
+    },
+    "WP04": {
+      "actor": "finalize-tasks",
+      "force_count": 0,
+      "lane": "planned",
+      "last_event_id": "01M79CK212G7YCJ709542MFTHF",
+      "last_transition_at": "2026-11-13T02:43:05.378658+00:00"
+    }
+  }
+}
