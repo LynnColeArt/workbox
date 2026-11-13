@@ -118,7 +118,8 @@
       "last_transition_at": "2026-11-13T04:56:34.526437+00:00",
       "model": "__resolved_model_absent__",
       "notes": [
-        "Focused native and Workbox fixtures passed."
+        "Focused native and Workbox fixtures passed.",
+        "Reviewed exact candidate and definition binding, native evidence and read-only review; focused fixtures passed."
       ],
       "provider": "__resolved_provider_absent__",
       "review_result": {
