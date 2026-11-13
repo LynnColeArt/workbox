@@ -1,3 +1,6 @@
+import { z } from "zod";
+import { nativeCollaboration } from "../hn/collaboration";
+import { isFullProposalId } from "../hn/proposal-read";
 import type { ProposalStatus } from "@/lib/hn/proposal-read";
 
 export type ProposalRequirement = {
@@ -136,4 +139,27 @@ export function getProposalChecks(status: ProposalStatus | null): ProposalChecks
     requirements,
     blockers: requirements.filter((row) => missing.has(row.key)),
   };
+}
+
+const nativeAutomaticChecks = z.object({
+  availability: z.enum(["local", "no_authority"]),
+  authority: z.string().optional(),
+  decision: z.string().optional(),
+  checks: z.array(z.object({
+    id: z.string(), proposal: z.string(), candidate: z.string(), commit: z.string(),
+    pipeline: z.string(), definition: z.string(), source: z.string(), configuration: z.string(),
+    status: z.enum(["waiting", "queued", "running", "passed", "failed", "canceled"]),
+    reason: z.string().optional(), created: z.string(),
+    attempts: z.array(z.object({
+      id: z.string(), status: z.string(), started: z.string(),
+      finished: z.string().optional(), request: z.string().optional(), result: z.string().optional(),
+    })).default([]),
+  })),
+});
+
+export async function readAutomaticProposalChecks(repo: string, candidate: string) {
+  if (!isFullProposalId(candidate)) {
+    return { ok: false, error: { code: "invalid_input", message: "Select an exact proposal revision." } } as const;
+  }
+  return nativeCollaboration(repo, ["proposal-checks", "status", candidate], nativeAutomaticChecks);
 }

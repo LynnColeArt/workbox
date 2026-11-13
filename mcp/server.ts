@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { automaticCheckTool, automaticChecksForProject } from "./proposal-checks";
 import { triggerTools } from "./pipeline-triggers";
 /**
  * Workbox MCP server — stdio JSON-RPC 2.0, zero runtime deps.
@@ -209,6 +210,7 @@ const draftEditInput = {
 
 const TOOLS = [
   ...triggerTools,
+  automaticCheckTool,
   ...collaborationTools.map(({ name, description, inputSchema }) => ({ name, description, inputSchema })),
   {
     name: "workbox_projects",
@@ -588,6 +590,11 @@ async function handle(msg: Json): Promise<void> {
           isError: true,
         });
       }
+      return;
+    }
+    if (name === automaticCheckTool.name) {
+      const result = await automaticChecksForProject(params.arguments ?? {});
+      rpcResult(id, { content: [{ type: "text", text: JSON.stringify(result) }], isError: !result.ok });
       return;
     }
     const settingsAction = SETTINGS_ACTIONS.get(name);

@@ -1,14 +1,14 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { connection } from "next/server";
-import { ProposalChecks, ProposalStageSummary } from "@/components/proposal-checks";
+import { AutomaticProposalChecks, ProposalChecks, ProposalStageSummary } from "@/components/proposal-checks";
 import { ProposalConversation } from "@/components/proposal-conversation";
 import { ProposalDetailHeader } from "@/components/proposal-detail-header";
 import { ProposalFilesChanged } from "@/components/proposal-files-changed";
 import { ProposalNextActions } from "@/components/proposal-next-actions";
 import { createProposalReader, isFullProposalId } from "@/lib/hn/proposal-read";
 import { openDb } from "@/lib/workbox/db";
-import { getProposalChecks } from "@/lib/workbox/proposal-checks";
+import { getProposalChecks, readAutomaticProposalChecks } from "@/lib/workbox/proposal-checks";
 import { readProposalComparison } from "@/lib/workbox/proposal-comparison";
 import { readProposalConversation } from "@/lib/workbox/proposal-conversation";
 import { proposalDetailHref, resolveProposalDetail } from "@/lib/workbox/proposal-detail";
@@ -86,9 +86,10 @@ export default async function ProposalDetailPage({
   if (mode === "lineage") redirect(proposalDetailHref(projectId, candidate.id, { view }));
 
   const checks = getProposalChecks(candidate.status);
-  const [identity, conversation] = await Promise.all([
+  const [identity, conversation, automaticChecks] = await Promise.all([
     candidate.status ? reader.identity() : null,
     view === "conversation" ? readProposalConversation(db, project, candidate, related, reader) : null,
+    view === "checks" ? readAutomaticProposalChecks(project.repoPath, candidate.id) : null,
   ]);
   const comparison = view === "files"
     ? readProposalComparison(project.repoPath, candidate, typeof query.file === "string" ? query.file : undefined)
@@ -102,6 +103,7 @@ export default async function ProposalDetailPage({
       <ProposalNextActions projectId={projectId} checks={checks} identity={identity?.ok ? identity.value : null} />
       {conversation && <ProposalConversation projectId={projectId} candidate={candidate} conversation={conversation} />}
       {view === "checks" && <ProposalChecks checks={checks} />}
+      {automaticChecks && <AutomaticProposalChecks result={automaticChecks} />}
       {comparison && (
         <section className="space-y-2" aria-labelledby="proposal-files-heading">
           <h2 id="proposal-files-heading" className="text-lg font-semibold">Files changed</h2>
