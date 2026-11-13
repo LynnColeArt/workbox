@@ -1,10 +1,14 @@
 import Link from "next/link";
 import { createContext, useContext, useId, useRef, useState, type ChangeEvent, type ClipboardEvent, type FormEvent, type KeyboardEvent, type ReactNode } from "react";
+import type { TriggerConfiguration } from "@/lib/workbox/proposal-trigger-settings";
+import type { previewTriggerSettings } from "@/lib/workbox/settings-submit";
 import type { PipelineDraft, PipelineDraftEdit } from "@/lib/workbox/pipeline-draft";
 import type { reviewPipelineDraft } from "@/lib/workbox/pipeline-review";
 import type { PipelineTemplate, PipelineTemplateCatalog } from "@/lib/workbox/pipeline-templates";
 
 type Review = Extract<Awaited<ReturnType<typeof reviewPipelineDraft>>, { ok: true }>["data"];
+type TriggerReview = Extract<Awaited<ReturnType<typeof previewTriggerSettings>>, { ok: true }>["data"];
+type TriggerAttempt = { base: TriggerReview["base"]; actor: string; digest: string; operationId: string; configuration: TriggerConfiguration; name?: string; definition?: string };
 type Attempt = NonNullable<Review["submission"]>;
 type Availability = { available: boolean; reason?: string };
 type Diagnostic = { path: string; message: string };
@@ -314,9 +318,10 @@ export function LoadPipelineDraftButton({ name }: { name: string }) {
   return <button type="button" className="wb-btn" disabled={!loader || loader.disabled} onClick={() => loader?.openDraft(name)}>Load into draft</button>;
 }
 
-export function PipelineGraphEditor({ endpoint, availability, children }: {
+export function PipelineGraphEditor({ endpoint, availability, pipelineNames, children }: {
   endpoint: string;
   availability: Availability;
+  pipelineNames: string[];
   children: ReactNode;
 }) {
   const id = useId();
@@ -337,6 +342,12 @@ export function PipelineGraphEditor({ endpoint, availability, children }: {
   const [error, setError] = useState<OperationError | null>(null);
   const [submitError, setSubmitError] = useState<OperationError | null>(null);
   const [copied, setCopied] = useState(false);
+  const [triggers, setTriggers] = useState<TriggerConfiguration | null>(null);
+  const [triggerSource, setTriggerSource] = useState<string | null>(null);
+  const [triggerReview, setTriggerReview] = useState<TriggerReview | null>(null);
+  const [triggerAttempt, setTriggerAttempt] = useState<TriggerAttempt | null>(null);
+  const [triggerError, setTriggerError] = useState<string | null>(null);
+
 
   const selectedIndex = draft?.nodes.findIndex(node => node.id === nodeId) ?? -1;
   const selected = draft?.nodes[selectedIndex];
@@ -360,6 +371,50 @@ export function PipelineGraphEditor({ endpoint, availability, children }: {
     }
   }
 
+  function loadTriggers() {
+    void run(async () => {
+      const response = await request<{ source: string; configuration: TriggerConfiguration }>(endpoint, { action: "triggers_read" });
+      if (!response.ok) { setTriggerError(response.error.message); return; }
+      setTriggers(response.data.configuration);
+      setTriggerSource(response.data.source);
+      setTriggerReview(null);
+      setTriggerError(null);
+    });
+  }
+
+  function reviewTriggers() {
+    if (!triggers) return;
+    void run(async () => {
+      setTriggerError(null);
+      setTriggerReview(null);
+      const response = await request<TriggerReview>(endpoint, {
+        action: "triggers_preview", configuration: triggers,
+        ...(draft ? { name: draft.name, definition: draft.definition } : {}),
+      });
+      if (response.ok) setTriggerReview(response.data);
+      else setTriggerError(response.error.message);
+    });
+  }
+
+  function submitTriggers(payload: TriggerAttempt) {
+    void run(async () => {
+      setTriggerError(null);
+      setTriggerAttempt(payload);
+      const result = await request<{ href: string }>(endpoint, { action: "triggers_submit", ...payload, confirmed: true });
+      if (result.ok) {
+        setProposalHref(result.data.href);
+        setTriggerAttempt(null);
+        setTriggerReview(null);
+      } else {
+        setTriggerError(result.error.message);
+        if (definitiveRefusals.has(result.error.code) || result.error.code === "denied") {
+          setTriggerAttempt(null);
+          setTriggerReview(null);
+        }
+      }
+    });
+  }
+
   async function loadCatalog(snapshot: PipelineDraft) {
     const response = await request<PipelineTemplateCatalog>(endpoint, { action: "draft_templates", draft: snapshot });
     if (response.ok) setCatalog(response.data);
@@ -370,6 +425,7 @@ export function PipelineGraphEditor({ endpoint, availability, children }: {
   }
 
   function openDraft(target: string) {
+    setTriggerReview(null);
     if (stepDirty || unapplied) return;
     if (draft?.name === target) {
       heading.current?.focus();
@@ -398,6 +454,7 @@ export function PipelineGraphEditor({ endpoint, availability, children }: {
   }
 
   function edit(change: PipelineDraftEdit) {
+    setTriggerReview(null);
     if (!draft) return;
     void run(async () => {
       setError(null);
@@ -490,6 +547,7 @@ export function PipelineGraphEditor({ endpoint, availability, children }: {
   }
 
   function updateJson(text: string) {
+    setTriggerReview(null);
     setJsonText(text);
     setReview(null);
     setCopied(false);
@@ -527,6 +585,55 @@ export function PipelineGraphEditor({ endpoint, availability, children }: {
             )}
           </div>
         )}
+        <section aria-label="Automatic proposal checks" className="space-y-3">
+          <h4 className="font-semibold">Automatic proposal checks</h4>
+          <button type="button" className="wb-btn" disabled={busy || triggerAttempt !== null} onClick={loadTriggers}>
+            {triggers ? "Reload active triggers" : "Load active triggers"}
+          </button>
+          {triggerSource && <p className="wb-muted text-sm">Active configuration at <code>{triggerSource}</code></p>}
+          {triggerError && <p role="alert">{triggerError}</p>}
+          {triggers && (
+            <>
+              {[...new Set([...pipelineNames, ...Object.keys(triggers.pipelines), ...(draft ? [draft.name] : [])])].sort().map(pipeline => (
+                <fieldset key={pipeline} className="flex flex-wrap gap-3" disabled={busy || triggerAttempt !== null}>
+                  <legend>{pipeline}</legend>
+                  {([["proposal.open", "Proposal opens"], ["proposal.revise", "New revision"]] as const).map(([event, label]) => (
+                    <label key={event} className="flex items-center gap-2">
+                      <input type="checkbox" checked={(triggers.pipelines[pipeline] ?? []).includes(event)} onChange={change => {
+                        const prior = triggers.pipelines[pipeline] ?? [];
+                        const events = change.target.checked ? [...prior, event] : prior.filter(item => item !== event);
+                        setTriggers({ ...triggers, pipelines: { ...triggers.pipelines, [pipeline]: events } });
+                        setTriggerReview(null);
+                      }} />
+                      {label}
+                    </label>
+                  ))}
+                </fieldset>
+              ))}
+              <button type="button" className="wb-btn" disabled={busy || unapplied || stepDirty || triggerAttempt !== null}
+                onClick={reviewTriggers}>Review trigger changes</button>
+            </>
+          )}
+          {triggerReview && triggers && (
+            <div className="space-y-3">
+              {triggerReview.files.map(file => (
+                <div key={file.path} className="space-y-2">
+                  <h5 className="wb-mono">{file.path}</h5>
+                  <ExactText label="Committed bytes" text={file.before} filename="before.json" />
+                  <ExactText label="Proposed bytes" text={file.after} filename="after.json" />
+                </div>
+              ))}
+              <button type="button" className="wb-btn" disabled={!triggerReview.actor || busy || triggerAttempt !== null || unapplied || stepDirty}
+                onClick={() => {
+                  if (!triggerReview.actor) return;
+                  submitTriggers({ base: triggerReview.base, actor: triggerReview.actor, digest: triggerReview.digest,
+                    operationId: crypto.randomUUID(), configuration: triggers,
+                    ...(draft ? { name: draft.name, definition: draft.definition } : {}) });
+                }}>Open trigger proposal</button>
+            </div>
+          )}
+          {triggerAttempt && <button type="button" className="wb-btn" disabled={busy} onClick={() => submitTriggers(triggerAttempt)}>Retry trigger proposal</button>}
+        </section>
         {draft && (
           <>
             <div className="flex flex-wrap items-center justify-between gap-2 text-sm">

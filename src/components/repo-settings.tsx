@@ -154,7 +154,7 @@ function PipelineEditor({ settings, endpoint, submission }: { settings: Settings
   };
 
   return (
-    <PipelineGraphEditor endpoint={endpoint} availability={submission}>
+    <PipelineGraphEditor endpoint={endpoint} availability={submission} pipelineNames={pipelines.items.map(item => item.name)}>
       <section aria-labelledby="committed-pipelines" className="wb-panel space-y-3 p-4">
         <h3 id="committed-pipelines" className="font-semibold">Committed pipelines</h3>
         {details.commit && (

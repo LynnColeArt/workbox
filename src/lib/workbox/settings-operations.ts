@@ -5,14 +5,15 @@ import { editPipelineDraft, openPipelineDraft, readPipelineDraft, refreshPipelin
 import { reviewPipelineDraft } from "./pipeline-review";
 import { readPipelineTemplates } from "./pipeline-templates";
 import { readRepoSettings, updateRepoDetails } from "./settings-read";
-import { previewSettingsPipeline, settingsProposalAccess, submitSettingsProposal } from "./settings-submit";
+import { readCurrentProposalTriggers } from "./proposal-trigger-settings";
+import { previewTriggerSettings, previewSettingsPipeline, settingsProposalAccess, submitSettingsProposal } from "./settings-submit";
 
 export async function runSettingsOperation(project: string, input: unknown, localOperator: boolean) {
   if (!input || typeof input !== "object" || Array.isArray(input)) {
     return { ok: false, error: { code: "invalid_input", message: "Expected a Settings request object." } } as const;
   }
   const { action, ...fields } = input as Record<string, unknown>;
-  if ((action === "update" || action === "submit") && !localOperator) {
+  if ((action === "update" || action === "submit" || action === "triggers_submit") && !localOperator) {
     return { ok: false, error: { code: "denied", message: "Use the local Workbox application to change repository settings." } } as const;
   }
   try {
@@ -27,6 +28,13 @@ export async function runSettingsOperation(project: string, input: unknown, loca
           ? { ok: true, data: { ...settings, proposalSubmission: await settingsProposalAccess(repo.repoPath) } } as const
           : { ok: false, error: { code: "not_found", message: "Repository not found." } } as const;
       }
+      case "triggers_read": {
+        const repo = getProject(db, project);
+        return repo ? await readCurrentProposalTriggers(repo.repoPath)
+          : { ok: false, error: { code: "not_found", message: "Repository not found." } } as const;
+      }
+      case "triggers_preview": return await previewTriggerSettings(db, project, fields);
+      case "triggers_submit": return await submitSettingsProposal(db, project, fields);
       case "update": return updateRepoDetails(db, project, fields);
       case "preview": return await previewSettingsPipeline(db, project, fields);
       case "submit": return await submitSettingsProposal(db, project, fields);

@@ -10,13 +10,14 @@ interface CandidateInput {
   path: string;
   definition: string;
   operationId: string;
+  triggerDefinition?: string;
 }
 
 /** Build a reproducible commit in the repository's object store using a private index. */
 export function prepareSettingsCandidate(repoPath: string, input: CandidateInput): string | null {
-  const { base, path, definition, operationId } = input;
+  const { base, path, definition, operationId, triggerDefinition } = input;
   const name = /^\.hn\/pipelines\/([^/]+)\.json$/.exec(path)?.[1];
-  if (!isGitObjectId(base) || !isPipelineName(name) ||
+  if (!isGitObjectId(base) || (!isPipelineName(name) && path !== ".hn/proposal-checks.json") ||
       !/^[A-Za-z0-9_-]{16,128}$/.test(operationId)) return null;
 
   let scratch: string | undefined;
@@ -52,14 +53,17 @@ export function prepareSettingsCandidate(repoPath: string, input: CandidateInput
     }
 
     if (git(["cat-file", "-t", base]) !== "commit" || git(["read-tree", base]) === null) return null;
-    const entry = git(["ls-files", "--stage", "--", path]);
-    if (entry === null) return null;
-    const mode = entry ? /^100(644|755) /.exec(entry)?.[0].trim() : "100644";
-    if (!mode || entry.includes("\n")) return null;
-
-    const blob = git(["hash-object", "-w", "--stdin"], definition);
-    if (!blob || !isGitObjectId(blob)) return null;
-    if (git(["update-index", "--add", "--cacheinfo", mode, blob, path]) === null) return null;
+    const files = [{ path, definition }];
+    if (triggerDefinition !== undefined) files.push({ path: ".hn/proposal-checks.json", definition: triggerDefinition });
+    for (const file of files) {
+      const entry = git(["ls-files", "--stage", "--", file.path]);
+      if (entry === null) return null;
+      const mode = entry ? /^100(644|755) /.exec(entry)?.[0].trim() : "100644";
+      if (!mode || entry.includes("\n")) return null;
+      const blob = git(["hash-object", "-w", "--stdin"], file.definition);
+      if (!blob || !isGitObjectId(blob)) return null;
+      if (git(["update-index", "--add", "--cacheinfo", mode, blob, file.path]) === null) return null;
+    }
     const tree = git(["write-tree"]);
     if (!tree || !isGitObjectId(tree)) return null;
     const timestamp = git(["show", "-s", "--format=%ct", base]);
