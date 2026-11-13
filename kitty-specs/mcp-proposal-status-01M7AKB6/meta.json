@@ -10,5 +10,7 @@
   "purpose_tldr": "Expose Workbox proposal revision status directly over MCP",
   "slug": "mcp-proposal-status-01M7AKB6",
   "target_branch": "codex/mcp-proposal-status",
-  "topology": "single_branch"
+  "topology": "single_branch",
+  "vcs": "git",
+  "vcs_locked_at": "2026-11-13T14:07:39.562116+00:00"
 }
