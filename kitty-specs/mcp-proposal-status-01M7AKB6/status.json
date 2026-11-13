@@ -86,7 +86,8 @@
       "last_transition_at": "2026-11-13T14:14:27.954092+00:00",
       "model": "__resolved_model_absent__",
       "notes": [
-        "Production build, TypeScript and 25 focused tests pass; Linux native Hubnot and real MCP stdio exercised"
+        "Production build, TypeScript and 25 focused tests pass; Linux native Hubnot and real MCP stdio exercised",
+        "Verified exact historical and merged revisions, required and optional checks, competing lineage, unavailable reads and read-only behavior; reviewed exact check evidence follow-up in WP02"
       ],
       "provider": "__resolved_provider_absent__",
       "review_result": {
