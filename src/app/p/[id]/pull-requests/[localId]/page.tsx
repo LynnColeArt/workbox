@@ -18,7 +18,7 @@ export default async function PullRequestDetailPage({ params, searchParams }: {
   const project = getProject(db, id);
   if (!project) notFound();
   const { file, view, commitPage, fileCommitPage } = await searchParams;
-  const result = await readPullRequestDetail(project.id, project.repoPath, localId, typeof file === "string" ? file : undefined, Number(commitPage), Number(fileCommitPage));
+  const result = await readPullRequestDetail(project.id, project.repoPath, localId, typeof file === "string" ? file : undefined, Number(commitPage), Number(fileCommitPage), view === "files");
   if (result.kind === "not_found") notFound();
   const list = `/p/${encodeURIComponent(id)}/pull-requests`;
 
@@ -43,14 +43,18 @@ export default async function PullRequestDetailPage({ params, searchParams }: {
       </div>
     </header>
     <nav aria-label="Pull request views" className="flex flex-wrap gap-4 border-b border-[var(--wb-border)]">
-      {([["conversation", "Conversation", reviews.length], ["commits", "Commits", history?.total], ["files", "Files changed", comparison.status === "unavailable" ? undefined : comparison.files.length]] as const)
+      {([["conversation", "Conversation", reviews.length], ["commits", "Commits", history?.total], ["files", "Files changed", comparison.status === "unavailable" ? undefined : (comparison.stats?.files ?? comparison.files.length)]] as const)
         .map(([key, title, count]) => <Link key={key} href={`${request.href}?view=${key}`}
           className="px-3 py-2 aria-[current=page]:border-b-2 aria-[current=page]:border-[var(--wb-accent)]"
           aria-current={tab === key ? "page" : undefined}>{title}{count !== undefined && <> <span className="wb-chip">{count}</span></>}</Link>)}
+      {comparison.stats && <p className="ml-auto flex items-center gap-3 px-3 py-2 font-mono text-sm tabular-nums">
+        <span className="text-green-400" aria-label={`${comparison.stats.additions} additions`}>+{comparison.stats.additions.toLocaleString("en-US")}</span>
+        <span className="text-red-400" aria-label={`${comparison.stats.deletions} deletions`}>−{comparison.stats.deletions.toLocaleString("en-US")}</span>
+      </p>}
     </nav>
     {tab === "files" && <section aria-labelledby="pr-files" className="wb-panel space-y-3 p-4">
       <h2 id="pr-files" className="font-semibold">Files changed</h2>
-      <ProposalFilesChanged comparison={comparison} detailHref={`${request.href}?view=files`} />
+      <ProposalFilesChanged reviewLayout comparison={comparison} detailHref={`${request.href}?view=files`} />
       {fileHistory && fileHistory.commits.length > 0 && <div>
         <h3 className="font-semibold">Commits touching this path ({fileHistory.total})</h3>
         <ul className="mt-1 space-y-1 text-sm">

@@ -16,6 +16,7 @@ export interface ProposalComparison {
   status: "available" | "truncated" | "unavailable";
   files: ProposalChangedFile[];
   selectedPath?: string;
+  stats?: { files: number; additions: number; deletions: number };
   patch?: {
     status: "available" | "binary" | "truncated" | "unavailable" | "unlisted";
     text?: string;
@@ -97,6 +98,7 @@ export function readProposalComparison(
   repoPath: string,
   { base, head }: { base: string; head: string },
   selectedPath?: string,
+  selectFirst = false,
 ): ProposalComparison {
   const unavailable: ProposalComparison = { status: "unavailable", files: [] };
   const format = runGit(repoPath, ["rev-parse", "--show-object-format"], 256)?.output.toString().trim();
@@ -123,6 +125,14 @@ export function readProposalComparison(
     status: changes.truncated || incomplete ? "truncated" : "available",
     files,
   };
+  const summary = runGit(repoPath, [...diff, "--shortstat", base, head, "--"], 1024, attributes);
+  if (summary && !summary.truncated) {
+    const line = summary.output.toString().trim();
+    const counts = /^([0-9]+) files? changed(?:, ([0-9]+) insertions?[(][+][)])?(?:, ([0-9]+) deletions?[(][-][)])?$/.exec(line);
+    if (counts) result.stats = { files: Number(counts[1]), additions: Number(counts[2] ?? 0), deletions: Number(counts[3] ?? 0) };
+    else if (!line && !files.length && !incomplete) result.stats = { files: 0, additions: 0, deletions: 0 };
+  }
+  selectedPath ??= selectFirst ? files[0]?.path : undefined;
   if (selectedPath === undefined) return result;
   const selected = files.find(({ path }) => path === selectedPath);
   if (!selected) return { ...result, patch: { status: "unlisted" } };

@@ -48,7 +48,7 @@ function localPullRequest(project: string, { body: _body, reviews: _reviews, ...
   return { ...record, localId, href: `/p/${encodeURIComponent(project)}/pull-requests/${localId}` };
 }
 
-export async function readPullRequestDetail(project: string, repoPath: string, localId: string, file?: string, commitPage = 1, fileCommitPage = 1) {
+export async function readPullRequestDetail(project: string, repoPath: string, localId: string, file?: string, commitPage = 1, fileCommitPage = 1, selectFirst = false) {
   if (!/^[a-f0-9]{64}$/.test(localId)) return { kind: "not_found" } as const;
   const records = await readImportedPullRequests(repoPath);
   if (!records) return { kind: "unavailable" } as const;
@@ -57,7 +57,7 @@ export async function readPullRequestDetail(project: string, repoPath: string, l
     if (local.localId !== localId) continue;
     const base = record.base_commit ?? "";
     const head = record.head_commit ?? "";
-    const comparison = readProposalComparison(repoPath, { base, head }, file);
+    const comparison = readProposalComparison(repoPath, { base, head }, file, selectFirst);
     function withCommitLinks(history: ReturnType<typeof readComparisonCommits>) {
       return history && { ...history, commits: history.commits.map(commit => ({
         ...commit, href: `/p/${encodeURIComponent(project)}/code?at=${commit.oid}&commit=${commit.oid}`,
