@@ -1,5 +1,5 @@
-import Link from "next/link";
-import { workboxPageSize } from "@/lib/workbox/list-settings";
+import { ListPagination } from "@/components/list-pagination";
+import { readMemories } from "@/lib/workbox/memories";
 import { connection } from "next/server";
 import { getProject } from "@/lib/workbox/queries";
 import { openDb } from "@/lib/workbox/db";
@@ -13,21 +13,7 @@ export default async function MemoryPage({ params, searchParams }: { params: Pro
   const p = getProject(db, id);
   if (!p) return <main className="mx-auto max-w-6xl px-4 py-10"><p className="wb-muted">Project not indexed.</p></main>;
 
-  const pageSize = workboxPageSize();
-  const inputPage = Number((await searchParams).page);
-  const total = Number(db.prepare("SELECT COUNT(*) AS n FROM memories WHERE project_id = ? AND verified = 1").get(id)?.n);
-  const pages = Math.max(1, Math.ceil(total / pageSize));
-  const page = Number.isSafeInteger(inputPage) && inputPage > 0 ? Math.min(inputPage, pages) : 1;
-  const rows = db.prepare(`
-    SELECT m.memory_id, m.actor, m.stream, m.sequence, m.timestamp, m.kind, m.content,
-           m.anchor_commit, m.applicability, m.handoff_json, m.verified,
-           COALESCE(a.display_name, substr(m.actor, 1, 12)) AS actorName
-    FROM memories m LEFT JOIN actors a ON a.project_id = m.project_id AND a.fingerprint = m.actor
-    WHERE m.project_id = ? AND m.verified = 1 ORDER BY m.timestamp DESC, m.memory_id LIMIT ? OFFSET ?`).all(id, pageSize, (page - 1) * pageSize) as unknown as Array<{
-    memory_id: string; actor: string; stream: string; sequence: number | null; timestamp: string;
-    kind: string; content: string; anchor_commit: string | null; applicability: string;
-    handoff_json: string | null; verified: number; actorName: string;
-  }>;
+  const { items: rows, page, totalPages } = readMemories(db, id, Number((await searchParams).page));
 
   // Group by stream to mirror the storage model.
   const byStream = new Map<string, typeof rows>();
@@ -95,11 +81,7 @@ export default async function MemoryPage({ params, searchParams }: { params: Pro
           </div>
         </section>
       ))}
-      {pages > 1 && <nav aria-label="Memory pages" className="flex gap-3 text-sm">
-        {page > 1 && <Link className="wb-link" href={`?page=${page - 1}`}>Previous</Link>}
-        <span>Page {page} of {pages}</span>
-        {page < pages && <Link className="wb-link" href={`?page=${page + 1}`}>Next</Link>}
-      </nav>}
+      <ListPagination page={page} pages={totalPages} label="Memory pages" href={next => `?page=${next}`} />
     </main>
   );
 }

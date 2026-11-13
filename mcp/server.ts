@@ -33,6 +33,7 @@ import { runSettingsOperation } from "../src/lib/workbox/settings-operations";
 import { createProject } from "../src/lib/workbox/create";
 
 import { listProposalLineages } from "../src/lib/workbox/proposal-detail";
+import { readMemories } from "../src/lib/workbox/memories";
 import { readCIRuns } from "../src/lib/workbox/ci-runs";
 import { workboxPageSize } from "../src/lib/workbox/list-settings";
 import { runMigrationOperation } from "../src/lib/workbox/migrations";
@@ -56,6 +57,19 @@ const collaborationTools = [...issueTools, ...discussionTools, {
     const offset = (value: unknown) => typeof value === "number" && Number.isSafeInteger(value) && value >= 0 ? value : 0;
     const data = await listProposalLineages(db, project, offset(args.offset), undefined, offset(args.hintOffset));
     return { ok: true, data: { ...data, pageSize: workboxPageSize() } };
+  },
+}, {
+  name: "workbox_list_memories",
+  description: "Read the same page of signed memory records as the Workbox Memory tab.",
+  inputSchema: {
+    type: "object", properties: { project: { type: "string" }, page: { type: "integer", minimum: 1 } },
+    required: ["project"], additionalProperties: false,
+  },
+  call(args: Record<string, unknown>) {
+    using db = openDb();
+    const project = typeof args.project === "string" ? getProject(db, args.project) : null;
+    if (!project) return { ok: false, error: { code: "not_found", message: "Project unavailable." } };
+    return { ok: true, data: readMemories(db, project.id, typeof args.page === "number" ? args.page : 1) };
   },
 }, {
   name: "workbox_ci_runs",
@@ -207,24 +221,15 @@ async function toolCommentIssue(args: Json): Promise<Json> {
 }
 
 async function toolMemories(args: Json): Promise<Json[]> {
-  const db = openDb();
+  using db = openDb();
   const projectFilter = args.project == null ? null : String(args.project);
-  const page = typeof args.page === "number" && Number.isSafeInteger(args.page) && args.page > 0 ? args.page : 1;
-  const pageSize = workboxPageSize();
-  const rows = db.prepare(`
-    SELECT m.kind, m.content, m.timestamp, m.handoff_json, m.anchor_commit,
-           COALESCE(a.display_name, substr(m.actor, 1, 8)) AS by
-    FROM memories m LEFT JOIN actors a ON a.project_id = m.project_id AND a.fingerprint = m.actor
-    WHERE m.verified = 1 AND (@project IS NULL OR m.project_id = @project)
-    ORDER BY m.timestamp DESC, m.memory_id LIMIT @limit OFFSET @offset`).all({ project: projectFilter, limit: pageSize, offset: (page - 1) * pageSize }) as unknown as Array<{
-    kind: string; content: string; timestamp: string | null; handoff_json: string | null; anchor_commit: string | null; by: string;
-  }>;
+  const { items: rows } = readMemories(db, projectFilter, typeof args.page === "number" ? args.page : 1);
   return rows.map((m) => {
     interface HandoffLists2 { completed?: string[]; nextActions?: string[]; }
     let handoff: HandoffLists2 | null = null;
     try { handoff = m.handoff_json ? JSON.parse(m.handoff_json) as HandoffLists2 : null; } catch { /* inert */ }
     return {
-      kind: m.kind, content: m.content, by: m.by, at: m.timestamp,
+      kind: m.kind, content: m.content, by: m.actorName, at: m.timestamp,
       anchor: m.anchor_commit ? m.anchor_commit.slice(7, 15) : null,
       handoff: handoff ? { completed: handoff.completed ?? [], nextActions: handoff.nextActions ?? [] } : undefined,
     };
