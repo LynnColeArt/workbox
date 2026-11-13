@@ -10,5 +10,7 @@
   "purpose_tldr": "automatic proposal checks",
   "slug": "automatic-proposal-checks-01M78W2C",
   "target_branch": "codex/automatic-proposal-checks",
-  "topology": "single_branch"
+  "topology": "single_branch",
+  "vcs": "git",
+  "vcs_locked_at": "2026-11-13T04:46:19.900179+00:00"
 }
