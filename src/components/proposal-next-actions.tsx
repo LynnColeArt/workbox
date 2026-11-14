@@ -28,6 +28,13 @@ export function ProposalNextActions({ projectId, checks, identity, maintenance =
           <ProposalMaintenanceControls options={maintenance}
             endpoint={`/api/projects/${encodeURIComponent(projectId)}/proposals/${encodeURIComponent(checks.status.id)}/maintain`} />
       )}
+      {checks.kind === "evaluated" && !!checks.status.decisions.rejections?.length && (
+        <ul aria-label="Rejection reasons" className="space-y-2">
+          {checks.status.decisions.rejections.map(({ id, reason }) => (
+            <li key={id} className="whitespace-pre-wrap wrap-anywhere">{reason}</li>
+          ))}
+        </ul>
+      )}
       {handoffs.length > 0 && (
         <ul className="divide-y divide-[var(--wb-border)] border-t border-[var(--wb-border)]">
           {handoffs.map(({ title, detail, command }) => (

@@ -61,7 +61,7 @@ export function getProposalActions(checks: ProposalChecksModel, identity: Propos
   } else if (lineage.closed || lineage.superseded || !observed.lineage_terminal) {
     handoffs.push({ title: "Inspect related revisions", detail: "Use Related revisions to open another candidate in this lineage." });
   } else if (decisions.rejected) {
-    handoffs.push({ title: "Discuss the rejection", detail: "Check Conversation for the recorded decision and discuss a revised proposal with a maintainer." });
+    handoffs.push({ title: "Merge blocked by rejection", detail: "A maintainer rejected this revision. Discuss a revised proposal with a maintainer." });
   }
   if (handoffs.length > 0) return { review, handoffs };
 

@@ -120,6 +120,7 @@ const proposalStatus = z.object({
     required_accepts: count,
     accepts: ids,
     rejects: ids,
+    rejections: z.array(z.object({ id: fullId, actor: actorId, reason: z.string() })).optional(),
     accept_deficit: count,
     accepted: z.boolean(),
     rejected: z.boolean(),

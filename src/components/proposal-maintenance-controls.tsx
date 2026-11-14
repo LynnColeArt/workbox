@@ -13,9 +13,10 @@ export function ProposalMaintenanceControls({ endpoint, options }: {
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState("");
   const [uncertainMerge, setUncertainMerge] = useState(false);
-  const [completed, setCompleted] = useState<"accept" | "merge" | null>(null);
+  const [reason, setReason] = useState<string | null>(null);
+  const [completed, setCompleted] = useState<"accept" | "reject" | "merge" | null>(null);
 
-  async function submit(action: "accept" | "merge") {
+  async function submit(action: "accept" | "reject" | "merge") {
     setPending(true);
     setMessage("");
     setUncertainMerge(false);
@@ -23,7 +24,7 @@ export function ProposalMaintenanceControls({ endpoint, options }: {
       const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action, actor: options.actor, confirmed: true, ...(action === "merge" ? { target: confirmedTarget } : {}) }),
+        body: JSON.stringify({ action, actor: options.actor, confirmed: true, ...(action === "merge" ? { target: confirmedTarget } : action === "reject" ? { reason } : {}) }),
       });
       const result = await response.json();
       if (!result.ok) {
@@ -33,7 +34,8 @@ export function ProposalMaintenanceControls({ endpoint, options }: {
       else {
         setCompleted(action);
         setConfirmedTarget(null);
-        setMessage(action === "accept" ? "Acceptance recorded." : "Revision merged.");
+        setReason(null);
+        setMessage(action === "accept" ? "Acceptance recorded." : action === "reject" ? "Rejection recorded." : "Revision merged.");
       }
       router.refresh();
     } catch {
@@ -47,8 +49,20 @@ export function ProposalMaintenanceControls({ endpoint, options }: {
   return <div className="space-y-2">
     {options.maintainer ? <div className="flex flex-wrap items-center gap-2">
       <button type="button" className="wb-btn" disabled={pending || !options.accept || completed === "accept"} onClick={() => submit("accept")}>Accept revision</button>
-      <button type="button" className="wb-btn" disabled={pending || !options.merge || completed === "merge"} onClick={() => setConfirmedTarget(options.target)}>Merge revision</button>
-    </div> : <p className="wb-muted">A maintainer under this revision’s policy can accept or merge it.</p>}
+      {options.reject !== undefined && <button type="button" className="wb-btn" disabled={pending || !options.reject || completed === "reject"} onClick={() => { setConfirmedTarget(null); setReason(""); }}>Reject revision</button>}
+      <button type="button" className="wb-btn" disabled={pending || !options.merge || completed === "reject" || completed === "merge"} onClick={() => { setReason(null); setConfirmedTarget(options.target); }}>Merge revision</button>
+    </div> : <p className="wb-muted">A maintainer under this revision’s policy can accept, reject, or merge it.</p>}
+    {reason !== null && options.reject && (
+      <form className="space-y-2" onSubmit={event => { event.preventDefault(); if (reason.trim() && !pending) void submit("reject"); }}>
+        <label className="block">
+          Reason for rejecting this revision
+          <textarea required maxLength={4096} value={reason} disabled={pending} onChange={event => setReason(event.target.value)}
+            className="mt-1 block w-full rounded border border-[var(--wb-border)] bg-[var(--wb-bg)] p-2" />
+        </label>
+        <button type="submit" className="wb-btn" disabled={pending || !reason.trim()}>Confirm rejection</button>
+        <button type="button" className="wb-btn ml-2" disabled={pending} onClick={() => setReason(null)}>Cancel</button>
+      </form>
+    )}
     {options.merge_blocker && <p className="wb-muted">{options.merge_blocker}</p>}
     {confirmedTarget && options.merge && confirmedTarget.branch === options.target.branch && confirmedTarget.commit === options.target.commit && <div className="space-y-2">
       <p>Merge this exact revision into <strong>{confirmedTarget.branch}</strong> at <code>{confirmedTarget.commit}</code>?</p>

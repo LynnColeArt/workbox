@@ -328,7 +328,7 @@ test("native thread resolution changes exact merge blockers in Workbox and over 
   await verify(true);
 });
 
-test("native acceptance and merge share exact revision permissions over browser and MCP", {
+test("native acceptance, merge and rejection share exact revision permissions over browser and MCP", {
   skip: !process.env.WORKBOX_AUTOMATIC_CHECKS_HN,
   timeout: 60_000,
 }, async t => {
@@ -389,4 +389,41 @@ test("native acceptance and merge share exact revision permissions over browser 
   assert.equal(git("rev-parse", "HEAD").trim(), merged.data.data.commit);
   assert.deepEqual((await agent("workbox_merge_proposal", { candidate, ...confirmed, target })).data, merged.data);
   assert.equal((await status()).merge.recorded, true);
+  const rejectedBase = git("rev-parse", "HEAD").trim();
+  git("switch", "-qc", "reject-topic");
+  writeFileSync(join(repo, "README.md"), "Rejected edit\n");
+  git("commit", "-qam", "Propose another README edit");
+  const rejectedHead = git("rev-parse", "HEAD").trim();
+  git("switch", "-q", "trunk");
+  const { id: rejectedCandidate } = JSON.parse(hn("proposal", "publish", "--base", rejectedBase, "--base-ref", "refs/heads/trunk",
+    "--head", rejectedHead, "--actor", actor, "--operation", "reject-parity", "--title", "Reject proposal", "--json")).data;
+  const rejectionPage = origin + "/p/repo/proposals/" + encodeURIComponent(rejectedCandidate);
+  const rejectEndpoint = origin + "/api/projects/repo/proposals/" + encodeURIComponent(rejectedCandidate) + "/maintain";
+  const rejectBrowser = async (input: object) => {
+    const response = await fetch(rejectEndpoint, { method: "POST", headers: { "content-type": "application/json", origin }, body: JSON.stringify(input) });
+    return { status: response.status, data: await response.json() };
+  };
+  assert.match(await (await fetch(rejectionPage)).text(), /Reject revision/);
+  assert.equal((await rejectBrowser({ ...confirmed, action: "reject", reason: "  " })).status, 400);
+  assert.equal((await agent("workbox_reject_proposal", { candidate: rejectedCandidate, ...confirmed })).data.error.code, "invalid_input");
+  assert.equal((await agent("workbox_accept_proposal", { candidate: rejectedCandidate, ...confirmed })).data.ok, true);
+  const reason = "Keep the existing README wording.";
+  const rejection = await rejectBrowser({ ...confirmed, action: "reject", reason });
+  assert.equal(rejection.status, 200, JSON.stringify(rejection));
+  assert.equal(rejection.data.data.subject, rejectedCandidate);
+  assert.deepEqual((await agent("workbox_reject_proposal", { candidate: rejectedCandidate, ...confirmed, reason })).data, rejection.data);
+  const rejectedStatus = (await agent("workbox_proposal_status", { candidate: rejectedCandidate })).data.data;
+  assert.equal(rejectedStatus.status, "rejected");
+  assert.equal(rejectedStatus.maintenance.merge, false);
+  assert.deepEqual(rejectedStatus.decision.rejections, [{ id: rejection.data.data.id, actor, reason }]);
+  const html = await (await fetch(rejectionPage + "?view=checks")).text();
+  assert.match(html, /Merge blocked by rejection/);
+  assert.ok(html.includes(reason));
+  const rejectedTarget = { branch: "trunk", commit: rejectedBase };
+  const blockedBrowser = await rejectBrowser({ ...confirmed, action: "merge", target: rejectedTarget });
+  assert.equal(blockedBrowser.status, 409);
+  assert.deepEqual((await agent("workbox_merge_proposal", { candidate: rejectedCandidate, ...confirmed, target: rejectedTarget })).data, blockedBrowser.data);
+  assert.equal(git("rev-parse", "HEAD").trim(), rejectedBase);
+  assert.equal((await status()).merge.recorded, true);
+
 });

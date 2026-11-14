@@ -42,7 +42,7 @@ export async function projectProposalStatus(
     incomplete,
     merge: status ? { recorded: status.decisions.merged, conflict: status.lineage.merge_conflict, events: mergeEvents,
       evidenceIncomplete: mergeEvents.length !== mergeIds.length || (status.decisions.merged && !mergeEvents.length) } : null,
-    decision: status ? { accepted: status.decisions.accepted, rejected: status.decisions.rejected,
+    decision: status ? { accepted: status.decisions.accepted, rejected: status.decisions.rejected, rejections: status.decisions.rejections ?? [],
       required: status.decisions.required_accepts, accepts: status.decisions.accepts.length,
       deficit: status.decisions.accept_deficit } : null,
     stages: checks.stages,

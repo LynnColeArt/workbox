@@ -167,16 +167,17 @@ const collaborationTools = [...nativeInlineTools, ...issueTools, ...discussionTo
       typeof args.commitPage === "number" ? args.commitPage : undefined,
       typeof args.fileCommitPage === "number" ? args.fileCommitPage : undefined) };
   },
-}, ...(["accept", "merge"] as const).map(action => ({
+}, ...(["accept", "reject", "merge"] as const).map(action => ({
   name: `workbox_${action}_proposal`,
   description: `Confirm ${action} for an exact native proposal revision. Read permissions and target in workbox_proposal_status.`,
   inputSchema: {
     type: "object", properties: {
       project: { type: "string" }, candidate: { type: "string" }, actor: { type: "string" },
       confirmed: { const: true },
+      ...(action === "reject" ? { reason: { type: "string", minLength: 1, maxLength: 4096 } } : {}),
       ...(action === "merge" ? { target: { type: "object", properties: { branch: { type: "string" }, commit: { type: "string" } }, required: ["branch", "commit"], additionalProperties: false } } : {}),
     },
-    required: ["project", "candidate", "actor", "confirmed", ...(action === "merge" ? ["target"] : [])],
+    required: ["project", "candidate", "actor", "confirmed", ...(action === "merge" ? ["target"] : action === "reject" ? ["reason"] : [])],
     additionalProperties: false,
   },
   call({ project, candidate, ...input }: Record<string, unknown>) {
