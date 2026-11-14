@@ -16,7 +16,7 @@ export default async function SettingsPage({ params }: { params: Promise<{ id: s
   return (
     <main className="mx-auto max-w-6xl px-4 py-4">
       <Link className="wb-link mb-4 inline-block" href={`/p/${encodeURIComponent(id)}/settings/migrations`}>Migrations</Link>
-      <RepoSettings settings={result.data} submission={result.data.proposalSubmission} />
+      <RepoSettings settings={result.data} submission={result.data.proposalSubmission} reviewThreads={result.data.reviewThreads} />
     </main>
   );
 }

@@ -206,13 +206,92 @@ function PipelineEditor({ settings, endpoint, submission }: { settings: Settings
   );
 }
 
-export function RepoSettings({ settings, submission }: { settings: Settings; submission: SubmissionAvailability }) {
+type ReviewThreadPolicy = Awaited<ReturnType<typeof import("@/lib/workbox/review-thread-settings").readReviewThreadPolicy>>;
+type ActiveReviewThreads = { ok: true; base: { branch: string; commit: string }; required: boolean } | Extract<ReviewThreadPolicy, { ok: false }>;
+type ThreadPreview = {
+  base: { branch: string; commit: string };
+  actor: string | null;
+  digest: string;
+  file: { path: string; before: string; after: string };
+  proposalSubmission: SubmissionAvailability;
+};
+
+function ReviewThreadSettings({ active, endpoint }: { active: ActiveReviewThreads; endpoint: string }) {
+  const [required, setRequired] = useState(active.ok && active.required);
+  const [preview, setPreview] = useState<(ThreadPreview & { operationId: string }) | null>(null);
+  const [published, setPublished] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<SettingsError | null>(null);
+
+  async function review() {
+    setPending(true);
+    setError(null);
+    setPreview(null);
+    const result = await request<ThreadPreview>(endpoint, { action: "review_threads_preview", required });
+    if (result.ok) setPreview({ ...result.data, operationId: crypto.randomUUID() });
+    else setError(result.error);
+    setPending(false);
+  }
+
+  async function submit() {
+    if (!preview) return;
+    const { base, actor, digest, operationId } = preview;
+    setPending(true);
+    setError(null);
+    const result = await request<{ href: string }>(endpoint, {
+      action: "review_threads_submit", required, base, actor, digest, operationId, confirmed: true,
+    });
+    if (result.ok) {
+      setPublished(result.data.href);
+      setPreview(null);
+    } else setError(result.error);
+    setPending(false);
+  }
+
+  return (
+    <section aria-labelledby="repo-review-threads" className="space-y-3">
+      <h2 id="repo-review-threads" className="text-base font-semibold">Merge requirements</h2>
+      <div className="wb-panel space-y-3 p-4 text-sm">
+        {active.ok ? <>
+          <p>Active on <strong>{active.base.branch}</strong> · <code title={active.base.commit}>{active.base.commit.slice(0, 12)}</code> · <strong>{active.required ? "Required" : "Optional"}</strong></p>
+          <label className="flex items-center gap-2">
+            <input type="checkbox" checked={required} disabled={pending} onChange={(event) => {
+              setRequired(event.target.checked);
+              setPreview(null);
+              setError(null);
+              setPublished(null);
+            }} />
+            Require all review threads to be resolved before merging
+          </label>
+          <p className="wb-muted">This setting takes effect when the policy proposal is merged.</p>
+          <button type="button" className="wb-btn" disabled={pending || required === active.required || !!published} onClick={review}>Review policy change</button>
+        </> : <p className="wb-muted">{active.error.message}</p>}
+        {preview && <div className="space-y-2">
+          <p><code>{preview.file.path}</code> on <strong>{preview.base.branch}</strong> at <code title={preview.base.commit}>{preview.base.commit.slice(0, 12)}</code></p>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {(["before", "after"] as const).map((side) => <div key={side} className="min-w-0">
+              <p className="font-medium">{side === "before" ? "Committed policy" : "Proposed policy"}</p>
+              <pre tabIndex={0} className="max-h-64 overflow-auto rounded border border-[var(--wb-border)] p-2">{preview.file[side]}</pre>
+            </div>)}
+          </div>
+          {preview.proposalSubmission.reason && <p className="wb-muted">{preview.proposalSubmission.reason}</p>}
+          <button type="button" className="wb-btn" disabled={pending || !preview.proposalSubmission.available} onClick={submit}>Open policy proposal</button>
+        </div>}
+        {error && <RequestError error={error} />}
+        {published && <p role="status">Policy proposal opened. <Link className="wb-link" href={published}>View proposal</Link></p>}
+      </div>
+    </section>
+  );
+}
+
+export function RepoSettings({ settings, submission, reviewThreads }: { settings: Settings; submission: SubmissionAvailability; reviewThreads: ActiveReviewThreads }) {
   const id = encodeURIComponent(settings.details.id);
   const endpoint = `/api/projects/${id}/settings`;
   return (
     <div className="space-y-6">
       <h1 className="text-xl font-semibold">Settings</h1>
       <RepositoryDetails details={settings.details} endpoint={endpoint} />
+      <ReviewThreadSettings key={reviewThreads.ok ? reviewThreads.base.commit : "unavailable"} active={reviewThreads} endpoint={endpoint} />
       <section aria-labelledby="repo-workflows" className="space-y-3">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2 id="repo-workflows" className="text-base font-semibold">Workflows</h2>

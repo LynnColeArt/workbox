@@ -123,3 +123,49 @@ test("Settings browser endpoint and MCP share trigger reads, exact draft review,
   for (const file of files) assert.equal(git("show", submission.data.head + ":" + file.path), file.after);
   assert.deepEqual((await browser({ action: "triggers_read" })).data, read);
 });
+
+test("review thread policy uses the same active value, confirmed edit and retry over HTTP and MCP", {
+  skip: !process.env.WORKBOX_AUTOMATIC_CHECKS_HN,
+  timeout: 45_000,
+}, async t => {
+  const { repo, origin, git, hn, browser, agent } = await settingsFixture(t, process.env.WORKBOX_AUTOMATIC_CHECKS_HN);
+  hn("init", "--name", "Settings Fixture");
+  const { actor } = JSON.parse(hn("identity", "show", "--json")).data;
+  mkdirSync(join(repo, ".hn"), { recursive: true });
+  const before = JSON.stringify({ version: "hn.policy/0", maintainers: [actor],
+    proposals: { requiredApprovals: 0, requiredAccepts: 1 }, pipelines: {} }, null, 2) + "\n";
+  writeFileSync(join(repo, ".hn/policy.json"), before);
+  git("add", ".hn/policy.json");
+  git("commit", "-qm", "Set policy");
+  const refs = git("show-ref");
+  const objects = git("count-objects", "-v");
+  const initial = (await browser()).data.data.reviewThreads;
+  assert.equal(initial.required, false);
+  assert.deepEqual((await agent("workbox_repo_settings")).data.data.reviewThreads, initial);
+  const html = await (await fetch(origin + "/p/repo/settings")).text();
+  assert.match(html, /Require all review threads to be resolved before merging/);
+  const preview = (await browser({ action: "review_threads_preview", required: true })).data;
+  assert.equal(preview.ok, true, JSON.stringify(preview));
+  assert.deepEqual((await agent("workbox_review_thread_policy_preview", { required: true })).data, preview);
+  assert.equal(preview.data.file.before, before);
+  const after = before.replace('"requiredApprovals"', '"requireResolvedReviewThreads": true,\n    "requiredApprovals"');
+  assert.equal(preview.data.file.after, after);
+  assert.equal(git("show-ref"), refs);
+  assert.equal(git("count-objects", "-v"), objects);
+  const draft = { required: true, base: preview.data.base, actor, digest: preview.data.digest,
+    operationId: "thread-policy-parity-1", confirmed: true };
+  assert.equal((await browser({ action: "review_threads_submit", ...draft }, "http://example.invalid")).status, 403);
+  const submitted = (await browser({ action: "review_threads_submit", ...draft })).data;
+  assert.equal(submitted.ok, true, JSON.stringify(submitted));
+  assert.deepEqual((await agent("workbox_review_thread_policy_submit", draft)).data, submitted);
+  assert.equal(git("diff-tree", "--no-commit-id", "--name-only", "-r", submitted.data.head).trim(), ".hn/policy.json");
+  assert.equal(git("show", submitted.data.head + ":.hn/policy.json"), after);
+  assert.deepEqual((await browser()).data.data.reviewThreads, initial);
+  hn("decide", submitted.data.id, "--accept");
+  hn("merge", submitted.data.id);
+  const merged = (await browser()).data.data.reviewThreads;
+  assert.equal(merged.required, true);
+  assert.deepEqual((await agent("workbox_repo_settings")).data.data.reviewThreads, merged);
+  const disable = (await agent("workbox_review_thread_policy_preview", { required: false })).data;
+  assert.equal(disable.data.file.after, after.replace('"requireResolvedReviewThreads": true', '"requireResolvedReviewThreads": false'));
+});

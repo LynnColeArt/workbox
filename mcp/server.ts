@@ -347,6 +347,16 @@ const draftEditInput = {
 
 const TOOLS = [
   ...triggerTools,
+  { name: "workbox_review_thread_policy_preview", description: "Review the exact policy edit for requiring resolved proposal threads. Read the active requirement with workbox_repo_settings.",
+    inputSchema: { type: "object", properties: { project: { type: "string" }, required: { type: "boolean" } },
+      required: ["project", "required"], additionalProperties: false } },
+  { name: "workbox_review_thread_policy_submit", description: "Propose the confirmed review thread policy edit through Hubnot.",
+    inputSchema: { type: "object", properties: {
+      project: { type: "string" }, required: { type: "boolean" }, confirmed: { const: true },
+      actor: { type: "string" }, digest: { type: "string" }, operationId: { type: "string" },
+      base: { type: "object", properties: { branch: { type: "string" }, commit: { type: "string" } },
+        required: ["branch", "commit"], additionalProperties: false },
+    }, required: ["project", "required", "confirmed", "actor", "digest", "operationId", "base"], additionalProperties: false } },
   automaticCheckTool,
   proposalStatusTool,
   ...collaborationTools.map(({ name, description, inputSchema }) => ({ name, description, inputSchema })),
@@ -546,6 +556,8 @@ const TOOLS = [
 ] as const;
 
 const SETTINGS_ACTIONS = new Map([
+  ["workbox_review_thread_policy_preview", "review_threads_preview"],
+  ["workbox_review_thread_policy_submit", "review_threads_submit"],
   ["workbox_proposal_triggers", "triggers_read"],
   ["workbox_review_proposal_triggers", "triggers_preview"],
   ["workbox_submit_proposal_triggers", "triggers_submit"],

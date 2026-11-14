@@ -17,7 +17,7 @@ interface CandidateInput {
 export function prepareSettingsCandidate(repoPath: string, input: CandidateInput): string | null {
   const { base, path, definition, operationId, triggerDefinition } = input;
   const name = /^\.hn\/pipelines\/([^/]+)\.json$/.exec(path)?.[1];
-  if (!isGitObjectId(base) || (!isPipelineName(name) && path !== ".hn/proposal-checks.json") ||
+  if (!isGitObjectId(base) || (!isPipelineName(name) && path !== ".hn/proposal-checks.json" && path !== ".hn/policy.json") ||
       !/^[A-Za-z0-9_-]{16,128}$/.test(operationId)) return null;
 
   let scratch: string | undefined;
@@ -69,7 +69,7 @@ export function prepareSettingsCandidate(repoPath: string, input: CandidateInput
     const timestamp = git(["show", "-s", "--format=%ct", base]);
     if (!timestamp || !/^\d+$/.test(timestamp)) return null;
     env.GIT_AUTHOR_DATE = env.GIT_COMMITTER_DATE = `@${timestamp} +0000`;
-    const head = git(["commit-tree", tree, "-p", base, "--no-gpg-sign"], `Workbox pipeline proposal\n\nOperation: ${operationId}\n`);
+    const head = git(["commit-tree", tree, "-p", base, "--no-gpg-sign"], `Workbox ${path === ".hn/policy.json" ? "policy" : "pipeline"} proposal\n\nOperation: ${operationId}\n`);
     return head && isGitObjectId(head) ? head : null;
   } catch {
     return null;

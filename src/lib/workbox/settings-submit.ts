@@ -1,3 +1,4 @@
+import { editReviewThreadPolicy, readReviewThreadPolicy, reviewPolicyPath, validateReviewThreadPolicy } from "./review-thread-settings";
 import { createHash } from "node:crypto";
 import { setTimeout as delay } from "node:timers/promises";
 import type { DatabaseSync } from "node:sqlite";
@@ -114,6 +115,25 @@ export async function previewTriggerSettings(db: DatabaseSync, projectId: string
   return { ok: true, data: { base: reviewed, actor, digest, files, proposalSubmission } } as const;
 }
 
+export async function previewReviewThreadSettings(db: DatabaseSync, projectId: string, input: Record<string, unknown>) {
+  if (typeof input.required !== "boolean") return failure("invalid_input", "Choose whether to require resolved review threads.");
+  const repo = repositoryPath(db, projectId);
+  if (!repo) return failure("not_found", "Repository not found.");
+  const active = await readReviewThreadPolicy(repo);
+  if (!active.ok) return active;
+  const { base, before, required } = active.data;
+  if (required === input.required) return failure("unchanged", "This setting already matches the active policy.");
+  const after = editReviewThreadPolicy(before, input.required);
+  if (!after || !await validateReviewThreadPolicy(repo, base.commit, after)) {
+    return failure("invalid_input", "Hubnot could not validate the proposed policy.");
+  }
+  const proposalSubmission = await settingsProposalAccess(repo);
+  const { actor } = proposalSubmission;
+  const file = { path: reviewPolicyPath, before, after };
+  const digest = hash(["workbox.review-thread-policy/1", projectId, base, actor, file]);
+  return { ok: true, data: { base, actor, digest, file, proposalSubmission } } as const;
+}
+
 function publicationFailure(code: string | undefined) {
   if (code === "denied" || code === "actor_mismatch") return failure("denied", "Hubnot refused the selected signer or proposal.");
   if (code === "stale_base") return failure("stale_preview", "Refresh the preview before submitting.");
@@ -124,11 +144,11 @@ function publicationFailure(code: string | undefined) {
   return failure("recovery_required", "Workbox could not confirm publication. Retry with the same confirmed preview and operation ID.");
 }
 
-export async function submitSettingsProposal(db: DatabaseSync, projectId: string, input: Record<string, unknown>) {
+export async function submitSettingsProposal(db: DatabaseSync, projectId: string, input: Record<string, unknown>, policyDraft = false) {
   const { operationId, digest, name, definition } = input;
-  const triggerDraft = input.configuration !== undefined;
+  const triggerDraft = !policyDraft && input.configuration !== undefined;
   if (input.confirmed !== true || typeof operationId !== "string" || !/^[A-Za-z0-9_-]{16,128}$/.test(operationId) ||
-      typeof digest !== "string" || !/^[a-f0-9]{64}$/.test(digest) || (!triggerDraft && (!isPipelineName(name) || typeof definition !== "string"))) {
+      typeof digest !== "string" || !/^[a-f0-9]{64}$/.test(digest) || (policyDraft ? typeof input.required !== "boolean" : !triggerDraft && (!isPipelineName(name) || typeof definition !== "string"))) {
     return failure("invalid_input", "Confirm the exact preview and include an operation ID.");
   }
   const repoPath = repositoryPath(db, projectId);
@@ -137,6 +157,7 @@ export async function submitSettingsProposal(db: DatabaseSync, projectId: string
   if (!access.available || !access.actor) {
     if (access.reason !== unavailable.reason) return failure("denied", access.reason ?? "An active Hubnot signing identity is required.");
     if (actorId.safeParse(input.actor).success) return publicationFailure(undefined);
+    if (policyDraft) return failure("unsupported", unavailable.reason);
     const preview = previewPipeline(db, projectId, input);
     if (!preview.ok) return preview;
     return preview.data.digest === digest
@@ -147,12 +168,12 @@ export async function submitSettingsProposal(db: DatabaseSync, projectId: string
   if (input.actor !== actor) return failure("denied", "The current Hubnot signer differs from the confirmed preview.");
   const base = baseSchema.safeParse(input.base);
   if (!base.success) return failure("invalid_input", "Include the base branch and commit from the confirmed preview.");
-  if (!triggerDraft && (typeof definition !== "string" || !validatePipelineDefinition(definition).ok)) return failure("invalid_input", "The pipeline definition needs changes.");
+  if (!policyDraft && !triggerDraft && (typeof definition !== "string" || !validatePipelineDefinition(definition).ok)) return failure("invalid_input", "The pipeline definition needs changes.");
 
   const { branch, commit } = base.data;
   const baseRef = `refs/heads/${branch}`;
-  const title = triggerDraft ? "Update automatic proposal checks" : `Update pipeline ${name}`;
-  const body = `Workbox Settings preview ${hash([projectId, actor, branch, commit, digest, name, definition, ...(triggerDraft ? [input.configuration] : [])])}`;
+  const title = policyDraft ? "Update review thread merge requirement" : triggerDraft ? "Update automatic proposal checks" : `Update pipeline ${name}`;
+  const body = `Workbox Settings preview ${hash([projectId, actor, branch, commit, digest, name, definition, ...(policyDraft ? ["review-thread-policy", input.required] : triggerDraft ? [input.configuration] : [])])}`;
   const lookupArgs = ["proposal", "operation", "--actor", actor, "--operation", operationId, "--json"];
   let head: string | null = null;
   let priorId: string | undefined;
@@ -176,6 +197,14 @@ export async function submitSettingsProposal(db: DatabaseSync, projectId: string
 
     const revision = resolveCodeRevision(repoPath);
     if (revision?.branch !== branch || revision.commit !== commit) continue;
+    if (policyDraft) {
+      const preview = await previewReviewThreadSettings(db, projectId, input);
+      if (!preview.ok) return preview;
+      if (preview.data.base.branch !== branch || preview.data.base.commit !== commit || preview.data.digest !== digest) continue;
+      head = prepareSettingsCandidate(repoPath, { base: commit, path: reviewPolicyPath, definition: preview.data.file.after, operationId });
+      if (!head) return failure("unavailable", "Workbox could not prepare the exact candidate.");
+      break;
+    }
     if (triggerDraft) {
       const preview = await previewTriggerSettings(db, projectId, input);
       if (!preview.ok) return preview;
