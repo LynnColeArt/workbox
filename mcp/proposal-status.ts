@@ -1,3 +1,4 @@
+import { readProposalMaintenance } from "../src/lib/workbox/proposal-maintenance";
 import { z } from "zod";
 import { createProposalReader, isFullProposalId } from "../src/lib/hn/proposal-read";
 import { openDb } from "../src/lib/workbox/db";
@@ -46,9 +47,10 @@ export async function proposalStatusForProject(args: unknown) {
       return { ok: true, data: { kind: detail.kind, requested, incomplete: detail.incomplete,
         choices: detail.candidates.map(({ id, title, head }) => ({ id, title, head, href: href(id) })) } };
     }
-    const [status, checks] = await Promise.all([
+    const [status, checks, maintenance] = await Promise.all([
       projectProposalStatus(detail.candidate, detail.related, detail.incomplete, reader),
       readAutomaticProposalChecks(repo.repoPath, detail.candidate.id),
+      detail.candidate.status ? readProposalMaintenance(repo.repoPath, detail.candidate.id) : null,
     ]);
     const automaticChecks = checks.ok ? {
       availability: checks.data.value.availability,
@@ -61,7 +63,7 @@ export async function proposalStatusForProject(args: unknown) {
         ),
       })),
     } : null;
-    return { ok: true, data: { kind: detail.kind, requested, ...status, automaticChecks, href: href(status.id) } };
+    return { ok: true, data: { kind: detail.kind, requested, ...status, automaticChecks, maintenance, href: href(status.id) } };
   } catch {
     return { ok: false, error: { code: "unavailable", message: "Proposal revision unavailable." } };
   }

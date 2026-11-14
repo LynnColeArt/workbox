@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { applyProposalMaintenance } from "../src/lib/workbox/proposal-maintenance";
 import { nativeInline } from "../src/lib/workbox/native-inline";
 import { proposalStatusForProject, proposalStatusTool } from "./proposal-status";
 import { automaticCheckTool, automaticChecksForProject } from "./proposal-checks";
@@ -166,7 +167,22 @@ const collaborationTools = [...nativeInlineTools, ...issueTools, ...discussionTo
       typeof args.commitPage === "number" ? args.commitPage : undefined,
       typeof args.fileCommitPage === "number" ? args.fileCommitPage : undefined) };
   },
-}];
+}, ...(["accept", "merge"] as const).map(action => ({
+  name: `workbox_${action}_proposal`,
+  description: `Confirm ${action} for an exact native proposal revision. Read permissions and target in workbox_proposal_status.`,
+  inputSchema: {
+    type: "object", properties: {
+      project: { type: "string" }, candidate: { type: "string" }, actor: { type: "string" },
+      confirmed: { const: true },
+      ...(action === "merge" ? { target: { type: "object", properties: { branch: { type: "string" }, commit: { type: "string" } }, required: ["branch", "commit"], additionalProperties: false } } : {}),
+    },
+    required: ["project", "candidate", "actor", "confirmed", ...(action === "merge" ? ["target"] : [])],
+    additionalProperties: false,
+  },
+  call({ project, candidate, ...input }: Record<string, unknown>) {
+    return applyProposalMaintenance(typeof project === "string" ? project : "", typeof candidate === "string" ? candidate : "", { ...input, action });
+  },
+}))];
 const collaborationHandlers = new Map(collaborationTools.map(tool => [tool.name, tool.call]));
 
 const HERE = dirname(fileURLToPath(import.meta.url));

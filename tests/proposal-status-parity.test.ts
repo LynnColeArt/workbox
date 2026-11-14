@@ -327,3 +327,66 @@ test("native thread resolution changes exact merge blockers in Workbox and over 
   post("--operation", "reopen", "--reply-to", thread, "--state", "open");
   await verify(true);
 });
+
+test("native acceptance and merge share exact revision permissions over browser and MCP", {
+  skip: !process.env.WORKBOX_AUTOMATIC_CHECKS_HN,
+  timeout: 60_000,
+}, async t => {
+  const { repo, origin, git, hn, agent } = await statusFixture(t, process.env.WORKBOX_AUTOMATIC_CHECKS_HN!);
+  hn("init", "--name", "Maintainer");
+  const { actor } = JSON.parse(hn("identity", "show", "--json")).data;
+  mkdirSync(join(repo, ".hn"), { recursive: true });
+  writeFileSync(join(repo, ".hn", "policy.json"), JSON.stringify({
+    version: "hn.policy/0", maintainers: [actor],
+    proposals: { requiredApprovals: 0, requiredAccepts: 1, requireResolvedReviewThreads: true }, pipelines: {},
+  }));
+  git("add", ".hn/policy.json");
+  git("commit", "-qm", "Set policy");
+  const base = git("rev-parse", "HEAD").trim();
+  git("switch", "-qc", "topic");
+  writeFileSync(join(repo, "README.md"), "Updated\n");
+  git("commit", "-qam", "Update README");
+  const head = git("rev-parse", "HEAD").trim();
+  git("switch", "-q", "trunk");
+  const { id: candidate } = JSON.parse(hn("proposal", "publish", "--base", base, "--base-ref", "refs/heads/trunk",
+    "--head", head, "--actor", actor, "--operation", "maintain-parity", "--title", "Maintain proposal", "--json")).data;
+  const post = (...args: string[]) => JSON.parse(hn("proposal", "inline-post", "--actor", actor, "--path", "README.md",
+    "--side", "RIGHT", "--line", "1", ...args, "--json", candidate)).data;
+  const { id: thread } = post("--operation", "post", "--body", "Resolve before merging");
+  const page = origin + "/p/repo/proposals/" + encodeURIComponent(candidate);
+  const endpoint = origin + "/api/projects/repo/proposals/" + encodeURIComponent(candidate) + "/maintain";
+  const status = async () => (await agent("workbox_proposal_status", { candidate })).data.data;
+  const browser = async (input: object, requestOrigin = origin) => {
+    const response = await fetch(endpoint, { method: "POST", headers: { "content-type": "application/json", origin: requestOrigin }, body: JSON.stringify(input) });
+    return { status: response.status, data: await response.json() };
+  };
+  const confirmed = { actor, confirmed: true };
+  const accept = { action: "accept", ...confirmed };
+  const initial = await status();
+  assert.equal(initial.maintenance.accept, true);
+  assert.equal(initial.maintenance.merge, false);
+  assert.match(await (await fetch(page)).text(), /Accept revision/);
+  assert.equal((await browser(accept, "http://example.invalid")).status, 403);
+  assert.equal((await agent("workbox_accept_proposal", { candidate, ...confirmed, actor: "0".repeat(64) })).data.error.code, "actor_mismatch");
+  const accepted = await browser(accept);
+  assert.equal(accepted.status, 200, JSON.stringify(accepted));
+  assert.deepEqual((await agent("workbox_accept_proposal", { candidate, ...confirmed })).data, accepted.data);
+  const target = { branch: "trunk", commit: base };
+  const merge = { action: "merge", ...confirmed, target };
+  assert.equal((await browser(merge)).status, 409);
+  assert.equal((await agent("workbox_merge_proposal", { candidate, ...confirmed, target })).data.error.code, "stale_revision");
+  assert.equal(git("rev-parse", "HEAD").trim(), base);
+  post("--operation", "resolve", "--reply-to", thread, "--state", "resolved");
+  assert.equal((await status()).maintenance.merge, true);
+  writeFileSync(join(repo, "dirty.txt"), "dirty");
+  assert.match((await status()).maintenance.merge_blocker, /clean/);
+  assert.equal((await browser(merge)).status, 409);
+  rmSync(join(repo, "dirty.txt"));
+  const stale = { ...target, commit: head };
+  assert.equal((await agent("workbox_merge_proposal", { candidate, ...confirmed, target: stale })).data.error.code, "stale_revision");
+  const merged = await browser(merge);
+  assert.equal(merged.status, 200, JSON.stringify(merged));
+  assert.equal(git("rev-parse", "HEAD").trim(), merged.data.data.commit);
+  assert.deepEqual((await agent("workbox_merge_proposal", { candidate, ...confirmed, target })).data, merged.data);
+  assert.equal((await status()).merge.recorded, true);
+});

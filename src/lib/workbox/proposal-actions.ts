@@ -38,7 +38,7 @@ function reviewAvailability(status: ProposalStatus, identity: ProposalIdentity |
   };
 }
 
-export function getProposalActions(checks: ProposalChecksModel, identity: ProposalIdentity | null): ProposalActions {
+export function getProposalActions(checks: ProposalChecksModel, identity: ProposalIdentity | null, nativeMaintenance = false): ProposalActions {
   if (checks.kind === "unavailable") {
     return {
       review: { available: false, detail: "Workbox needs Hubnot’s evaluation of this exact revision before enabling review." },
@@ -107,7 +107,7 @@ export function getProposalActions(checks: ProposalChecksModel, identity: Propos
     }
   }
 
-  if (observed.acceptance.met && !decisions.accepted) {
+  if (observed.acceptance.met && !decisions.accepted && !nativeMaintenance) {
     handoffs.push({
       title: "Get maintainer acceptance",
       detail: maintainer
@@ -116,10 +116,13 @@ export function getProposalActions(checks: ProposalChecksModel, identity: Propos
       command: "hn decide",
     });
   }
+  if (nativeMaintenance && !decisions.accepted) {
+    handoffs.push({ title: "Maintainer acceptance required", detail: `${decisions.accept_deficit} more acceptance(s) needed for this revision.` });
+  }
   if (decisions.accepted && !observed.merge.evidence_ready) {
     handoffs.push({ title: "Restore evidence before merging", detail: "Acceptance is recorded. The current evidence requirements must be met before merging." });
   }
-  if (observed.merge.met) {
+  if (observed.merge.met && !nativeMaintenance) {
     handoffs.push({
       title: "Hand off the merge",
       detail: maintainer

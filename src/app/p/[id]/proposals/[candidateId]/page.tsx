@@ -1,3 +1,4 @@
+import { readProposalMaintenance } from "@/lib/workbox/proposal-maintenance";
 import { nativeInline } from "@/lib/workbox/native-inline";
 import { inlineReviewThreads } from "@/lib/workbox/inline-review-threads";
 import Link from "next/link";
@@ -91,10 +92,11 @@ export default async function ProposalDetailPage({
   }
 
   const checks = getProposalChecks(candidate.status);
-  const [identity, conversation, automaticChecks] = await Promise.all([
+  const [identity, conversation, automaticChecks, maintenance] = await Promise.all([
     candidate.status ? reader.identity() : null,
     view === "conversation" ? readProposalConversation(db, project, candidate, related, reader) : null,
     view === "checks" ? readAutomaticProposalChecks(project.repoPath, candidate.id) : null,
+    candidate.status ? readProposalMaintenance(project.repoPath, candidate.id) : null,
   ]);
   const comparison = view === "files"
     ? readProposalComparison(project.repoPath, candidate, typeof query.file === "string" ? query.file : undefined, true)
@@ -112,7 +114,7 @@ export default async function ProposalDetailPage({
       <Link className="wb-link text-sm" href={listHref}>Back to proposals</Link>
       <ProposalDetailHeader projectId={projectId} candidate={candidate} related={related} view={view} incomplete={incomplete} />
       <ProposalStageSummary checks={checks} />
-      <ProposalNextActions projectId={projectId} checks={checks} identity={identity?.ok ? identity.value : null} />
+      <ProposalNextActions projectId={projectId} checks={checks} maintenance={maintenance} identity={identity?.ok ? identity.value : null} />
       {conversation && <ProposalConversation projectId={projectId} candidate={candidate} conversation={conversation} />}
       {view === "checks" && <ProposalChecks checks={checks} projectId={projectId} />}
       {automaticChecks && <AutomaticProposalChecks result={automaticChecks} />}
