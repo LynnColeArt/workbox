@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { proposalDetailHref } from "@/lib/workbox/proposal-detail";
 import type { ProposalChecksModel, ProposalRequirement } from "@/lib/workbox/proposal-checks";
 
 const checkState: Record<ProposalRequirement["state"], string> = {
@@ -21,7 +23,7 @@ export function ProposalStageSummary({ checks }: { checks: ProposalChecksModel }
   );
 }
 
-export function ProposalChecks({ checks }: { checks: ProposalChecksModel }) {
+export function ProposalChecks({ checks, projectId }: { checks: ProposalChecksModel; projectId: string }) {
   if (checks.kind === "unavailable") {
     return (
       <section aria-labelledby="proposal-checks-heading" className="wb-panel p-4">
@@ -36,11 +38,26 @@ export function ProposalChecks({ checks }: { checks: ProposalChecksModel }) {
     <section aria-labelledby="proposal-checks-heading" className="wb-panel p-4">
       <h2 id="proposal-checks-heading" className="font-semibold">Checks</h2>
       <ul className="mt-2 divide-y divide-[var(--wb-border)]">
-        {checks.requirements.map(({ key, label, state, detail, paths }) => (
+        {checks.requirements.map(({ key, label, state, detail, paths, threads }) => (
           <li key={key} className="flex items-start justify-between gap-3 py-3 text-sm">
             <div className="min-w-0">
               <h3 className="font-semibold [overflow-wrap:anywhere]">{label}</h3>
               <p className="wb-muted mt-1">{detail}</p>
+              {threads && threads.length > 0 && (
+                <ul aria-label="Blocking review threads" className="mt-2 space-y-1">
+                  {threads.map((thread) => (
+                    <li key={thread.id} className="wrap-anywhere">
+                      <Link className="wb-link" prefetch={false}
+                        href={proposalDetailHref(projectId, checks.status.id, {
+                          view: "files", file: thread.path, thread: thread.id,
+                        })}>
+                        {thread.path} · {thread.side === "LEFT" ? "Old" : "New"} line {thread.line}
+                      </Link>
+                      <code className="wb-mono wb-muted ml-2 text-xs">{thread.id.slice(7, 19)}</code>
+                    </li>
+                  ))}
+                </ul>
+              )}
               {paths && paths.length > 0 && (
                 <ul aria-label="Changed protected paths" className="wb-mono wb-muted mt-1 space-y-1 text-xs">
                   {paths.map((path) => <li key={path} className="[overflow-wrap:anywhere]">{path}</li>)}

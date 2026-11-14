@@ -45,13 +45,15 @@ const concurrentReads = 4;
 export function proposalDetailHref(
   projectId: string,
   candidateId: string,
-  options: { mode?: ProposalMode; view?: ProposalView } = {},
+  options: { mode?: ProposalMode; view?: ProposalView; file?: string; thread?: string } = {},
 ): string {
   const query = new URLSearchParams();
   if (options.mode === "lineage") query.set("mode", "lineage");
   if (options.view && options.view !== "conversation") query.set("view", options.view);
+  if (options.file) query.set("file", options.file);
+  const fragment = options.thread ? `#review-thread-${encodeURIComponent(options.thread)}` : "";
   const path = `/p/${encodeURIComponent(projectId)}/proposals/${encodeURIComponent(candidateId)}`;
-  return query.size ? `${path}?${query}` : path;
+  return `${path}${query.size ? `?${query}` : ""}${fragment}`;
 }
 
 function candidateReads(reader: ProposalReader) {

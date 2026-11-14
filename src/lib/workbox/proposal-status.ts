@@ -48,6 +48,7 @@ export async function projectProposalStatus(
     stages: checks.stages,
     blockers: checks.kind === "evaluated" ? checks.blockers : null,
     requirements: checks.kind === "evaluated" ? checks.requirements : null,
+    reviewThreads: status?.requirements.review_threads ?? null,
     reviews: status ? { approvals: status.requirements.reviews.approvals,
       required: status.requirements.reviews.required, deficit: status.requirements.reviews.deficit } : null,
     pipelines: status?.requirements.pipelines.map(({ name, passes, required, deficit, satisfied }) =>

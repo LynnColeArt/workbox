@@ -80,6 +80,14 @@ const proposalStatus = z.object({
       passed: z.array(resultReference),
       failed: z.array(resultReference),
     })),
+    review_threads: z.object({
+      required: z.literal(true),
+      satisfied: z.boolean(),
+      blocking: z.array(z.object({
+        id: fullId, path: z.string().min(1), side: z.enum(["LEFT", "RIGHT"]),
+        line: z.number().int().positive(), actor: actorId,
+      })),
+    }).nullish(),
     protected_checks: evidenceRequirement.extend({
       applies: z.boolean(),
       paths: z.array(z.string()),

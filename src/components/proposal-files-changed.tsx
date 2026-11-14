@@ -102,7 +102,7 @@ export function PatchLines({ text, threads, posting, threadStates }: { text: str
             </td>
           </tr>
           {threads.filter(thread => thread.rowIndex === index).map(thread => (
-            <tr key={thread.id}><td colSpan={3} className="border-y border-[var(--wb-border)] p-3 font-sans text-sm">{threadStates && <p className="mb-2 wb-muted">{threadStates[thread.id] === "resolved" ? "Resolved" : "Open"}</p>}
+            <tr key={thread.id} id={`review-thread-${thread.id}`}><td colSpan={3} className="border-y border-[var(--wb-border)] p-3 font-sans text-sm">{threadStates && <p className="mb-2 wb-muted">{threadStates[thread.id] === "resolved" ? "Resolved" : "Open"}</p>}
               <ReviewThread thread={thread} />
               {posting && thread.anchor.line && thread.anchor.side && thread.comments[0]?.actor === posting.actor && threadStates &&
                 <NativeInlineForm key={threadStates[thread.id]} {...posting} side={thread.anchor.side}

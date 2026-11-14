@@ -275,3 +275,55 @@ test("Workbox and MCP agree on exact failed, restored, and merged revisions", {
   });
   assert.match(await browser("/p/repo/proposals/" + encodeURIComponent(missing)), /Proposal unavailable/);
 });
+
+test("native thread resolution changes exact merge blockers in Workbox and over MCP", {
+  skip: !process.env.WORKBOX_AUTOMATIC_CHECKS_HN,
+  timeout: 60_000,
+}, async t => {
+  const { repo, origin, git, hn, agent } = await statusFixture(t, process.env.WORKBOX_AUTOMATIC_CHECKS_HN!);
+  hn("init", "--name", "Fixture");
+  const { actor } = JSON.parse(hn("identity", "show", "--json")).data;
+  mkdirSync(join(repo, ".hn"), { recursive: true });
+  writeFileSync(join(repo, ".hn", "policy.json"), JSON.stringify({
+    version: "hn.policy/0", maintainers: [actor],
+    proposals: { requiredApprovals: 0, requiredAccepts: 1, requireResolvedReviewThreads: true },
+    pipelines: {},
+  }));
+  git("add", ".hn/policy.json");
+  git("commit", "-qm", "Require resolved review threads");
+  const base = git("rev-parse", "HEAD").trim();
+  git("switch", "-qc", "topic");
+  writeFileSync(join(repo, "README.md"), "Fixture updated\n");
+  git("commit", "-qam", "Update README");
+  const head = git("rev-parse", "HEAD").trim();
+  const { id: candidate } = JSON.parse(hn("proposal", "publish", "--base", base, "--base-ref", "refs/heads/trunk",
+    "--head", head, "--actor", actor, "--operation", "thread-gate", "--title", "Thread gate", "--json")).data;
+  const post = (...args: string[]) => JSON.parse(hn("proposal", "inline-post", "--actor", actor, "--path", "README.md",
+    "--side", "RIGHT", "--line", "1", ...args, "--json", candidate)).data;
+  const { id: thread } = post("--operation", "post", "--body", "Please check this line");
+  const href = `/p/repo/proposals/${encodeURIComponent(candidate)}`;
+  async function verify(blocked: boolean) {
+    const result = await agent("workbox_proposal_status", { candidate });
+    assert.equal(result.data.ok, true, JSON.stringify(result.data));
+    assert.equal(result.data.data.reviewThreads.satisfied, !blocked);
+    assert.deepEqual(result.data.data.reviewThreads.blocking, blocked ? [
+      { id: thread, path: "README.md", side: "RIGHT", line: 1, actor },
+    ] : []);
+    const response = await fetch(origin + href + "?view=checks");
+    assert.equal(response.status, 200);
+    const html = (await response.text()).replace(/<script[^>]*>[\s\S]*?<\/script>/g, "");
+    assert.equal(html.includes("Blocking review threads"), blocked);
+    if (blocked) {
+      const files = href + `?view=files&file=README.md`;
+      assert.ok(html.includes(files.replace("&", "&amp;") + `#review-thread-${encodeURIComponent(thread)}`));
+      const fileResponse = await fetch(origin + files);
+      assert.equal(fileResponse.status, 200);
+      assert.ok((await fileResponse.text()).includes(`id="review-thread-${thread}"`));
+    }
+  }
+  await verify(true);
+  post("--operation", "resolve", "--reply-to", thread, "--state", "resolved");
+  await verify(false);
+  post("--operation", "reopen", "--reply-to", thread, "--state", "open");
+  await verify(true);
+});

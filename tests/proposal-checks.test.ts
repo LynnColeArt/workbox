@@ -50,7 +50,7 @@ const evaluation: ProposalStatus = {
 };
 
 const checksMarkup = (status: ProposalStatus | null) =>
-  renderToStaticMarkup(createElement(ProposalChecks, { checks: getProposalChecks(status) }));
+  renderToStaticMarkup(createElement(ProposalChecks, { checks: getProposalChecks(status), projectId: "repo" }));
 
 const summaryMarkup = (status: ProposalStatus | null) =>
   renderToStaticMarkup(createElement(ProposalStageSummary, { checks: getProposalChecks(status) }));
@@ -168,4 +168,27 @@ test("shows non-applicable protection and leaves readiness and merge preconditio
     },
   };
   assert.match(summaryMarkup(conflicted), /Merge conflict.*recorded a merge.*competing merge/);
+});
+
+test("shows the same blocking thread in proposal status and links to its exact diff", async () => {
+  const { projectProposalStatus } = await import("../src/lib/workbox/proposal-status");
+  const thread = { id: `sha256:${"d".repeat(64)}`, path: "src/file name.ts", side: "RIGHT" as const, line: 17, actor };
+  const status: ProposalStatus = {
+    ...evaluation,
+    requirements: {
+      ...evaluation.requirements,
+      missing: [...evaluation.requirements.missing, "review_threads"],
+      review_threads: { required: true, satisfied: false, blocking: [thread] },
+    },
+  };
+  const candidate = { id, title: status.title, base: commit, head: commit, status, kind: status.kind, body: "", actor, actorName: status.actor_name };
+  const result = await projectProposalStatus(candidate, [], false, {
+    event: async () => { throw new Error("No merge events expected"); },
+  });
+  assert.deepEqual(result.blockers?.find(row => row.key === "review_threads")?.threads, [thread]);
+  assert.deepEqual(result.reviewThreads?.blocking, [thread]);
+  const markup = checksMarkup(status);
+  assert.match(markup, /Blocking review threads/);
+  assert.ok(markup.includes(`/p/repo/proposals/${encodeURIComponent(id)}?view=files&amp;file=src%2Ffile+name.ts#review-thread-${encodeURIComponent(thread.id)}`));
+  assert.match(markup, /src\/file name.ts · New line 17/);
 });

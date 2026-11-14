@@ -114,7 +114,7 @@ export default async function ProposalDetailPage({
       <ProposalStageSummary checks={checks} />
       <ProposalNextActions projectId={projectId} checks={checks} identity={identity?.ok ? identity.value : null} />
       {conversation && <ProposalConversation projectId={projectId} candidate={candidate} conversation={conversation} />}
-      {view === "checks" && <ProposalChecks checks={checks} />}
+      {view === "checks" && <ProposalChecks checks={checks} projectId={projectId} />}
       {automaticChecks && <AutomaticProposalChecks result={automaticChecks} />}
       {comparison && (
         <section className="space-y-2" aria-labelledby="proposal-files-heading">

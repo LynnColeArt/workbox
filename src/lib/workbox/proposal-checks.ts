@@ -9,6 +9,7 @@ export type ProposalRequirement = {
   state: "satisfied" | "missing" | "unknown" | "not-applicable";
   detail: string;
   paths?: readonly string[];
+  threads?: NonNullable<ProposalStatus["requirements"]["review_threads"]>["blocking"];
 };
 
 type ProposalStage = {
@@ -74,6 +75,18 @@ function requirementRows({ requirements }: ProposalStatus): ProposalRequirement[
       paths: protection.changed_paths,
     });
   }
+  const reviewThreads = requirements.review_threads;
+  if (reviewThreads) {
+    const count = reviewThreads.blocking.length;
+    rows.push({
+      key: "review_threads",
+      label: "Resolve review threads",
+      state: requirementState(reviewThreads.satisfied),
+      detail: count === 0 ? "No unresolved threads are blocking this revision."
+        : `${count} unresolved review ${count === 1 ? "thread blocks" : "threads block"} this revision.`,
+      threads: reviewThreads.blocking,
+    });
+  }
   const knownKeys = new Set(rows.map((row) => row.key));
   for (const key of requirements.missing) {
     if (!knownKeys.has(key)) {
@@ -112,6 +125,8 @@ function stageRows(status: ProposalStatus): ProposalStage[] {
     : restriction ?? (observed.merge.met
       ? { state: "Observed merge conditions met", detail: "Based on selected history. Hubnot checks the actor and checkout when merging." }
       : !observed.merge.not_rejected ? { state: "Rejected", detail: "A maintainer rejection blocks merging." }
+      : requirements.review_threads && !requirements.review_threads.satisfied
+        ? { state: "Review threads unresolved", detail: "Resolve the blocking threads in Files changed." }
       : !observed.merge.evidence_ready ? { state: "Waiting for evidence", detail: "This revision needs verified code and sufficient policy evidence." }
       : { state: "Waiting for acceptance", detail: "This revision needs maintainer acceptance." });
   return [
