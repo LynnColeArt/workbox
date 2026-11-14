@@ -102,7 +102,7 @@ export default async function ProposalDetailPage({
 
   const inline = comparison ? await nativeInline(projectId, candidate.id) : null;
   const inlineThreads = inline?.ok ? inlineReviewThreads(inline.data.comments.map(({ id, event }) => ({
-    id, kind: "inline_comment", author: event.actorName || event.actor, body: event.body, date: event.timestamp,
+    id, kind: "inline_comment", actor: event.actor, author: event.actorName || event.actor, body: event.body, date: event.timestamp,
     path: event.inline.path, side: event.inline.side, original_line: event.inline.line,
     original_commit: candidate.id, reply_to: event.inline.replyTo,
   })), candidate.id, comparison?.selectedPath, comparison?.patch?.text, true) : [];
@@ -123,6 +123,7 @@ export default async function ProposalDetailPage({
           <ProposalFilesChanged
             reviewLayout
             inlineThreads={inlineThreads}
+            threadStates={inline?.ok ? inline.data.threadStates : undefined}
             nativeReview={inline?.ok && inline.data.actor && comparison.patch?.status === "available" ? {
               actor: inline.data.actor,
               endpoint: `/api/projects/${encodeURIComponent(projectId)}/proposals/${encodeURIComponent(candidate.id)}/inline`,

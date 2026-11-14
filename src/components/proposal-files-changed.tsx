@@ -19,12 +19,14 @@ export function ProposalFilesChanged({
   reviewLayout = false,
   inlineThreads = [],
   nativeReview,
+  threadStates,
 }: {
   comparison: ProposalComparison;
   detailHref: string;
   reviewLayout?: boolean;
   inlineThreads?: InlineReviewThread[];
   nativeReview?: { endpoint: string; actor: string };
+  threadStates?: Record<string, "open" | "resolved">;
 }) {
   const { files, patch, selectedPath, status } = comparison;
   if (status === "unavailable") {
@@ -65,7 +67,7 @@ export function ProposalFilesChanged({
         )}
         {!patch && files.length > 0 && <p>Select a file to view its patch.</p>}
         {patch && patch.status !== "available" && <p>{patchMessages[patch.status]}</p>}
-        {patch?.text && (reviewLayout ? <PatchLines text={patch.text} threads={inlineThreads} posting={nativeReview && selectedPath ? { ...nativeReview, path: selectedPath } : undefined} /> : (
+        {patch?.text && (reviewLayout ? <PatchLines text={patch.text} threads={inlineThreads} threadStates={threadStates} posting={nativeReview && selectedPath ? { ...nativeReview, path: selectedPath } : undefined} /> : (
           <pre className="wb-panel mt-2 overflow-auto p-3 text-xs">
             <code>{patch.text}</code>
           </pre>
@@ -85,7 +87,7 @@ export function ReviewThread({ thread }: { thread: InlineReviewThread }) {
   </article>;
 }
 
-export function PatchLines({ text, threads, posting }: { text: string; threads: InlineReviewThread[]; posting?: { endpoint: string; actor: string; path: string } }) {
+export function PatchLines({ text, threads, posting, threadStates }: { text: string; threads: InlineReviewThread[]; posting?: { endpoint: string; actor: string; path: string }; threadStates?: Record<string, "open" | "resolved"> }) {
   return <div tabIndex={0} role="region" aria-label="File diff" className="wb-panel overflow-auto">
     <table className="w-full border-collapse text-left font-mono text-xs">
       <thead className="sr-only"><tr><th>Old line</th><th>New line</th><th>Change</th></tr></thead>
@@ -100,7 +102,11 @@ export function PatchLines({ text, threads, posting }: { text: string; threads: 
             </td>
           </tr>
           {threads.filter(thread => thread.rowIndex === index).map(thread => (
-            <tr key={thread.id}><td colSpan={3} className="border-y border-[var(--wb-border)] p-3 font-sans text-sm"><ReviewThread thread={thread} />
+            <tr key={thread.id}><td colSpan={3} className="border-y border-[var(--wb-border)] p-3 font-sans text-sm">{threadStates && <p className="mb-2 wb-muted">{threadStates[thread.id] === "resolved" ? "Resolved" : "Open"}</p>}
+              <ReviewThread thread={thread} />
+              {posting && thread.anchor.line && thread.anchor.side && thread.comments[0]?.actor === posting.actor && threadStates &&
+                <NativeInlineForm key={threadStates[thread.id]} {...posting} side={thread.anchor.side}
+                  line={thread.anchor.line} replyTo={thread.id} state={threadStates[thread.id] === "resolved" ? "open" : "resolved"} />}
               {posting && thread.anchor.line && thread.anchor.side && <NativeInlineForm {...posting} side={thread.anchor.side} line={thread.anchor.line} replyTo={thread.id} />}
             </td></tr>
           ))}

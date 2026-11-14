@@ -3,10 +3,13 @@ import { runHn } from "../hn/runner";
 import { eventId, collaborationError, collaborationProject } from "./collaboration";
 
 const anchor = z.object({ path: z.string().min(1).max(4096).refine(value => !value.includes("\0")), side: z.enum(["LEFT", "RIGHT"]), line: z.number().int().positive(), replyTo: eventId.optional() });
-const listing = z.object({ actor: z.string(), comments: z.array(z.object({
+const listing = z.object({ actor: z.string(), threadStates: z.record(eventId, z.enum(["open", "resolved"])).optional(), comments: z.array(z.object({
   id: eventId, event: z.object({ subject: eventId, actorName: z.string(), actor: z.string(), timestamp: z.string(), body: z.string(), inline: anchor }),
 })) });
-const input = z.strictObject({ ...anchor.shape, actor: z.string().min(1), body: z.string().trim().min(1).max(16384), operation: z.uuid() });
+const commentInput = z.strictObject({ ...anchor.shape, actor: z.string().min(1), body: z.string().trim().min(1).max(16384), operation: z.uuid() });
+
+const stateInput = commentInput.omit({ body: true }).extend({ replyTo: eventId, state: z.enum(["open", "resolved"]) });
+const input = z.union([commentInput, stateInput]);
 
 export function nativeInline(project: string, revision: string): Promise<{ ok: true; data: z.infer<typeof listing> } | ReturnType<typeof collaborationError>>;
 export function nativeInline(project: string, revision: string, raw: unknown): Promise<{ ok: true; data: unknown } | ReturnType<typeof collaborationError>>;
@@ -16,9 +19,11 @@ export async function nativeInline(project: string, revision: string, raw?: unkn
   const args = raw === undefined ? ["inline-list"] : ["inline-post"];
   if (raw !== undefined) {
     const parsed = input.safeParse(raw);
-    if (!parsed.success) return collaborationError("invalid_input", "Provide a line, signer, and comment.");
-    const { path, side, line, actor, body, operation, replyTo } = parsed.data;
-    args.push(`--path=${path}`, `--side=${side}`, `--line=${line}`, `--actor=${actor}`, `--body=${body}`, `--operation=${operation}`);
+    if (!parsed.success) return collaborationError("invalid_input", "Provide a valid anchor, signer, and comment or thread status.");
+    const { path, side, line, actor, operation, replyTo } = parsed.data;
+    args.push(`--path=${path}`, `--side=${side}`, `--line=${line}`, `--actor=${actor}`, `--operation=${operation}`);
+    if ("state" in parsed.data) args.push(`--state=${parsed.data.state}`);
+    else args.push(`--body=${parsed.data.body}`);
     if (replyTo) args.push(`--reply-to=${replyTo}`);
   }
   const result = await runHn(repo.repoPath, ["proposal", ...args, "--json", revision], 30_000, { localRead: raw === undefined, maxOutputBytes: 4 * 1024 * 1024 });

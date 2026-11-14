@@ -4,6 +4,7 @@ export type InlineReview = {
   id: string;
   kind: string;
   author: string;
+  actor?: string;
   body: string;
   date?: string;
   path?: string;

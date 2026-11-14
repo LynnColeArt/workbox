@@ -71,11 +71,12 @@ const nativeInlineTools = [
   },
   {
     name: "workbox_post_proposal_inline_review",
-    description: "Sign a comment or reply on an exact native proposal diff line. Reuse the operation UUID on retry.",
+    description: "Sign a comment, reply, or thread status change on an exact native proposal diff line. Supply body for a comment, or state and replyTo to resolve or reopen a thread. Reuse the operation UUID on retry.",
     inputSchema: { type: "object", properties: { project: { type: "string" }, revision: { type: "string" },
       path: { type: "string" }, side: { enum: ["LEFT", "RIGHT"] }, line: { type: "integer", minimum: 1 },
-      body: { type: "string" }, actor: { type: "string" }, operation: { type: "string" }, replyTo: { type: "string" } },
-      required: ["project", "revision", "path", "side", "line", "body", "actor", "operation"], additionalProperties: false },
+      body: { type: "string" }, state: { enum: ["open", "resolved"] }, actor: { type: "string" }, operation: { type: "string" }, replyTo: { type: "string" } },
+      required: ["project", "revision", "path", "side", "line", "actor", "operation"],
+      oneOf: [{ required: ["body"] }, { required: ["state", "replyTo"] }], additionalProperties: false },
     call: ({ project, revision, ...input }: Record<string, unknown>) => nativeInline(String(project ?? ""), String(revision ?? ""), input),
   },
 ];
