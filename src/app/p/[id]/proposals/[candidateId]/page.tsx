@@ -1,3 +1,5 @@
+import { nativeInline } from "@/lib/workbox/native-inline";
+import { inlineReviewThreads } from "@/lib/workbox/inline-review-threads";
 import Link from "next/link";
 import { connection } from "next/server";
 import { AutomaticProposalChecks, ProposalChecks, ProposalStageSummary } from "@/components/proposal-checks";
@@ -95,8 +97,15 @@ export default async function ProposalDetailPage({
     view === "checks" ? readAutomaticProposalChecks(project.repoPath, candidate.id) : null,
   ]);
   const comparison = view === "files"
-    ? readProposalComparison(project.repoPath, candidate, typeof query.file === "string" ? query.file : undefined)
+    ? readProposalComparison(project.repoPath, candidate, typeof query.file === "string" ? query.file : undefined, true)
     : null;
+
+  const inline = comparison ? await nativeInline(projectId, candidate.id) : null;
+  const inlineThreads = inline?.ok ? inlineReviewThreads(inline.data.comments.map(({ id, event }) => ({
+    id, kind: "inline_comment", author: event.actorName || event.actor, body: event.body, date: event.timestamp,
+    path: event.inline.path, side: event.inline.side, original_line: event.inline.line,
+    original_commit: candidate.id, reply_to: event.inline.replyTo,
+  })), candidate.id, comparison?.selectedPath, comparison?.patch?.text, true) : [];
 
   return (
     <main className="mx-auto max-w-6xl space-y-4 px-4 py-6">
@@ -110,7 +119,14 @@ export default async function ProposalDetailPage({
       {comparison && (
         <section className="space-y-2" aria-labelledby="proposal-files-heading">
           <h2 id="proposal-files-heading" className="text-lg font-semibold">Files changed</h2>
+          {inline && !inline.ok && <p className="wb-muted text-sm">Inline review history is unavailable.</p>}
           <ProposalFilesChanged
+            reviewLayout
+            inlineThreads={inlineThreads}
+            nativeReview={inline?.ok && inline.data.actor && comparison.patch?.status === "available" ? {
+              actor: inline.data.actor,
+              endpoint: `/api/projects/${encodeURIComponent(projectId)}/proposals/${encodeURIComponent(candidate.id)}/inline`,
+            } : undefined}
             comparison={comparison}
             detailHref={proposalDetailHref(projectId, candidate.id, { view })}
           />

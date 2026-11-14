@@ -14,7 +14,7 @@ export type InlineReview = {
   reply_to?: string;
 };
 
-export function inlineReviewThreads(reviews: InlineReview[], head: string, file?: string, patch?: string) {
+export function inlineReviewThreads(reviews: InlineReview[], head: string, file?: string, patch?: string, nativeAnchor = false) {
   const comments = reviews.filter(review => review.kind === "inline_comment");
   const byId = new Map(comments.map(comment => [comment.id, comment]));
   const groups = new Map<string, InlineReview[]>();
@@ -43,8 +43,8 @@ export function inlineReviewThreads(reviews: InlineReview[], head: string, file?
     const original = originalRows[originalIndex];
     const rowIndex = head && anchor.revision === head && anchor.path && anchor.path === file && !root.reply_to
       ? rows.findIndex(row => anchor.line !== null && position(row) === anchor.line &&
-        (anchor.side === "RIGHT" ? (!original || original.line === row.line) :
-          !!root.diff_hunk && !!patch?.includes(root.diff_hunk) && original?.line === row.line))
+        (nativeAnchor || (anchor.side === "RIGHT" ? (!original || original.line === row.line) :
+          !!root.diff_hunk && !!patch?.includes(root.diff_hunk) && original?.line === row.line)))
       : -1;
     return { id, anchor, originalHunk: root.diff_hunk ?? null, comments: [root, ...comments.filter(comment => comment.id !== id)],
       originalRowIndex: originalIndex < 0 ? null : originalIndex, rowIndex: rowIndex < 0 ? null : rowIndex };

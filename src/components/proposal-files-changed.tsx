@@ -1,3 +1,4 @@
+import { NativeInlineForm } from "./native-inline-form";
 import { Fragment } from "react";
 import { patchLines } from "@/lib/workbox/patch-lines";
 import type { InlineReviewThread } from "@/lib/workbox/inline-review-threads";
@@ -17,11 +18,13 @@ export function ProposalFilesChanged({
   detailHref,
   reviewLayout = false,
   inlineThreads = [],
+  nativeReview,
 }: {
   comparison: ProposalComparison;
   detailHref: string;
   reviewLayout?: boolean;
   inlineThreads?: InlineReviewThread[];
+  nativeReview?: { endpoint: string; actor: string };
 }) {
   const { files, patch, selectedPath, status } = comparison;
   if (status === "unavailable") {
@@ -62,7 +65,7 @@ export function ProposalFilesChanged({
         )}
         {!patch && files.length > 0 && <p>Select a file to view its patch.</p>}
         {patch && patch.status !== "available" && <p>{patchMessages[patch.status]}</p>}
-        {patch?.text && (reviewLayout ? <PatchLines text={patch.text} threads={inlineThreads} /> : (
+        {patch?.text && (reviewLayout ? <PatchLines text={patch.text} threads={inlineThreads} posting={nativeReview && selectedPath ? { ...nativeReview, path: selectedPath } : undefined} /> : (
           <pre className="wb-panel mt-2 overflow-auto p-3 text-xs">
             <code>{patch.text}</code>
           </pre>
@@ -82,7 +85,7 @@ export function ReviewThread({ thread }: { thread: InlineReviewThread }) {
   </article>;
 }
 
-export function PatchLines({ text, threads }: { text: string; threads: InlineReviewThread[] }) {
+export function PatchLines({ text, threads, posting }: { text: string; threads: InlineReviewThread[]; posting?: { endpoint: string; actor: string; path: string } }) {
   return <div tabIndex={0} role="region" aria-label="File diff" className="wb-panel overflow-auto">
     <table className="w-full border-collapse text-left font-mono text-xs">
       <thead className="sr-only"><tr><th>Old line</th><th>New line</th><th>Change</th></tr></thead>
@@ -91,10 +94,15 @@ export function PatchLines({ text, threads }: { text: string; threads: InlineRev
           <tr className={kind === "+" ? "bg-green-950/70" : kind === "-" ? "bg-red-950/70" : kind === "hunk" ? "bg-blue-950/60" : ""}>
             <td className="wb-muted select-none px-2 text-right tabular-nums">{oldLine}</td>
             <td className="wb-muted select-none px-2 text-right tabular-nums">{newLine}</td>
-            <td className="w-full whitespace-pre px-3 py-0.5"><code>{line}</code></td>
+            <td className="w-full whitespace-pre px-3 py-0.5"><code>{line}</code>
+            {posting && oldLine !== null && <NativeInlineForm {...posting} side="LEFT" line={oldLine} />}
+            {posting && newLine !== null && <NativeInlineForm {...posting} side="RIGHT" line={newLine} />}
+            </td>
           </tr>
           {threads.filter(thread => thread.rowIndex === index).map(thread => (
-            <tr key={thread.id}><td colSpan={3} className="border-y border-[var(--wb-border)] p-3 font-sans text-sm"><ReviewThread thread={thread} /></td></tr>
+            <tr key={thread.id}><td colSpan={3} className="border-y border-[var(--wb-border)] p-3 font-sans text-sm"><ReviewThread thread={thread} />
+              {posting && thread.anchor.line && thread.anchor.side && <NativeInlineForm {...posting} side={thread.anchor.side} line={thread.anchor.line} replyTo={thread.id} />}
+            </td></tr>
           ))}
         </Fragment>
       ))}</tbody>

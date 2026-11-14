@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { nativeInline } from "../src/lib/workbox/native-inline";
 import { proposalStatusForProject, proposalStatusTool } from "./proposal-status";
 import { automaticCheckTool, automaticChecksForProject } from "./proposal-checks";
 import { triggerTools } from "./pipeline-triggers";
@@ -60,7 +61,26 @@ const importedPullRequestsTool = {
   },
 };
 
-const collaborationTools = [...issueTools, ...discussionTools, {
+const nativeInlineTools = [
+  {
+    name: "workbox_list_proposal_inline_reviews",
+    description: "Read signed inline comments on an exact native proposal revision.",
+    inputSchema: { type: "object", properties: { project: { type: "string" }, revision: { type: "string" } },
+      required: ["project", "revision"], additionalProperties: false },
+    call: (args: Record<string, unknown>) => nativeInline(String(args.project ?? ""), String(args.revision ?? "")),
+  },
+  {
+    name: "workbox_post_proposal_inline_review",
+    description: "Sign a comment or reply on an exact native proposal diff line. Reuse the operation UUID on retry.",
+    inputSchema: { type: "object", properties: { project: { type: "string" }, revision: { type: "string" },
+      path: { type: "string" }, side: { enum: ["LEFT", "RIGHT"] }, line: { type: "integer", minimum: 1 },
+      body: { type: "string" }, actor: { type: "string" }, operation: { type: "string" }, replyTo: { type: "string" } },
+      required: ["project", "revision", "path", "side", "line", "body", "actor", "operation"], additionalProperties: false },
+    call: ({ project, revision, ...input }: Record<string, unknown>) => nativeInline(String(project ?? ""), String(revision ?? ""), input),
+  },
+];
+
+const collaborationTools = [...nativeInlineTools, ...issueTools, ...discussionTools, {
   name: "workbox_list_proposals",
   description: "Read visible Hubnot proposal lineages with the same continuation as the Proposals tab.",
   inputSchema: {
