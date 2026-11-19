@@ -62,8 +62,13 @@ test("dashboard preserves latest activity rank, rolling source counts, and feed 
   event("two", 2, "2026-07-11T02:00:00Z", false);
   event("two", 3, "2026-07-11T04:00:01Z");
   feed("one", signed, "2026-07-10T23:30:00Z", "Opened issue");
+  // recentActivity only surfaces feed rows backed by verified signed events
+  // (recentActivity requires `events.verified = 1`), so each of the existing
+  // feed rows needs a canonical event id with genuine verified backing.
   for (let i = 0; i < 12; i++) {
-    feed("two", `feed-${i}`, `2026-06-01T00:00:${String(i).padStart(2, "0")}Z`, `Feed ${i}`);
+    const timestamp = `2026-06-01T00:00:${String(i).padStart(2, "0")}Z`;
+    const backed = event("two", 100 + i, timestamp);
+    feed("two", backed, timestamp, `Feed ${i}`);
   }
 
   db.exec("BEGIN");
@@ -78,7 +83,7 @@ test("dashboard preserves latest activity rank, rolling source counts, and feed 
   assert.equal(dashboard.projects[0].latestSource, "hubnot");
   assert.equal(dashboard.visual.maxCount, 3);
   assert.equal(dashboard.summary.projects, 4);
-  assert.equal(dashboard.summary.verified, 2);
+  assert.equal(dashboard.summary.verified, 14);
   assert.equal(dashboard.exploreHref, "/explore");
   assert.equal(dashboard.feed.length, 12);
   assert.equal(dashboard.feed[0].summary, "Opened issue");
@@ -88,8 +93,8 @@ test("dashboard preserves latest activity rank, rolling source counts, and feed 
   const svg = renderDashboardSvg(dashboard);
   assert.match(svg, /A &lt;project&gt;/);
   assert.ok(svg.indexOf("A &lt;project&gt;") < svg.indexOf(">Second<"));
-  assert.match(svg, /2 Git · 1 Hubnot/);
-  assert.match(svg, /0 Git · 0 Hubnot/);
+  assert.match(svg, /2 Git \u00b7 1 Hubnot/);
+  assert.match(svg, /0 Git \u00b7 0 Hubnot/);
   assert.match(svg, /Verified Hubnot events/);
   assert.match(svg, /fill="#3fb950"/);
   assert.match(svg, /fill="#4493f8"/);
@@ -146,7 +151,7 @@ test("empty, quiet, and incomplete histories have distinct data and visuals", as
   assert.ok(!JSON.stringify(incomplete).includes(root));
   const svg = renderDashboardSvg(incomplete);
   assert.match(svg, /History incomplete/);
-  assert.match(svg, /≥1 Git · unknown Hubnot/);
+  assert.match(svg, /\u22651 Git \u00b7 unknown Hubnot/);
   const png = await renderDashboardPng(incomplete);
   assert.equal(png.subarray(0, 8).toString("hex"), "89504e470d0a1a0a");
   assert.equal(png.readUInt32BE(16), 920);

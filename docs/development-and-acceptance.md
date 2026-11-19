@@ -24,6 +24,8 @@ Scope: first-party development workflow, supported commands, and the acceptance 
 | `WORKBOX_MARKDOWN_PARITY_TEST`, `WORKBOX_ISSUES_PARITY_TEST`, `WORKBOX_COLLABORATION_JOURNEYS_TEST` | parity suites | Enable the browser and MCP parity suites. |
 | `WORKBOX_PLAYWRIGHT_MODULE`, `WORKBOX_CHROME_BIN` | browser parity suites | Headless browser used by the parity suites. |
 
+Proposal comparison requires Git 2.39 or newer; the current baseline is validated with Git 2.39.5 and Node.js 24.20.0. Historical `.gitattributes` are read from the reviewed head tree in a private work tree with replacement objects disabled. If that historical attribute context cannot be built, comparison returns `unavailable` rather than reporting binary or zero statistics.
+
 ## Supported commands
 
 These are commands supported by the pinned package scripts and test layout. Distinguish procedures from run evidence: a procedure is something a contributor can execute; evidence is a recorded result of actually running commands in a stated environment.
