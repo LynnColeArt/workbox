@@ -1,12 +1,16 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { parseWorkboxAddress } from "@/lib/workbox/address";
+
+export const instant = false;
 
 export default async function OpenAddressPage({
   searchParams,
 }: {
   searchParams: Promise<{ address?: string | string[] }>;
 }) {
+  await connection();
   const { address } = await searchParams;
   const input = Array.isArray(address) ? address[0] : address;
   const result = input ? parseWorkboxAddress(input) : null;

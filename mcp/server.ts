@@ -20,7 +20,7 @@ import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { openDb } from "../src/lib/workbox/db";
 import {
-  listProjects, getProject, projectOverview, listIssues,
+  listProjects, getProject, projectOverview,
   issueComments, recentActivity,
 } from "../src/lib/workbox/queries";
 import { issueResult, legacyCommentIssue, legacyCreateIssue, readIssueList, readIssueDetail } from "../src/lib/workbox/issues";
@@ -42,6 +42,7 @@ import { runMigrationOperation } from "../src/lib/workbox/migrations";
 import { readGitHubPullRequests, readPullRequestDetail } from "../src/lib/workbox/github-pull-requests";
 import { issueTools } from "./issues";
 import { discussionTools } from "./discussions";
+import { listResources, readResource } from "./resources";
 
 const importedPullRequestsTool = {
   description: "List locally imported pull requests. Choose open or closed history.",
@@ -637,59 +638,12 @@ async function parityContent({ data, renderImage }: ParityRead): Promise<Json[]>
 // ---------------------------------------------------------------- resources
 
 /**
- * workbox:// URI scheme (Mini's design, adopted 2026-11-11):
- *   workbox://project/<slug>                    — project overview
- *   workbox://project/<slug>/task/WP-88         — issue by stable number
- *   workbox://project/<slug>/memory             — signed memory stream
- *   workbox://project/<slug>/pipelines          — CI definitions + trust
- * Friendly identifiers resolve to canonical objects here; every read is
- * authorized against the local projection as usual, a URI is never proof
- * of permission. Sanitizer still gates all output.
+ * workbox:// URIs are resolved by the shared address resolver
+ * (src/lib/workbox/address.ts) and read through the current native Hubnot
+ * read services (src/lib/workbox/address-read.ts). Dashboard, explore,
+ * project, code, issue and proposal addresses are served; the retired
+ * memory and pipeline addresses fail instead of reading the local index.
  */
-function resourcesList(): Promise<Json[]> {
-  const db = openDb();
-  const out: Json[] = [];
-  for (const p of listProjects(db)) {
-    out.push({
-      uri: `workbox://project/${p.id}`,
-      name: p.name,
-      description: p.description,
-      mimeType: "application/json",
-    });
-    out.push({ uri: `workbox://project/${p.id}/memory`, name: `${p.name} — memory`, mimeType: "application/json" });
-    out.push({ uri: `workbox://project/${p.id}/pipelines`, name: `${p.name} — pipelines`, mimeType: "application/json" });
-    for (const i of listIssues(db, p.id)) {
-      if (i.number === null) continue;
-      out.push({
-        uri: `workbox://project/${p.id}/task/WP-${i.number}`,
-        name: `#${i.number} ${i.title}`,
-        mimeType: "application/json",
-      });
-    }
-  }
-  return Promise.resolve(out);
-}
-
-async function resourceRead(uri: string): Promise<Json[]> {
-  const m = /^workbox:\/\/project\/([A-Za-z0-9._-]+)(?:\/(memory|pipelines|task\/WP-(\d+)))?$/.exec(uri);
-  if (!m) throw new Error(`unrecognized uri '${uri}' (workbox://project/<slug>[/memory|/pipelines|/task/WP-N])`);
-  const slug = m[1];
-  const db = openDb();
-  const p = getProject(db, slug);
-  if (!p) throw new Error(`unknown project '${slug}'`);
-  if (m[2] === "memory") {
-    const ms = await toolMemories({ project: slug });
-    return [{ uri, mimeType: "application/json", text: JSON.stringify(ms, null, 2) }];
-  }
-  if (m[2] === "pipelines") {
-    return [{ uri, mimeType: "application/json", text: JSON.stringify(await toolPipelines({ project: slug }), null, 2) }];
-  }
-  if (m[3]) {
-    return [{ uri, mimeType: "application/json", text: JSON.stringify(await toolIssue({ project: slug, number: Number(m[3]) }), null, 2) }];
-  }
-  const o = projectOverview(db, slug)!;
-  return [{ uri, mimeType: "application/json", text: JSON.stringify({ ...o, repoPath: undefined }, null, 2) }];
-}
 
 // ---------------------------------------------------------------- json-rpc
 
@@ -723,13 +677,15 @@ async function handle(msg: Json): Promise<void> {
     return;
   }
   if (method === "resources/list") {
-    rpcResult(id, { resources: await resourcesList() });
+    using db = openDb();
+    rpcResult(id, { resources: listResources(db) });
     return;
   }
   if (method === "resources/read") {
     const params = (msg.params ?? {}) as { uri?: string };
+    using db = openDb();
     try {
-      rpcResult(id, { contents: await resourceRead(String(params.uri ?? "")) });
+      rpcResult(id, { contents: [await readResource(db, String(params.uri ?? ""))] });
     } catch (e) {
       rpcError(id, -32602, (e as Error).message);
     }
