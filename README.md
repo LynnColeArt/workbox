@@ -1,88 +1,42 @@
 # Workbox
 
-A communal room for hubnot projects — a GitHub-shaped portal over hubnot
-repositories. Trust is rendered, not hidden: every fact shown here is a
-signed event chain carried by Git, verified against the identity invariant
-before display.
+Workbox is a local web application for reviewing Hubnot projects: Git repositories that carry signed collaboration events. It presents a dashboard of project activity, an explore and code browser, issues and discussions, proposals with conversation and review, pipelines and CI, project memories, and a migration surface for importing history from other systems.
 
-## What it is
+## Authority model
 
-- **Discovery**: scans a projects root for repos carrying hubnot signed
-  facts (`refs/hn/actors/*`; private identity state counts as initialized).
-  Override the root with `WORKBOX_PROJECTS_ROOT`.
-- **Read model**: an indexer walks every actor chain, verifies each event
-  (id digest, key→actor binding, Ed25519 signature), and projects issues,
-  comments, conflicts, and an activity feed into a local SQLite database.
-  The database is a cache, never a record — delete it and re-index freely.
-- **UI**: dashboard (cross-project activity, the living front page),
-  project pages (GitHub-familiar issue lists), and issue pages with the
-  full signed event chain and per-event verification badges.
-- **Write path (v1 planned)**: mutations flow through the real `hn` CLI,
-  using its documented `{ok,data,error}` envelope contract — never prose.
+Workbox is a read-and-review layer over externally owned records.
 
-## Layout
+1. **Git is the authority for object and ref history.** Durable facts are Git objects. Signed collaboration events are anchored as commits under `refs/hn/actors/*` and `refs/hn/memory/*` (`src/lib/hn/gitread.ts`), and reads re-verify them walk by walk (`src/lib/workbox/read.ts`). Denied or failed operations must leave refs unchanged; `tests/collaboration-native.test.ts` asserts this against the native binary.
 
-- `src/lib/hn/` — the hubnot port: adapter (CLI runner), git reader,
-  signature verifier. Nothing outside this folder touches hubnot storage.
-- `src/lib/workbox/` — discovery, index writer, UI queries, event schema.
-- `scripts/seed-demo.sh` — seeds a genuine demo repo via the real CLI.
-- `scripts/index.ts` — index + proof run (prints verified counts, the
-  projected board, and the live feed).
-- `scripts/init-all-repos.sh` — idempotent `hn init` across a projects
-  root (private identity state only; no refs, no worktree changes).
+2. **Hubnot is the authority for signed collaboration facts.** The `hn` binary, resolved by `src/lib/hn/runner.ts`, is the canonical writer and reader of signed events for issues, discussions, proposals, checks, and memories. Workbox routes collaboration writes through Hubnot and consults its visibility snapshot (`hn log --visible --json`) while indexing (`src/lib/workbox/index.ts`).
 
-## Installation
+3. **The Workbox index is rebuildable.** The SQLite read model (`.workbox/index.db`, opened by `src/lib/workbox/db.ts`, path overridable with `WORKBOX_DB_PATH`) is a cache projected from Git. It can be deleted and rebuilt at any time; `src/lib/workbox/index.ts` reconciles the projection against the live refs and discards stale rows. Verification happens per event at read time, so a cached row's verification result is never trusted second-hand.
 
-### Debian and Ubuntu (preferred)
+4. **GitHub is a migration source.** Third-party history enters through the migration surface (`src/lib/workbox/migrations.ts`, `src/components/migration-form.tsx`, `src/lib/workbox/github-pull-requests.ts`) as reviewed, session-tracked imports with explicit provenance. GitHub is never treated as an authority for Workbox collaboration facts, and imported records do not override Git or Hubnot state.
 
-Workbox will use the same signed [Kinetic Actor package archive](https://packages.kinetic.actor/)
-as Hubnot. If you already install Hubnot from this archive, skip the setup.
-Otherwise, add the archive once.
+Earlier documentation described the SQLite database as a collaboration record. That guidance is retired; [docs/development-and-acceptance.md](docs/development-and-acceptance.md) is the current contract, and `CODEX-BRIEF.md` has been updated in place to match.
 
-```sh
-sudo apt update
-sudo apt install ca-certificates curl
-sudo install -d -m 0755 /etc/apt/keyrings
-curl -fsSL https://packages.kinetic.actor/kinetic-actor-archive-keyring.gpg | sudo tee /etc/apt/keyrings/kinetic-actor.gpg > /dev/null
-sudo chmod 0644 /etc/apt/keyrings/kinetic-actor.gpg
-echo 'deb [signed-by=/etc/apt/keyrings/kinetic-actor.gpg] https://packages.kinetic.actor/ ./' | sudo tee /etc/apt/sources.list.d/kinetic-actor.list
-```
+## Getting started
 
-The Workbox package is pending publication. Once it appears in the archive, install it with APT.
+- Prerequisites: Node.js with npm, Git, and a Hubnot binary (`WORKBOX_HN_BIN` is used by test suites; the app resolves the installed binary through `src/lib/hn/runner.ts`).
+- Projects root: `WORKBOX_PROJECTS_ROOT`, default `projects/` under the working directory. Discovery (`src/lib/workbox/discover.ts`) qualifies Git repositories that carry Hubnot signed refs, with skip and naming overrides from `workbox.registry.json`.
+- Index database: `.workbox/index.db` by default, overridable with `WORKBOX_DB_PATH`.
+- Demo seeding: `scripts/seed-demo.sh` and `scripts/seed-round2.sh` drive the real `hn` CLI to build a signed demo repository.
 
-```sh
-sudo apt update
-sudo apt install workbox
-```
+For development commands and the acceptance contract, see [docs/development-and-acceptance.md](docs/development-and-acceptance.md).
 
-### Running from source
+## Documentation
 
-```bash
-go build -o /tmp/hn .            # in ~/projects/hubnot (nogithub tag also fine)
-npm install
-npx tsx scripts/index.ts         # WORKBOX_PROJECTS_ROOT=~/projects
-npm run dev                      # then Sync → /api/sync or run scripts/index.ts
-```
+- [docs/development-and-acceptance.md](docs/development-and-acceptance.md) - authority model, supported commands, test map, and the retired-guidance record.
+- [docs/automatic-proposal-checks.md](docs/automatic-proposal-checks.md) and [docs/automatic-proposal-checks-contract.md](docs/automatic-proposal-checks-contract.md) - automatic proposal checks.
+- [docs/native-collaboration-qualification.md](docs/native-collaboration-qualification.md) - native collaboration qualification.
+- [AGENTS.md](AGENTS.md) - repository agent rules (pinned Next.js guidance and workflow orientation).
 
-Environment: `WORKBOX_PROJECTS_ROOT` (projects scan root),
-`WORKBOX_HN_BIN` (hn binary path), `WORKBOX_DB_PATH` (read-model path).
+## Repository map
 
-## hn CLI laws (learned live, 2026-11-11)
-
-1. **Flags precede free text.** `"Title" --json` refuses: every flag must
-   come before positional arguments.
-2. **`--expect` always requires the full issue head.** `hn issue heads ID
-   --json` → `data.items[0].id` is the revision. Short or wrong revs
-   refuse.
-3. **Close is a revise.** `issue close` appends an `issue.revise` event
-   with `"intent":"close"` carrying full issue state, with `previous`
-   linking the chain.
-4. **Resource id invariant**: an issue's id equals its opening event id.
-5. **Init is inert**: `hn init` writes only `.git/hn/identities/` — no
-   refs, no worktree changes. External pointer worktrees cannot be
-   inited; their primary covers them.
-
-## Known generation drift (handled)
-
-Events from 2026-09 (hubnot repo itself) carry issue payloads flat;
-2026-11 events nest them under `"issue"`. The projector accepts both.
+- `src/app/` - Next.js pages and API routes: dashboard (`src/app/page.tsx`), explore, and per-project views for branches, CI, code, discussions, insights, issues, memories, proposals, pull requests, and settings (including `settings/migrations`).
+- `src/lib/workbox/` - read model and services: indexing (`index.ts`, `db.ts`), discovery (`discover.ts`), issues, discussions, proposals, pipelines, settings, and migrations (`migrations.ts`).
+- `src/lib/hn/` - Hubnot process runner (`runner.ts`), Git ref readers (`gitread.ts`), and signature verifier (`verifier.ts`).
+- `mcp/` - MCP server exposing the same functionality over HTTP and stdio.
+- `tests/` - Node test runner suites (`node --import tsx --test tests/<name>.test.ts`).
+- `scripts/` - operational helpers: indexing (`scripts/index.ts`), MCP self-test (`scripts/mcp-selftest.sh`), demo seeding, and activity proofs.
