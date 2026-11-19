@@ -10,8 +10,6 @@ const PATCH_BYTES = 128 * 1024;
 const TIMEOUT_MS = 3_000;
 const ATTRIBUTE_LIST_BYTES = 4 * 1024 * 1024;
 
-const ATTRIBUTE_FILE_PATHS = ['.gitattributes', ':(glob)**/.gitattributes'];
-
 export interface ProposalChangedFile {
   path: string;
   previousPath?: string;
@@ -32,10 +30,6 @@ export interface ProposalComparison {
 interface AttributeContext {
   gitDir: string;
   workTree: string;
-}
-
-function debug(message: string) {
-  process.stderr.write(`[wb-proposal-debug] ${message}\n`);
 }
 
 function runGit(
@@ -83,7 +77,6 @@ function runGit(
   if ((result.error as NodeJS.ErrnoException | undefined)?.code === 'ENOBUFS') {
     return { output: result.stdout.subarray(0, maxBuffer), truncated: true };
   }
-  debug(`git ${command.join(' ')} failed status=${String(result.status)} signal=${String(result.signal)} err=${String(result.stderr ?? '').slice(0, 800)}`);
   return undefined;
 }
 
@@ -124,14 +117,13 @@ function parseFiles(output: Buffer) {
 
 /**
  * Historical comparisons must not read attributes from the mutable
- * checkout, where a later `gitattributes` edit (or a replacement ref) can
+ * checkout, where a later `.gitattributes` edit (or a replacement ref) can
  * silently turn a text patch into a binary/zero-stat result. Materialize
  * the reviewed head tree's attribute files in a private work tree and run
  * every attribute-sensitive command there. Any failure to resolve that
  * hermetic source fails closed with `unavailable`.
  */
 function resolveAttributeContext(repoPath: string, tree: string): AttributeContext | null {
-  debug(`node=${process.version} git=${String(spawnSync('git', ['--version'], { encoding: 'utf8' }).stdout ?? '').trim()}`);
   const gitDirResult = runGit(repoPath, ['rev-parse', '--absolute-git-dir'], 4096);
   if (!gitDirResult || gitDirResult.truncated) return null;
   const gitDir = gitDirResult.output.toString('utf8').trim();
@@ -139,8 +131,11 @@ function resolveAttributeContext(repoPath: string, tree: string): AttributeConte
 
   const root = mkdtempSync(join(tmpdir(), 'workbox-proposal-attrs-'));
   try {
+    // Enumerate the reviewed tree without pathspec magic. Git 2.39 does not
+    // accept `:(glob)` for ls-tree, and a silent failure here would turn a
+    // valid text comparison into an unavailable or binary result.
     const listing = runGit(repoPath, [
-      'ls-tree', '-r', '-z', '--full-tree', tree, '--', ...ATTRIBUTE_FILE_PATHS,
+      'ls-tree', '-r', '-z', '--full-tree', tree,
     ], ATTRIBUTE_LIST_BYTES);
     if (!listing || listing.truncated) throw new Error('attribute tree unavailable');
 
@@ -150,11 +145,9 @@ function resolveAttributeContext(repoPath: string, tree: string): AttributeConte
       if (tab === -1) throw new Error('malformed attribute entry');
       const [mode, type] = record.slice(0, tab).split(' ');
       const path = record.slice(tab + 1);
+      if (path !== '.gitattributes' && !path.endsWith('/.gitattributes')) continue;
       if (type !== 'blob' || (mode !== '100644' && mode !== '100755')) {
         throw new Error('unsupported attribute entry');
-      }
-      if (path !== '.gitattributes' && !path.endsWith('/.gitattributes')) {
-        throw new Error('unexpected attribute path');
       }
       const parts = path.split('/');
       if (
@@ -172,8 +165,7 @@ function resolveAttributeContext(repoPath: string, tree: string): AttributeConte
     }
 
     return { gitDir, workTree: root };
-  } catch (error) {
-    debug(`attribute context failed: ${String(error)}`);
+  } catch {
     rmSync(root, { recursive: true, force: true });
     return null;
   }
