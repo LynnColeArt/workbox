@@ -32,7 +32,7 @@ export type ParseResult =
   | { ok: false; error: WorkboxAddressError };
 
 const PROJECT_ID = /^[A-Za-z0-9._-]+$/;
-const FULL_ID = /^[a-f0-9]{64}$/;
+const PROPOSAL_ID = /^(?:sha256:)?([a-f0-9]{64})$/;
 
 function ok(target: WorkboxAddressTarget): ParseResult {
   return { ok: true, target };
@@ -173,6 +173,9 @@ export function parseWorkboxAddress(input: string): ParseResult {
   if (!PROJECT_ID.test(projectId)) {
     return fail("invalid_address", "Project IDs may contain letters, digits, dots, dashes, and underscores.");
   }
+  if (projectId === "." || projectId === "..") {
+    return fail("invalid_address", "Project IDs cannot be dot segments.");
+  }
   if (segments.length === 2) {
     if (query.toString()) return fail("invalid_address", "Project addresses do not accept query parameters.");
     return ok({ kind: "project", uri: `workbox://project/${projectId}`, href: `/p/${encodeURIComponent(projectId)}`, projectId });
@@ -232,8 +235,9 @@ export function parseWorkboxAddress(input: string): ParseResult {
       return ok({ kind: "proposals", uri: `workbox://project/${projectId}/proposals`, href: `/p/${encodeURIComponent(projectId)}/proposals`, projectId });
     }
     if (segments.length === 4) {
-      const candidateId = segments[3];
-      if (!FULL_ID.test(candidateId)) return fail("invalid_address", "Proposal addresses use the full 64-character candidate ID.");
+      const proposalId = PROPOSAL_ID.exec(segments[3]);
+      if (!proposalId) return fail("invalid_address", "Proposal addresses use the full 64-character candidate ID.");
+      const candidateId = proposalId[1];
       const unknown = unknownQueryKey(query, ["mode"]);
       if (unknown) return fail("invalid_address", `Unsupported proposal parameter '${unknown}'.`);
       const modeRaw = query.get("mode");

@@ -2,8 +2,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { parseWorkboxAddress } from "@/lib/workbox/address";
 
-export const instant = false;
-
 export default async function OpenAddressPage({
   searchParams,
 }: {
