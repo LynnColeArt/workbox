@@ -12,7 +12,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body>
         <header className="border-b" style={{ borderColor: "var(--wb-border)", background: "var(--wb-panel)" }}>
-          <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3">
+          <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-4 px-4 py-3">
             <Link href="/" className="flex items-center gap-2" style={{ color: "var(--wb-text)" }}>
               <span aria-hidden className="inline-block h-4 w-4 rounded-sm" style={{ background: "var(--wb-accent)" }} />
               <span className="font-semibold tracking-tight">Workbox</span>
@@ -22,7 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/explore" className="wb-link">Explore</Link>
               <span className="wb-muted">Identities</span>
             </nav>
-            <div className="ml-auto wb-muted text-xs">a communal room for hubnot projects</div>
+            <div className="ml-auto hidden wb-muted text-xs sm:block">a communal room for hubnot projects</div>
           </div>
         </header>
         {children}
