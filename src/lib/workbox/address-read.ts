@@ -57,8 +57,13 @@ export async function readWorkboxResource(db: DatabaseSync, input: string): Prom
     const project = getProject(db, target.projectId);
     if (!project) return { ok: false, error: { code: "not_found", message: "Project unavailable." } };
     switch (target.kind) {
-      case "project":
-        return { ok: true, target, data: projectOverview(db, project.id) };
+      case "project": {
+        const overview = projectOverview(db, project.id);
+        if (!overview) return { ok: false, error: { code: "not_found", message: "Project unavailable." } };
+        // The internal overview includes the local repo path; expose only public fields.
+        const { id, name, description, actorCount, eventCount, verifiedCount, openIssues, totalIssues, lastEventAt } = overview;
+        return { ok: true, target, data: { id, name, description, actorCount, eventCount, verifiedCount, openIssues, totalIssues, lastEventAt } };
+      }
       case "code":
         return { ok: true, target, data: readCode(db, project.id, target.query as CodeQuery) };
       case "issues":
