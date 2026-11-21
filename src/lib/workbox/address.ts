@@ -165,7 +165,8 @@ export function parseWorkboxAddress(input: string): ParseResult {
     return ok({ kind: "explore", uri: exploreUri(target), href: exploreHref(target), query: target });
   }
 
-  if (segments[0] !== "project" || segments.length < 2) {
+  const isProjectAlias = segments[0] === "projects" && segments.length === 2;
+  if ((!isProjectAlias && segments[0] !== "project") || segments.length < 2) {
     return fail("unsupported", "Supported addresses: workbox://dashboard, workbox://explore, and workbox://project/<id>.");
   }
 
@@ -236,8 +237,8 @@ export function parseWorkboxAddress(input: string): ParseResult {
     }
     if (segments.length === 4) {
       const proposalId = PROPOSAL_ID.exec(segments[3]);
-      if (!proposalId) return fail("invalid_address", "Proposal addresses use the full 64-character candidate ID.");
-      const candidateId = proposalId[1];
+      if (!proposalId) return fail("invalid_address", "Proposal addresses use a full sha256 candidate ID (64 hexadecimal digits).");
+      const candidateId = `sha256:${proposalId[1]}`;
       const unknown = unknownQueryKey(query, ["mode"]);
       if (unknown) return fail("invalid_address", `Unsupported proposal parameter '${unknown}'.`);
       const modeRaw = query.get("mode");
