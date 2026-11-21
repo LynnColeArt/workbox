@@ -51,10 +51,10 @@ function decodeSegment(segment: string): string | null {
   }
 }
 
-function queryString(entries: Record<string, string | number | undefined>): string {
+function queryString(entries: Record<string, string | number | undefined>, preserveEmptyKey?: string): string {
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(entries)) {
-    if (value === undefined || value === "") continue;
+    if (value === undefined || (value === "" && key !== preserveEmptyKey)) continue;
     params.set(key, String(value));
   }
   const text = params.toString();
@@ -163,9 +163,10 @@ export function parseWorkboxAddress(input: string): ParseResult {
     }
     const day = query.get("day")?.trim() || undefined;
     if (day !== undefined && !/^\d{4}-\d{2}-\d{2}$/.test(day)) return fail("invalid_address", "Explore day must be YYYY-MM-DD.");
-    const snapshot = query.get("snapshot") || undefined;
+    // An empty snapshot is stale, not an unpinned read.
+    const snapshot = query.get("snapshot") ?? undefined;
     const target: WorkboxExploreQuery = { q, sort, page, day, ...(snapshot === undefined ? {} : { snapshot }) };
-    const suffix = queryString({ ...target });
+    const suffix = queryString({ ...target }, "snapshot");
     return ok({ kind: "explore", uri: `workbox://explore${suffix}`, href: `/explore${suffix}`, query: target });
   }
 
