@@ -23,6 +23,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <span className="wb-muted">Identities</span>
             </nav>
             <div className="ml-auto hidden wb-muted text-xs sm:block">a communal room for hubnot projects</div>
+            <form action="/open" method="get" role="search" aria-label="Open a workbox address" className="flex w-full min-w-0 items-center gap-2 text-sm sm:ml-auto sm:w-auto">
+              <label className="sr-only" htmlFor="open-address">Open address</label>
+              <input
+                id="open-address"
+                name="address"
+                placeholder="workbox://…"
+                className="min-w-0 flex-1 rounded border border-[var(--wb-border)] bg-transparent px-2 py-1 text-xs sm:w-40 sm:flex-none"
+              />
+              <button type="submit" className="wb-btn shrink-0 !py-1 !text-xs">Open</button>
+            </form>
           </div>
         </header>
         {children}
