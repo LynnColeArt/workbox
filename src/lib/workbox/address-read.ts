@@ -1,7 +1,7 @@
 import type { DatabaseSync } from "node:sqlite";
 import { getProject, listProjects, projectOverview } from "./queries";
 import { readDashboard } from "./dashboard";
-import { readExplore, type ExploreQuery } from "./explore";
+import { readExplore } from "./explore";
 import { readCode, type CodeQuery } from "./code-browser";
 import { issueResult, readIssueDetail, readIssueList } from "./issues";
 import { listProposalLineages, resolveProposalDetail } from "./proposal-detail";
@@ -53,7 +53,7 @@ export async function readWorkboxResource(db: DatabaseSync, input: string): Prom
   const target = parsed.target;
   try {
     if (target.kind === "dashboard") return { ok: true, target, data: readDashboard(db) };
-    if (target.kind === "explore") return { ok: true, target, data: readExplore(db, target.query as ExploreQuery) };
+    if (target.kind === "explore") return { ok: true, target, data: readExplore(db, target.query) };
     const project = getProject(db, target.projectId);
     if (!project) return { ok: false, error: { code: "not_found", message: "Project unavailable." } };
     switch (target.kind) {
@@ -69,7 +69,10 @@ export async function readWorkboxResource(db: DatabaseSync, input: string): Prom
       case "issues":
         return { ok: true, target, data: issueResult(await readIssueList(project, { action: "list", status: "all", limit: 50 })) };
       case "issue":
-        return { ok: true, target, data: issueResult(await readIssueDetail(project, { action: "detail", issueId: Number(target.selector), limit: 50 })) };
+        // Continue comments by passing the response's nextCursor as ?cursor=.
+        return { ok: true, target, data: issueResult(await readIssueDetail(project, {
+          action: "detail", issueId: Number(target.selector), limit: 50, cursor: target.cursor,
+        })) };
       case "proposals":
         return { ok: true, target, data: await listProposalLineages(db, project, 0) };
       case "proposal":

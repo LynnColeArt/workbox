@@ -3,6 +3,7 @@ export interface WorkboxExploreQuery {
   sort?: "recent" | "alpha";
   page?: number;
   day?: string;
+  snapshot?: string;
 }
 
 export interface WorkboxCodeQuery {
@@ -18,7 +19,7 @@ export type WorkboxAddressTarget =
   | { kind: "project"; uri: string; href: string; projectId: string }
   | { kind: "code"; uri: string; href: string; projectId: string; query: WorkboxCodeQuery }
   | { kind: "issues"; uri: string; href: string; projectId: string }
-  | { kind: "issue"; uri: string; href: string; projectId: string; selector: string }
+  | { kind: "issue"; uri: string; href: string; projectId: string; selector: string; cursor?: string }
   | { kind: "proposals"; uri: string; href: string; projectId: string }
   | { kind: "proposal"; uri: string; href: string; projectId: string; candidateId: string; mode: "exact" | "lineage" };
 
@@ -60,14 +61,6 @@ function queryString(entries: Record<string, string | number | undefined>): stri
   return text ? `?${text}` : "";
 }
 
-function exploreHref(query: WorkboxExploreQuery): string {
-  return `/explore${queryString({ q: query.q, sort: query.sort, page: query.page, day: query.day })}`;
-}
-
-function exploreUri(query: WorkboxExploreQuery): string {
-  return `workbox://explore${queryString({ q: query.q, sort: query.sort, page: query.page, day: query.day })}`;
-}
-
 function codeHref(projectId: string, query: WorkboxCodeQuery): string {
   return `/p/${encodeURIComponent(projectId)}/code${queryString({ rev: query.rev, at: query.at, path: query.path, commit: query.commit })}`;
 }
@@ -76,8 +69,17 @@ function codeUri(projectId: string, query: WorkboxCodeQuery): string {
   return `workbox://project/${projectId}/code${queryString({ rev: query.rev, at: query.at, path: query.path, commit: query.commit })}`;
 }
 
-function issueHref(projectId: string, selector: string): string {
-  return `/p/${encodeURIComponent(projectId)}/issue/${encodeURIComponent(selector)}`;
+function issueAddress(projectId: string, selector: string, query: URLSearchParams): ParseResult {
+  const unknown = unknownQueryKey(query, ["cursor"]);
+  if (unknown) return fail("invalid_address", `Unsupported issue parameter '${unknown}'.`);
+  const cursor = query.get("cursor") || undefined;
+  const suffix = queryString({ cursor });
+  return ok({
+    kind: "issue", projectId, selector,
+    ...(cursor === undefined ? {} : { cursor }),
+    uri: `workbox://project/${projectId}/issues/${selector}${suffix}`,
+    href: `/p/${encodeURIComponent(projectId)}/issue/${encodeURIComponent(selector)}${suffix}`,
+  });
 }
 
 function proposalHref(projectId: string, candidateId: string, mode: "exact" | "lineage"): string {
@@ -144,7 +146,7 @@ export function parseWorkboxAddress(input: string): ParseResult {
   }
 
   if (segments.length === 1 && segments[0] === "explore") {
-    const unknown = unknownQueryKey(query, ["q", "sort", "page", "day"]);
+    const unknown = unknownQueryKey(query, ["q", "sort", "page", "day", "snapshot"]);
     if (unknown) return fail("invalid_address", `Unsupported explore parameter '${unknown}'.`);
     const q = query.get("q")?.trim() || undefined;
     const sortRaw = query.get("sort");
@@ -161,8 +163,10 @@ export function parseWorkboxAddress(input: string): ParseResult {
     }
     const day = query.get("day")?.trim() || undefined;
     if (day !== undefined && !/^\d{4}-\d{2}-\d{2}$/.test(day)) return fail("invalid_address", "Explore day must be YYYY-MM-DD.");
-    const target: WorkboxExploreQuery = { q, sort, page, day };
-    return ok({ kind: "explore", uri: exploreUri(target), href: exploreHref(target), query: target });
+    const snapshot = query.get("snapshot") || undefined;
+    const target: WorkboxExploreQuery = { q, sort, page, day, ...(snapshot === undefined ? {} : { snapshot }) };
+    const suffix = queryString({ ...target });
+    return ok({ kind: "explore", uri: `workbox://explore${suffix}`, href: `/explore${suffix}`, query: target });
   }
 
   const isProjectAlias = segments[0] === "projects" && segments.length === 2;
@@ -186,31 +190,22 @@ export function parseWorkboxAddress(input: string): ParseResult {
   if (section === "memory") return fail("retired", "Memory addresses are retired; memory reads are not part of the native address scheme.");
   if (section === "pipelines") return fail("unsupported", "Pipeline addresses are not supported by the shared resolver.");
 
-  if (section === "issues") {
+  if (section === "issues" && segments.length === 3) {
     if (query.toString()) return fail("invalid_address", "Issue addresses do not accept query parameters.");
-    if (segments.length === 3) {
-      return ok({ kind: "issues", uri: `workbox://project/${projectId}/issues`, href: `/p/${encodeURIComponent(projectId)}/issues`, projectId });
-    }
-    if (segments.length === 4) {
-      const selector = issueSelector(segments[3]);
-      if (!selector) return fail("invalid_address", "Issue addresses use the stable issue number.");
-      return ok({ kind: "issue", uri: `workbox://project/${projectId}/issues/${selector}`, href: issueHref(projectId, selector), projectId, selector });
-    }
+    return ok({ kind: "issues", uri: `workbox://project/${projectId}/issues`, href: `/p/${encodeURIComponent(projectId)}/issues`, projectId });
   }
 
-  if (section === "issue" && segments.length === 4) {
-    if (query.toString()) return fail("invalid_address", "Issue addresses do not accept query parameters.");
+  if ((section === "issues" || section === "issue") && segments.length === 4) {
     const selector = issueSelector(segments[3]);
     if (!selector) return fail("invalid_address", "Issue addresses use the stable issue number.");
-    return ok({ kind: "issue", uri: `workbox://project/${projectId}/issues/${selector}`, href: issueHref(projectId, selector), projectId, selector });
+    return issueAddress(projectId, selector, query);
   }
 
   if (section === "task" && segments.length === 4) {
-    if (query.toString()) return fail("invalid_address", "Task addresses do not accept query parameters.");
     const legacy = /^WP-(\d+)$/.exec(segments[3]);
     const selector = legacy ? issueSelector(legacy[1]) : null;
     if (!selector) return fail("invalid_address", "Legacy task addresses use task/WP-<number>.");
-    return ok({ kind: "issue", uri: `workbox://project/${projectId}/issues/${selector}`, href: issueHref(projectId, selector), projectId, selector });
+    return issueAddress(projectId, selector, query);
   }
 
   if (section === "code" && segments.length === 3) {
