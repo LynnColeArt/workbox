@@ -7,7 +7,7 @@ import test, { type TestContext } from "node:test";
 import { HN_BIN } from "../src/lib/hn/runner";
 import { navigateWorkboxAddress } from "../src/lib/workbox/address-read";
 import { openDb } from "../src/lib/workbox/db";
-import { resolveProposalDetail, type ProposalDetail } from "../src/lib/workbox/proposal-detail";
+import { resolveProposalDetail } from "../src/lib/workbox/proposal-detail";
 import { getProject } from "../src/lib/workbox/queries";
 import { listResources, readResource } from "../mcp/resources";
 
@@ -75,6 +75,15 @@ test("follows a deep link to a visible signed candidate and reads the same revis
 }, async (t) => {
   const { db, repo, git, hn } = fixture(t);
   hn("init", "--name", "Proposal Fixture");
+  const { actor } = JSON.parse(hn("identity", "show", "--json")).data as { actor: string };
+  mkdirSync(join(repo, ".hn"), { recursive: true });
+  writeFileSync(join(repo, ".hn", "policy.json"), JSON.stringify({
+    version: "hn.policy/0",
+    maintainers: [actor],
+    proposals: { requiredApprovals: 1, requiredAccepts: 1, trustedReviewers: [actor], allowAuthorApproval: true },
+  }));
+  git("add", ".hn/policy.json");
+  git("commit", "-qm", "Commit proposal policy");
   const base = git("rev-parse", "HEAD");
   git("switch", "-qc", "topic");
   writeFileSync(join(repo, "README.md"), "signed revision\n");
@@ -98,13 +107,12 @@ test("follows a deep link to a visible signed candidate and reads the same revis
   const [, , projectId, , candidate] = new URL(navigation.data.href, "http://localhost").pathname.split("/");
   const project = getProject(db, decodeURIComponent(projectId));
   assert.ok(project);
-  const browser = await resolveProposalDetail(db, project, decodeURIComponent(candidate));
-  assert.equal(browser.kind, "candidate");
-  assert.deepEqual({ id: browser.candidate.id, base: browser.candidate.base, head: browser.candidate.head, title: browser.candidate.title },
+  const detail = await resolveProposalDetail(db, project, decodeURIComponent(candidate));
+  assert.equal(detail.kind, "candidate");
+  assert.deepEqual({ id: detail.candidate.id, base: detail.candidate.base, head: detail.candidate.head, title: detail.candidate.title },
     { id, base, head, title });
 
   const resource = await readResource(db, navigation.data.uri);
-  const mcp = JSON.parse(resource.text) as ProposalDetail;
-  assert.deepEqual(mcp, browser);
+  assert.deepEqual(JSON.parse(resource.text), detail);
   assert.equal(git("show-ref"), before, "deep-link reads must not change Git refs");
 });
