@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawn } from "node:child_process";
+import { once } from "node:events";
 import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -27,10 +28,67 @@ function fixture(t: TestContext) {
   writeFileSync(join(repo, "README.md"), "hello");
   git("add", "-A");
   git("commit", "-qm", "Initial");
-  const db = openDb(join(root, "index.sqlite"));
+  const dbPath = join(root, "index.sqlite");
+  const db = openDb(dbPath);
   t.after(() => db.close());
   db.prepare("INSERT INTO projects (id, name, repo_path) VALUES (?, ?, ?)").run("workbox-demo", "Demo", repo);
-  return { db, repo, git, hn };
+  return { db, dbPath, env, repo, git, hn };
+}
+
+async function startWebFixture(env: NodeJS.ProcessEnv, signal: AbortSignal) {
+  // Core checks run tests before building, so serve the real routes in dev mode.
+  const child = spawn(process.execPath, [
+    resolve("node_modules/next/dist/bin/next"), "dev", "--hostname", "127.0.0.1", "--port", "0",
+  ], { env: { ...env, NEXT_TELEMETRY_DISABLED: "1" } });
+  let output = "";
+  const stop = async () => {
+    if (child.exitCode !== null || child.signalCode !== null || !child.pid) return;
+    const closed = once(child, "close");
+    child.kill();
+    await closed;
+  };
+  try {
+    const origin = await new Promise<string>((accept, reject) => {
+      const timer = setTimeout(() => reject(new Error(`Workbox startup timed out.\n${output}`)), 20_000);
+      child.once("error", error => { clearTimeout(timer); reject(error); });
+      child.once("exit", code => { clearTimeout(timer); reject(new Error(`Workbox exited with ${code}.\n${output}`)); });
+      function capture(chunk: Buffer) {
+        output += chunk;
+        const url = output.match(/http:\/\/127\.0\.0\.1:\d+/)?.[0];
+        if (url && output.includes("Ready in")) { clearTimeout(timer); accept(url); }
+      }
+      child.stdout.on("data", capture);
+      child.stderr.on("data", capture);
+    });
+    return { origin, stop, signal };
+  } catch (error) {
+    await stop();
+    throw error;
+  }
+}
+
+async function openProposalOverHttp(origin: string, uri: string, href: string, signal: AbortSignal) {
+  const response = await fetch(`${origin}/open?${new URLSearchParams({ address: uri })}`, {
+    redirect: "manual", signal,
+  });
+  let location: string | null;
+  if (response.status === 200) {
+    // If the page has begun streaming, Next emits a browser meta refresh.
+    const html = (await response.text()).replace(/<script[^>]*>[\s\S]*?<\/script>/g, "");
+    location = html.match(/<meta\b[^>]*http-equiv="refresh"[^>]*content="\d+;url=([^"]+)"/i)?.[1] ?? null;
+  } else {
+    assert.equal(response.status, 307, "expected an /open redirect");
+    location = response.headers.get("location");
+    await response.body?.cancel();
+  }
+  assert.ok(location, "expected /open to send a redirect target");
+  const target = new URL(location, response.url);
+  assert.equal(target.href, origin + href);
+  const page = await fetch(target, { redirect: "manual", signal });
+  assert.equal(page.status, 200, "expected the canonical proposal page");
+  const html = (await page.text()).replace(/<script[^>]*>[\s\S]*?<\/script>/g, "");
+  const fields = [...html.matchAll(/<dt[^>]*>(Candidate ID|Base commit|Head commit)<\/dt>\s*<dd>\s*<code[^>]*>([^<]+)<\/code>\s*<\/dd>/g)];
+  return Object.fromEntries(fields.map(([, label, value]) => [label, value]));
 }
 
 test("advertises native addresses and retires memory and pipeline resources", (t) => {
@@ -69,11 +127,11 @@ test("rejects retired memory addresses and unknown resources", async (t) => {
   await assert.rejects(readResource(db, "workbox://project/missing"), /not_found/);
 });
 
-test("follows a deep link to a visible signed candidate and reads the same revision over MCP", {
+test("follows /open over HTTP to a visible signed candidate and reads the same revision over MCP", {
   skip: !existsSync(resolve(HN_BIN)) && "Set WORKBOX_HN_BIN to a Hubnot binary",
-  timeout: 30_000,
+  timeout: 90_000,
 }, async (t) => {
-  const { db, repo, git, hn } = fixture(t);
+  const { db, dbPath, env, repo, git, hn } = fixture(t);
   hn("init", "--name", "Proposal Fixture");
   const { actor } = JSON.parse(hn("identity", "show", "--json")).data as { actor: string };
   mkdirSync(join(repo, ".hn"), { recursive: true });
@@ -96,6 +154,7 @@ test("follows a deep link to a visible signed candidate and reads the same revis
   const id = `sha256:${digest}`;
   // Move the branch so the read must still identify the signed head, not the tip.
   git("commit", "--allow-empty", "-qm", "Move topic after signing");
+  assert.notEqual(git("rev-parse", "topic"), head);
   const before = git("show-ref");
 
   const uri = `workbox://project/workbox-demo/proposals/${id}`;
@@ -103,16 +162,22 @@ test("follows a deep link to a visible signed candidate and reads the same revis
   assert.ok(navigation.ok);
   assert.equal(navigation.data.uri, uri);
   assert.equal(navigation.data.href, `/p/workbox-demo/proposals/sha256%3A${digest}`);
-  // Follow the browser target through the same exact-detail service as the page.
-  const [, , projectId, , candidate] = new URL(navigation.data.href, "http://localhost").pathname.split("/");
-  const project = getProject(db, decodeURIComponent(projectId));
+  const project = getProject(db, "workbox-demo");
   assert.ok(project);
-  const detail = await resolveProposalDetail(db, project, decodeURIComponent(candidate));
+  const detail = await resolveProposalDetail(db, project, id);
   assert.equal(detail.kind, "candidate");
   assert.deepEqual({ id: detail.candidate.id, base: detail.candidate.base, head: detail.candidate.head, title: detail.candidate.title },
     { id, base, head, title });
 
-  const resource = await readResource(db, navigation.data.uri);
+  const resource = await readResource(db, uri);
   assert.deepEqual(JSON.parse(resource.text), detail);
+  const server = await startWebFixture({ ...env, WORKBOX_DB_PATH: dbPath, WORKBOX_HN_BIN: resolve(HN_BIN) }, t.signal);
+  try {
+    assert.deepEqual(await openProposalOverHttp(server.origin, uri, navigation.data.href, server.signal), {
+      "Candidate ID": id, "Base commit": base, "Head commit": head,
+    });
+  } finally {
+    await server.stop();
+  }
   assert.equal(git("show-ref"), before, "deep-link reads must not change Git refs");
 });
