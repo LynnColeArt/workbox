@@ -46,6 +46,8 @@ test("parses dashboard, explore, and project addresses into canonical links", ()
   assert.equal(target("workbox://explore?q=box&sort=alpha&page=2&day=2026-01-02").href,
     "/explore?q=box&sort=alpha&page=2&day=2026-01-02");
   assert.equal(target("workbox://project/workbox-demo").href, "/p/workbox-demo");
+  assert.deepEqual(target("workbox://projects/firewalker/"), target("workbox://project/firewalker"));
+  assert.equal(target("workbox://projects/firewalker/").href, "/p/firewalker");
 });
 
 test("parses code, issue, and proposal addresses, including legacy task links", () => {
@@ -65,10 +67,15 @@ test("parses code, issue, and proposal addresses, including legacy task links", 
   assert.deepEqual(target("workbox://project/workbox-demo/task/WP-12"), issue);
 
   assert.equal(target("workbox://project/workbox-demo/proposals").href, "/p/workbox-demo/proposals");
-  const id = "a".repeat(64);
-  const proposal = target(`workbox://project/workbox-demo/proposals/${id}?mode=lineage`);
-  assert.equal(proposal.kind, "proposal");
-  assert.equal(proposal.href, `/p/workbox-demo/proposals/${id}?mode=lineage`);
+  const digest = "a".repeat(64);
+  const id = `sha256:${digest}`;
+  for (const input of [id, encodeURIComponent(id), digest]) {
+    assert.deepEqual(target(`workbox://project/workbox-demo/proposals/${input}?mode=lineage`), {
+      kind: "proposal", projectId: "workbox-demo", candidateId: id, mode: "lineage",
+      href: `/p/workbox-demo/proposals/sha256%3A${digest}?mode=lineage`,
+      uri: `workbox://project/workbox-demo/proposals/${id}?mode=lineage`,
+    });
+  }
 });
 
 test("rejects retired memory addresses, unsafe paths, and unknown schemes", () => {
@@ -78,11 +85,16 @@ test("rejects retired memory addresses, unsafe paths, and unknown schemes", () =
   assert.equal(failure("workbox://project/workbox-demo/issues/not-a-number").code, "invalid_address");
   assert.equal(failure("workbox://project/workbox-demo/proposals/short").code, "invalid_address");
   assert.equal(failure("workbox://project/../escape").code, "invalid_address");
+  assert.equal(failure("workbox://projects/%2e%2e/").code, "invalid_address");
+  assert.equal(failure("workbox://projects/firewalker/?mode=lineage").code, "invalid_address");
 });
 
 test("navigation checks the local projection without reading collaboration records", (t) => {
   const { db } = fixture(t);
   assert.equal(navigateWorkboxAddress(db, "workbox://project/workbox-demo/code").ok, true);
+  assert.deepEqual(navigateWorkboxAddress(db, "workbox://projects/workbox-demo/"), {
+    ok: true, data: { kind: "project", href: "/p/workbox-demo", uri: "workbox://project/workbox-demo" },
+  });
   const missing = navigateWorkboxAddress(db, "workbox://project/missing");
   assert.equal(missing.ok, false);
   if (missing.ok) throw new Error("unreachable");
